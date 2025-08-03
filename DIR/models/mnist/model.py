@@ -1,19 +1,27 @@
 import torch
 import torch.nn as nn
 import os
+from torchvision.transforms import ToTensor, Compose, Resize, Grayscale
 
-d = {
-    '0': 'zero',
-    '1': 'one',
-    '2': 'two',
-    '3': 'three',
-    '4': 'four',
-    '5': 'five',
-    '6': 'six',
-    '7': 'seven',
-    '8': 'eight',
-    '9': 'nine'
+
+IDX_TO_LABEL = {
+    0: 'zero',
+    1: 'one',
+    2: 'two',
+    3: 'three',
+    4: 'four',
+    5: 'five',
+    6: 'six',
+    7: 'seven',
+    8: 'eight',
+    9: 'nine',
 }
+
+TRANSFORM = Compose([
+    Resize((28, 28)),
+    Grayscale(num_output_channels=1),
+    ToTensor()
+])
 
 class mnistModel(nn.Module):
     def __init__(self):
@@ -38,13 +46,10 @@ class mnistModel(nn.Module):
         x = self.relu(x)
         x = self.dropout(x)
         x = self.fc2(x)
-
         return x
     
 def loadModel():
     model = mnistModel()
     model_path = os.path.join(os.path.dirname(__file__), 'best_model.pth')
     model.load_state_dict(torch.load(model_path))
-    # model.load_state_dict(torch.load('../DIR/models/mnist/best_model.pth'))
-
-    return model, list(model.modules())[0].conv2
+    return model, list(model.modules())[0].conv2, TRANSFORM, IDX_TO_LABEL

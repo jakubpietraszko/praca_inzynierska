@@ -1,18 +1,25 @@
 import torch
 import torch.nn as nn
+import os
+from torchvision.transforms import ToTensor, Compose, Resize
 
-d = {
-    '0': "tshirt",
-    '1': "trouser",
-    '2': "pullover",
-    '3': "dress",
-    '4': "coat",
-    '5': "sandal",
-    '6': "shirt",
-    '7': "sneaker",
-    '8': "bag",
-    '9': "boot"
+IDX_TO_LABEL = {
+    0: "tshirt",
+    1: "trouser",
+    2: "pullover",
+    3: "dress",
+    4: "coat",
+    5: "sandal",
+    6: "shirt",
+    7: "sneaker",
+    8: "bag",
+    9: "boot"
 }
+
+TRANSFORM = Compose([
+    Resize((28, 28)),
+    ToTensor()
+])
 
 class fashionMnistModel(nn.Module):
     def __init__(self):
@@ -42,6 +49,8 @@ class fashionMnistModel(nn.Module):
     
 def loadModel():
     model = fashionMnistModel()
-    model.load_state_dict(torch.load('../models/fashionMnist/best_model.pth'))
-
-    return model, list(model.modules())[0].conv2
+    model_path = os.path.join(
+        os.path.dirname(__file__), 'best_model.pth'
+    )
+    model.load_state_dict(torch.load(model_path))
+    return model, list(model.modules())[0].conv2, TRANSFORM, IDX_TO_LABEL

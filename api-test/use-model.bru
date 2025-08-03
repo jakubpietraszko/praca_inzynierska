@@ -6,8 +6,14 @@ meta {
 
 get {
   url: http://localhost:8000/use-model
-  body: none
+  body: json
   auth: inherit
+}
+
+body:json {
+  {
+    "model_name": "mnist"
+  }
 }
 
 settings {

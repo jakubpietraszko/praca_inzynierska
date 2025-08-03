@@ -1,0 +1,26 @@
+meta {
+  name: grad
+  type: http
+  seq: 9
+}
+
+get {
+  url: http://localhost:8000/heat-map/grad
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "model_name": "mnist",
+    "dataset_name": "mnist-dataset",
+    "label_name": "five",
+    "filename": "8.png",
+    "target_label": 5,
+    "normalize": false
+  }
+}
+
+settings {
+  encodeUrl: true
+}
