@@ -18,6 +18,8 @@ services:
       - "8001:8000"
     volumes:
       - ./DIR:/app/DIR
+    environment:
+      - APP_ENV=production
     
   frontend:
     container_name: frontend
@@ -30,15 +32,15 @@ services:
     ports:
       - "8000:80"
 
-  dir-handler:
-    container_name: dir-handler
-    build:
-      context: ./dir-handler
-      dockerfile: Dockerfile
-    networks:
-      my_network:
-        ipv4_address: 172.28.0.4
-    ports:
-      - "8002:8000"
-    volumes:
-      - ./DIR:/app/DIR
+  # dir-handler:
+  #   container_name: dir-handler
+  #   build:
+  #     context: ./dir-handler
+  #     dockerfile: Dockerfile
+  #   networks:
+  #     my_network:
+  #       ipv4_address: 172.28.0.4
+  #   ports:
+  #     - "8002:8000"
+  #   volumes:
+  #     - ./DIR:/app/DIR

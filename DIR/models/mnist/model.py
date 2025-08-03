@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import os
 
 d = {
     '0': 'zero',
@@ -42,6 +43,8 @@ class mnistModel(nn.Module):
     
 def loadModel():
     model = mnistModel()
-    model.load_state_dict(torch.load('../models/mnist/best_model.pth'))
+    model_path = os.path.join(os.path.dirname(__file__), 'best_model.pth')
+    model.load_state_dict(torch.load(model_path))
+    # model.load_state_dict(torch.load('../DIR/models/mnist/best_model.pth'))
 
     return model, list(model.modules())[0].conv2

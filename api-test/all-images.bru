@@ -1,0 +1,22 @@
+meta {
+  name: all-images
+  type: http
+  seq: 2
+}
+
+get {
+  url: http://localhost:8000/all-images
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "dataset": "mnist-dataset",
+    "label": "five"
+  }
+}
+
+settings {
+  encodeUrl: true
+}

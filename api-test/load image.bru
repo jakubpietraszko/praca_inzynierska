@@ -1,0 +1,21 @@
+meta {
+  name: load image
+  type: http
+  seq: 6
+}
+
+post {
+  url: http://localhost:8000/load-image
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "path": "mnist-dataset/five/8.png"
+  }
+}
+
+settings {
+  encodeUrl: true
+}

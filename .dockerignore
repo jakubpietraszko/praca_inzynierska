@@ -1,0 +1,11 @@
+node_modules
+venv
+.venv
+*.log
+*.pyc
+__pycache__/
+.git
+.DS_Store
+tmp/
+dist/
+build/
