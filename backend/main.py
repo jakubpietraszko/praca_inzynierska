@@ -12,6 +12,7 @@ from interfaces.requests.all_images import AllImagesRequest
 from interfaces.requests.use_model import UseModelRequest
 from interfaces.requests.use_dataset import UseDatasetRequest
 from interfaces.requests.grad import GradRequest
+from interfaces.requests.all_labels import AllLabelsRequest
 import importlib.util
 from torchvision.datasets import ImageFolder
 import torch
@@ -19,6 +20,7 @@ import numpy as np
 from PIL import Image
 import matplotlib.pyplot as plt
 import time
+
 
 
 ENV = os.getenv('APP_ENV', 'development')
@@ -156,12 +158,12 @@ def read_dataset():
     except FileNotFoundError:
         return {"error": "Dataset directory not found"}
     
-@app.get('/classes')
-def get_classes(request: PathRequest):
-    path = os.path.join(PATH_DATASETS, request.path)
+@app.post('/all-labels')
+def get_classes(request: AllLabelsRequest):
+    path = os.path.join(PATH_DATASETS, request.dataset)
     try:
         listOfClasses = [dir for dir in os.listdir(path)]
-        return ListOfStringsResponse(strings=listOfClasses)
+        return ListOfStringsResponse(labels=listOfClasses)
     except FileNotFoundError:
         return ErrorResponse(
             error="File not found",

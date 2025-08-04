@@ -3,9 +3,3 @@ mat-toolbar {
     justify-content: flex-start;
     gap: 5px;
 }
-
-button.active {
-  background-color: var(--mat-on-secondary);
-  color: var(--mat-on-secondary);
-  font-weight: bold;
-}

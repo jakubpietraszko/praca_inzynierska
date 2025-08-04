@@ -1,15 +1,18 @@
-<mat-toolbar color="primary">
-    <button mat-button *ngFor="let dataset of (datasets$ | async)?.datasets" (click)="selectDataset(dataset)">
-        {{ dataset }}
-    </button>
-</mat-toolbar>
+<ng-container *ngIf="datasets?.length; else noDatasets">
+    <mat-toolbar color="primary">
+        <button mat-button *ngFor="let dataset of datasets" (click)="selectDataset(dataset)"
+            [color]="selectedDataset === dataset ? 'accent' : undefined">
+            {{ dataset }}
+        </button>
+    </mat-toolbar>
+        <mat-toolbar color="accent" *ngIf="labels?.length">
+        <button mat-button *ngFor="let label of labels" (click)="selectLabel(label)"
+            [color]="selectedLabel === label ? 'primary' : undefined">
+            {{ label }}
+        </button>
+    </mat-toolbar>
+</ng-container>
 
-<div *ngIf="selectedDataset; else noDataset">
-    <h2>{{ selectedDataset }}</h2>
-</div>
-
-<ng-template #noDataset>
-    <div class="centered">
-        <p>Wybierz zbiór danych</p>
-    </div>
+<ng-template #noDatasets>
+    <div class="centered">No datasets</div>
 </ng-template>

@@ -4,15 +4,9 @@ mat-toolbar {
     gap: 5px;
 }
 
-button.active {
-  background-color: var(--mat-on-secondary);
-  color: var(--mat-on-secondary);
-  font-weight: bold;
-}
-
 .centered {
     height: 100%;
     display: flex;
-    justify-content: center;
     align-items: center;
+    justify-content: center;
 }
