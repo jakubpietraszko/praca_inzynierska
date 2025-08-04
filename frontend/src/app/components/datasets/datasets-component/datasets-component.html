@@ -1,0 +1,15 @@
+<mat-toolbar color="primary">
+    <button mat-button *ngFor="let dataset of (datasets$ | async)?.datasets" (click)="selectDataset(dataset)">
+        {{ dataset }}
+    </button>
+</mat-toolbar>
+
+<div *ngIf="selectedDataset; else noDataset">
+    <h2>{{ selectedDataset }}</h2>
+</div>
+
+<ng-template #noDataset>
+    <div class="centered">
+        <p>Wybierz zbiór danych</p>
+    </div>
+</ng-template>

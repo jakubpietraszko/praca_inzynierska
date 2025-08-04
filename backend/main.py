@@ -148,11 +148,11 @@ def read_models():
     except FileNotFoundError:
         return {"error": "Models directory not found"}
     
-@app.get("/datasets")
+@app.get("/all-datasets")
 def read_dataset():
     try:
         dataset = os.listdir(PATH_DATASETS)
-        return {"dataset": dataset}
+        return {"datasets": dataset}
     except FileNotFoundError:
         return {"error": "Dataset directory not found"}
     
@@ -196,6 +196,10 @@ def seed():
 
 @app.get("/mask/rise")
 def mask():
+    raise NotImplemented
+
+@app.get("/activation-maps")
+def activation_maps():
     raise NotImplemented
 
 
