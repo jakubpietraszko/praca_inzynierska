@@ -13,6 +13,9 @@ from interfaces.requests.use_model import UseModelRequest
 from interfaces.requests.use_dataset import UseDatasetRequest
 from interfaces.requests.grad import GradRequest
 from interfaces.requests.all_labels import AllLabelsRequest
+from interfaces.requests.all_path_images import AllPathsImages
+from interfaces.requests.all_paths_images import AllPathsImagesRequest
+from interfaces.respones.all_paths_images import AllPathsImagesResponse
 import importlib.util
 from torchvision.datasets import ImageFolder
 import torch
@@ -141,7 +144,8 @@ def read_dir():
         return {"files": files}
     except FileNotFoundError:
         return {"error": "Directory not found"}
-    
+
+
 @app.get("/models")
 def read_models():
     try:
@@ -149,7 +153,9 @@ def read_models():
         return {"models": models}
     except FileNotFoundError:
         return {"error": "Models directory not found"}
-    
+
+
+
 @app.get("/all-datasets")
 def read_dataset():
     try:
@@ -171,12 +177,12 @@ def get_classes(request: AllLabelsRequest):
             details={"path": request.path}
         )
 
-@app.get('/all-images')
-def get_images(request: AllImagesRequest):
+@app.post('/all-paths-images')
+def get_images(request: AllPathsImagesRequest):
     path = os.path.join(PATH_DATASETS, request.dataset, request.label)
     try:
         images = [file for file in os.listdir(path) if file.endswith(('.png', '.jpg', '.jpeg'))]
-        return ListOfStringsResponse(strings=images)
+        return AllPathsImagesResponse(pathsImages=images)
     except FileNotFoundError:
         return ErrorResponse(
             error="File not found",

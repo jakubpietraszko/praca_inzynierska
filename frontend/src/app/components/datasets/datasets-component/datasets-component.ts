@@ -9,6 +9,9 @@ import { MatButtonModule } from '@angular/material/button';
 import { LabelsService } from '../../../services/labels/labels-service';
 import { LabelsListInterface } from '../../../interfaces/labels-list-interface';
 import { LabelsListRequestInterface } from '../../../interfaces/labels-list-request-interface';
+import { PathsImagesService } from '../../../services/paths-images/paths-images-service';
+import { PathsImagesRequestInterface } from '../../../interfaces/paths-images-request-interface';
+import { PathsImagesListInterface } from '../../../interfaces/paths-images-list-interface';
 
 @Component({
   selector: 'app-datasets-component',
@@ -19,11 +22,15 @@ import { LabelsListRequestInterface } from '../../../interfaces/labels-list-requ
 export class DatasetsComponent implements OnInit, OnDestroy{
   datasetsService = inject(DatasetsService);
   labelsService = inject(LabelsService);
+  pathsImagesService = inject(PathsImagesService);
+
   subscription: Subscription = new Subscription();
   labelsSubscription: Subscription = new Subscription();
+  pathsImagesSubscription: Subscription = new Subscription();
 
   datasets: string[] | null = null;
   labels: string[] | null = null;
+  pathsImages: string[] | null = null;
 
   selectedDataset: string | null = null;
   selectedLabel: string | null = null;
@@ -50,14 +57,22 @@ export class DatasetsComponent implements OnInit, OnDestroy{
     if(this.labelsSubscription) {
       this.labelsSubscription.unsubscribe();
     }
+    if(this.pathsImagesSubscription) {
+      this.pathsImagesSubscription.unsubscribe();
+    }
   }
 
   selectDataset(dataset: string): void {
     this.selectedDataset = dataset;
     this.selectedLabel = null;
+    this.pathsImages = null;
 
     if(this.labelsSubscription) {
       this.labelsSubscription.unsubscribe();
+    }
+
+    if(this.pathsImagesSubscription) {
+      this.pathsImagesSubscription.unsubscribe();
     }
 
     const request: LabelsListRequestInterface = {
@@ -74,5 +89,21 @@ export class DatasetsComponent implements OnInit, OnDestroy{
 
   selectLabel(label: string): void {
     this.selectedLabel = label;
+
+    if(this.pathsImagesSubscription) {
+      this.pathsImagesSubscription.unsubscribe();
+    }
+
+    if(this.selectedDataset) {
+      const request: PathsImagesRequestInterface = {
+        dataset: this.selectedDataset,
+        label: label
+      }
+      this.pathsImagesSubscription = this.pathsImagesService.allPathsImages(request)
+        .subscribe((response: PathsImagesListInterface) => {
+          console.log(response.pathsImages);
+          this.pathsImages = response.pathsImages;
+        });
+    }
   }
 }

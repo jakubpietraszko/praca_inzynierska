@@ -5,14 +5,36 @@
             {{ dataset }}
         </button>
     </mat-toolbar>
-        <mat-toolbar color="accent" *ngIf="labels?.length">
+    <ng-container *ngIf="datasets?.length && labels?.length; else noLabels">
+        <mat-toolbar color="accent">
         <button mat-button *ngFor="let label of labels" (click)="selectLabel(label)"
             [color]="selectedLabel === label ? 'primary' : undefined">
             {{ label }}
         </button>
     </mat-toolbar>
+
+    <ng-container *ngIf="pathsImages?.length; else noPaths">
+        <div class="paths-container">
+            <h3>Image Paths for {{ selectedDataset }} - {{ selectedLabel }}:</h3>
+            <div class="paths-list">
+                <div class="path-item" *ngFor="let path of pathsImages">
+                    {{ path }}
+                </div>
+            </div>
+        </div>
+    </ng-container>
+
+    <ng-template #noPaths>
+        <div class="centered" *ngIf="selectedLabel">No paths found</div>
+    </ng-template>
+
+    </ng-container>
 </ng-container>
 
 <ng-template #noDatasets>
     <div class="centered">No datasets</div>
+</ng-template>
+
+<ng-template #noLabels>
+    <div class="centered">No labels</div>
 </ng-template>
