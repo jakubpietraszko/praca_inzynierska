@@ -1,13 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 
-import { PathsImagesService } from './paths-images-service';
+import { ModelsService } from './models-service';
 
-describe('PathsImagesService', () => {
-  let service: PathsImagesService;
+describe('ModelsService', () => {
+  let service: ModelsService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    service = TestBed.inject(PathsImagesService);
+    service = TestBed.inject(ModelsService);
   });
 
   it('should be created', () => {

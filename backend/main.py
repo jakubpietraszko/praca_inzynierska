@@ -5,25 +5,22 @@ import os
 import importlib
 from fastapi.responses import JSONResponse
 import base64
-from interfaces.respones.listOfStrings import ListOfStringsResponse
-from interfaces.respones.error import ErrorResponse
-from interfaces.requests.path import PathRequest
-from interfaces.requests.all_images import AllImagesRequest
-from interfaces.requests.use_model import UseModelRequest
-from interfaces.requests.use_dataset import UseDatasetRequest
 from interfaces.requests.grad import GradRequest
-from interfaces.requests.all_labels import AllLabelsRequest
-from interfaces.requests.all_path_images import AllPathsImages
-from interfaces.requests.all_paths_images import AllPathsImagesRequest
-from interfaces.respones.all_paths_images import AllPathsImagesResponse
 import importlib.util
 from torchvision.datasets import ImageFolder
 import torch
 import numpy as np
 from PIL import Image
 import matplotlib.pyplot as plt
-import time
 
+from interfaces.all_images import AllsImagesRequest, AllImagesResponse
+from interfaces.all_labels import AllLabelsRequest, AllLabelsResponse
+from interfaces.all_datasets import AllDatasetsResponse
+from interfaces.all_models import AllModelsResponse
+from interfaces.fetch_image import FetchImageRequest, FetchImageResponse
+from interfaces.use_dataset import UseDatasetRequest, UseDatasetResponse
+from interfaces.use_model import UseModelRequest, UseModelResponse
+from interfaces.env import EnvResponse
 
 
 ENV = os.getenv('APP_ENV', 'development')
@@ -45,6 +42,7 @@ MODEL = {
     'transform': None,
     'idx_to_label': None
 }
+
 DATASET = {
     'name': None,
     'dataset': None
@@ -60,140 +58,80 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.get('/use-model')
-def use_model(request: UseModelRequest):
-    model_path = os.path.join(PATH_MODELS, request.model_name, 'model.py')
+@app.get('/env')
+async def get_env():
+    return EnvResponse(env=ENV)
 
-    spec = importlib.util.spec_from_file_location('loadModel', model_path)
+@app.get('/all-models')
+async def all_models():
+    models = os.listdir(PATH_MODELS)
+    return AllModelsResponse(models=models)
+
+@app.get('/all-datasets')
+async def all_datasets():
+    datasets = os.listdir(PATH_DATASETS)
+    return AllDatasetsResponse(datasets=datasets)
+
+@app.post('/all-labels')
+async def all_labels(request: AllLabelsRequest):
+    path = os.path.join(PATH_DATASETS, request.dataset)
+    labels = [label for label in os.listdir(path)]
+    return AllLabelsResponse(labels=labels)
+
+@app.post('/all-images')
+async def all_images(request: AllsImagesRequest):
+    path = os.path.join(PATH_DATASETS, request.dataset, request.label)
+    images = [file for file in os.listdir(path) if file.endswith(('.png', '.jpg', '.jpeg'))]
+    return AllImagesResponse(images=images)
+
+@app.post('/fetch-image')
+async def fetch_image(request: FetchImageRequest):
+    path = os.path.join(PATH_DATASETS, request.dataset, request.label, request.filename)
+    with open(path, 'rb') as f:
+        image = base64.b64encode(f.read()).decode('utf-8')
+        return FetchImageResponse(image=image)
+
+@app.get('/use-model')
+async def use_model(request: UseModelRequest):
+    if _use_model(request):
+        return UseModelResponse(success=True)
+    return UseModelResponse(success=False)
+
+def _use_model(request: UseModelRequest) -> bool:
+    path = os.path.join(PATH_MODELS, request.model, 'model.py')
+    spec = importlib.util.spec_from_file_location('loadModel', path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
-
-    print(os.curdir)
-
     try:
         if hasattr(module, 'loadModel'):
-            MODEL['name'] = request.model_name
+            MODEL['name'] = request.model
             model, last_conv, transform, idx_to_label = getattr(module, 'loadModel')()
             MODEL['model'] = model
             MODEL['last_cnn'] = last_conv
             MODEL['transform'] = transform
             MODEL["idx_to_label"] = idx_to_label
-
-            print(f"Model {request.model_name} loaded successfully.")
-    except Exception as e:
-        print(f"Error loading model {request.model_name}: {e}")
-        return JSONResponse(
-            content={"error": str(e)},
-            status_code=500
-        )
-    
-    return JSONResponse(content={"message": f"Model {request.model_name} loaded successfully."})
+            return True
+    except:
+        return False
+    return False
 
 @app.get('/use-dataset')
 async def use_dataset(request: UseDatasetRequest):
-    path = os.path.join(PATH_DATASETS, request.dataset_name)
-    try:
-        dataset = ImageFolder(path, transform=MODEL['transform'])
-        DATASET['name'] = request.dataset_name
-        DATASET['dataset'] = dataset
-        print(f"Dataset {request.dataset_name} loaded successfully.")
-        print(f"Dataset size: {len(dataset)} images.")
-        return JSONResponse(content={"message": f"Dataset {request.dataset_name} loaded successfully."})
-    except FileNotFoundError:
-        print(f"Dataset {request.dataset_name} not found.")
-        return JSONResponse(
-            content={"error": f"Dataset {request.dataset_name} not found."},
-            status_code=404
-        )
-    except Exception as e:
-        print(f"Error loading dataset {request.dataset_name}: {e}")
-        return JSONResponse(
-            content={"error": str(e)},
-            status_code=500
-        )
+    if _use_dataset(request):
+        return UseDatasetResponse(success=True)
+    return UseDatasetResponse(success=False)
 
-@app.get('/env')
-def get_env():
-    return {"env": ENV}
-
-@app.post('/load-image')
-async def post_main(request: PathRequest):
-    photo_path = os.path.join(
-        PATH_DATASETS, request.path
-    )
-    with open(photo_path, 'rb') as image_file:
-        encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
-    return JSONResponse(content={"image": encoded_string})
-
-@app.get('/load-model')
-def load_model():
-    allModelPaths = list()
-    for (root, dirs, files) in os.walk(PATH_MODELS, topdown=True):
-        if 'model.py' in files:
-            allModelPaths.append(
-                os.path.join(root, 'model.py')
-            )
-    return JSONResponse(content={"model_paths": allModelPaths})
-
-
-
-@app.get("/dir")
-def read_dir():
-    try:
-        files = os.listdir(DIR)
-        return {"files": files}
-    except FileNotFoundError:
-        return {"error": "Directory not found"}
-
-
-@app.get("/models")
-def read_models():
-    try:
-        models = os.listdir(PATH_MODELS)
-        return {"models": models}
-    except FileNotFoundError:
-        return {"error": "Models directory not found"}
-
-
-
-@app.get("/all-datasets")
-def read_dataset():
-    try:
-        dataset = os.listdir(PATH_DATASETS)
-        return {"datasets": dataset}
-    except FileNotFoundError:
-        return {"error": "Dataset directory not found"}
-    
-@app.post('/all-labels')
-def get_classes(request: AllLabelsRequest):
+def _use_dataset(request: UseDatasetRequest) -> bool:
     path = os.path.join(PATH_DATASETS, request.dataset)
     try:
-        listOfClasses = [dir for dir in os.listdir(path)]
-        return ListOfStringsResponse(labels=listOfClasses)
-    except FileNotFoundError:
-        return ErrorResponse(
-            error="File not found",
-            code=404,
-            details={"path": request.path}
-        )
-
-@app.post('/all-paths-images')
-def get_images(request: AllPathsImagesRequest):
-    path = os.path.join(PATH_DATASETS, request.dataset, request.label)
-    try:
-        images = [file for file in os.listdir(path) if file.endswith(('.png', '.jpg', '.jpeg'))]
-        return AllPathsImagesResponse(pathsImages=images)
-    except FileNotFoundError:
-        return ErrorResponse(
-            error="File not found",
-            code=404,
-            details={"dataset": request.dataset, "label": request.label}
-        )
-
-
-
-
-
+        dataset = ImageFolder(path, transform=MODEL['transform'])
+        DATASET['name'] = request.dataset
+        DATASET['dataset'] = dataset
+        return True
+    except:
+        return False
+    return False
+        
 @app.get("/mask/slic")
 def slic():
     raise NotImplemented

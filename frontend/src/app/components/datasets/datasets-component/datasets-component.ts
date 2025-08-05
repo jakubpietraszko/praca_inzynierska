@@ -1,17 +1,15 @@
 import { Component, OnDestroy, OnInit, resolveForwardRef } from '@angular/core';
 import { DatasetsService } from '../../../services/datasets/datasets-service';
 import { inject } from '@angular/core';
-import { Observable, Subscription } from 'rxjs';
+import { Subscription } from 'rxjs';
 import { CommonModule } from '@angular/common';
-import { DatasetsListInterface } from '../../../interfaces/datasets-list-interface';
 import { MatToolbar } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { LabelsService } from '../../../services/labels/labels-service';
-import { LabelsListInterface } from '../../../interfaces/labels-list-interface';
-import { LabelsListRequestInterface } from '../../../interfaces/labels-list-request-interface';
-import { PathsImagesService } from '../../../services/paths-images/paths-images-service';
-import { PathsImagesRequestInterface } from '../../../interfaces/paths-images-request-interface';
-import { PathsImagesListInterface } from '../../../interfaces/paths-images-list-interface';
+import { ImagesService } from '../../../services/images/images-service';
+import { AllDatasetsResponse } from '../../../interfaces/all-datasets';
+import { AllLabelsRequest, AllLabelsResponse } from '../../../interfaces/all-labels';
+import { AllImagesRequest, AllImagesResponse } from '../../../interfaces/all-images';
 
 @Component({
   selector: 'app-datasets-component',
@@ -22,7 +20,7 @@ import { PathsImagesListInterface } from '../../../interfaces/paths-images-list-
 export class DatasetsComponent implements OnInit, OnDestroy{
   datasetsService = inject(DatasetsService);
   labelsService = inject(LabelsService);
-  pathsImagesService = inject(PathsImagesService);
+  imagesService = inject(ImagesService);
 
   subscription: Subscription = new Subscription();
   labelsSubscription: Subscription = new Subscription();
@@ -43,7 +41,7 @@ export class DatasetsComponent implements OnInit, OnDestroy{
     this.subscription.add(
       this.datasetsService.allDatasets()
         .subscribe(
-          (response: DatasetsListInterface) => {
+          (response: AllDatasetsResponse) => {
             this.datasets = response.datasets;
           }
       )
@@ -75,13 +73,13 @@ export class DatasetsComponent implements OnInit, OnDestroy{
       this.pathsImagesSubscription.unsubscribe();
     }
 
-    const request: LabelsListRequestInterface = {
+    const request: AllLabelsRequest = {
       dataset: dataset
     };
 
 
     this.labelsSubscription = this.labelsService.allLabels(request)
-    .subscribe((response: LabelsListInterface) => {
+    .subscribe((response: AllLabelsResponse) => {
       console.log(response.labels);
       this.labels = response.labels;
     });
@@ -95,14 +93,13 @@ export class DatasetsComponent implements OnInit, OnDestroy{
     }
 
     if(this.selectedDataset) {
-      const request: PathsImagesRequestInterface = {
+      const request: AllImagesRequest = {
         dataset: this.selectedDataset,
         label: label
       }
-      this.pathsImagesSubscription = this.pathsImagesService.allPathsImages(request)
-        .subscribe((response: PathsImagesListInterface) => {
-          console.log(response.pathsImages);
-          this.pathsImages = response.pathsImages;
+      this.pathsImagesSubscription = this.imagesService.allImages(request)
+        .subscribe((response: AllImagesResponse) => {
+          this.pathsImages = response.images;
         });
     }
   }

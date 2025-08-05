@@ -1,40 +1,40 @@
 <ng-container *ngIf="datasets?.length; else noDatasets">
     <mat-toolbar color="primary">
-        <button mat-button *ngFor="let dataset of datasets" (click)="selectDataset(dataset)"
-            [color]="selectedDataset === dataset ? 'accent' : undefined">
-            {{ dataset }}
-        </button>
+        @for(dataset of datasets; track dataset) {
+        <button mat-button (click)="selectDataset(dataset)"
+            [color]="selectedDataset === dataset ? 'ascent' : undefined">{{dataset}}</button>
+        }
     </mat-toolbar>
     <ng-container *ngIf="datasets?.length && labels?.length; else noLabels">
         <mat-toolbar color="accent">
-        <button mat-button *ngFor="let label of labels" (click)="selectLabel(label)"
-            [color]="selectedLabel === label ? 'primary' : undefined">
-            {{ label }}
-        </button>
-    </mat-toolbar>
+            @for(label of labels; track label) {
+            <button mat-button (click)="selectLabel(label)"
+                [color]="selectedLabel === label ? 'primary' : undefined">{{label}}</button>
+            }
+        </mat-toolbar>
 
-    <ng-container *ngIf="pathsImages?.length; else noPaths">
-        <div class="paths-container">
-            <h3>Image Paths for {{ selectedDataset }} - {{ selectedLabel }}:</h3>
-            <div class="paths-list">
-                <div class="path-item" *ngFor="let path of pathsImages">
-                    {{ path }}
+        <ng-container *ngIf="pathsImages?.length; else noPaths">
+            <div class="paths-container">
+                <div class="paths-list">
+                    @for(path of pathsImages;track path) {
+                    {{path}}
+                    }
+
                 </div>
             </div>
-        </div>
-    </ng-container>
-
-    <ng-template #noPaths>
-        <div class="centered" *ngIf="selectedLabel">No paths found</div>
-    </ng-template>
+        </ng-container>
 
     </ng-container>
 </ng-container>
 
 <ng-template #noDatasets>
-    <div class="centered">No datasets</div>
+    <div class="centered">Brak zbiorów danych</div>
 </ng-template>
 
 <ng-template #noLabels>
-    <div class="centered">No labels</div>
+    <div class="centered" *ngIf="selectDataset">Brak klas w zbiorze danych</div>
+</ng-template>
+
+<ng-template #noPaths>
+    <div class="centered" *ngIf="selectedDataset && selectedLabel">Brak zdjęć w wybranej klasie</div>
 </ng-template>
