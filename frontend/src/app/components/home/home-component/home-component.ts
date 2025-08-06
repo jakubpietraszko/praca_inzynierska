@@ -1,9 +1,9 @@
 import { Component } from '@angular/core';
-import { ImageComponent } from '../../../components-test/image-component/image-component';
+import { LoadImageDirective } from '../../../directives/load-image/load-image-directive';
 
 @Component({
   selector: 'app-home-component',
-  imports: [ImageComponent],
+  imports: [LoadImageDirective],
   templateUrl: './home-component.html',
   styleUrl: './home-component.css'
 })

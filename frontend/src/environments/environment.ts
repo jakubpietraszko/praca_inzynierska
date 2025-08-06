@@ -3,4 +3,5 @@ export const environment = {
     production: true,
     apiUrl: 'http://172.28.0.3:8000',
     imagesPerPage: 25,
+    imagesPerRow: 5,
 };

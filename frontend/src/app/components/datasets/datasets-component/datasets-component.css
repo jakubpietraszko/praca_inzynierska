@@ -1,7 +1,5 @@
-mat-toolbar {
-    display: flex;
-    justify-content: flex-start;
-    gap: 5px;
+mat-tab-group {
+    margin-bottom: 20px;
 }
 
 .centered {

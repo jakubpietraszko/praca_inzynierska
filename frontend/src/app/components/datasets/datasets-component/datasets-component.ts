@@ -3,7 +3,7 @@ import { DatasetsService } from '../../../services/datasets/datasets-service';
 import { inject } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { CommonModule } from '@angular/common';
-import { MatToolbar } from '@angular/material/toolbar';
+import { MatTabsModule } from '@angular/material/tabs';
 import { MatButtonModule } from '@angular/material/button';
 import { LabelsService } from '../../../services/labels/labels-service';
 import { ImagesService } from '../../../services/images/images-service';
@@ -13,7 +13,7 @@ import { AllImagesRequest, AllImagesResponse } from '../../../interfaces/all-ima
 
 @Component({
   selector: 'app-datasets-component',
-  imports: [CommonModule, MatToolbar, MatButtonModule],
+  imports: [CommonModule, MatTabsModule, MatButtonModule],
   templateUrl: './datasets-component.html',
   styleUrl: './datasets-component.css'
 })
@@ -32,6 +32,8 @@ export class DatasetsComponent implements OnInit, OnDestroy{
 
   selectedDataset: string | null = null;
   selectedLabel: string | null = null;
+  selectedDatasetIndex: number = 0;
+  selectedLabelIndex: number = 0;
 
   constructor() {
 
@@ -64,6 +66,7 @@ export class DatasetsComponent implements OnInit, OnDestroy{
     this.selectedDataset = dataset;
     this.selectedLabel = null;
     this.pathsImages = null;
+    this.selectedLabelIndex = 0;
 
     if(this.labelsSubscription) {
       this.labelsSubscription.unsubscribe();
@@ -85,6 +88,13 @@ export class DatasetsComponent implements OnInit, OnDestroy{
     });
   }
 
+  onDatasetTabChange(index: number): void {
+    if (this.datasets && this.datasets[index]) {
+      this.selectedDatasetIndex = index;
+      this.selectDataset(this.datasets[index]);
+    }
+  }
+
   selectLabel(label: string): void {
     this.selectedLabel = label;
 
@@ -101,6 +111,13 @@ export class DatasetsComponent implements OnInit, OnDestroy{
         .subscribe((response: AllImagesResponse) => {
           this.pathsImages = response.images;
         });
+    }
+  }
+
+  onLabelTabChange(index: number): void {
+    if (this.labels && this.labels[index]) {
+      this.selectedLabelIndex = index;
+      this.selectLabel(this.labels[index]);
     }
   }
 }
