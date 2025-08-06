@@ -5,6 +5,10 @@
         [color]="rlaModels.isActive ? 'accent' : undefined">Modele</button>
     <button mat-button routerLink="/datasets" #rlaDatasets="routerLinkActive" routerLinkActive [routerLinkActiveOptions]="{exact:true}"
         [color]="rlaDatasets.isActive ? 'accent' : undefined">Zbiory danych</button>
+    <button mat-button routerLink="/mask-generation" #rlaMasks="routerLinkActive" routerLinkActive [routerLinkActiveOptions]="{exact:true}"
+        [color]="rlaMasks.isActive ? 'accent' : undefined">Generacja masek</button>
+    <button mat-button routerLink="/heatmap-generation" #rlaHeatmaps="routerLinkActive" routerLinkActive [routerLinkActiveOptions]="{exact:true}"
+        [color]="rlaHeatmaps.isActive ? 'accent' : undefined">Generacja map ciepła</button>
     <button mat-button routerLink="/settings" #rlaSettings="routerLinkActive" routerLinkActive [routerLinkActiveOptions]="{exact:true}"
         [color]="rlaSettings.isActive ? 'accent' : undefined">Ustawienia</button>
 </mat-toolbar>

@@ -1,17 +1,17 @@
-<ng-container *ngIf="datasets?.length; else noDatasets">
+<ng-container *ngIf="datasets?.length">
     <mat-tab-group [selectedIndex]="selectedDatasetIndex" (selectedTabChange)="onDatasetTabChange($event.index)" color="primary">
         @for(dataset of datasets; track dataset; let i = $index) {
         <mat-tab [label]="dataset"></mat-tab>
         }
     </mat-tab-group>
-    <ng-container *ngIf="datasets?.length && labels?.length; else noLabels">
+    <ng-container *ngIf="datasets?.length && labels?.length">
         <mat-tab-group [selectedIndex]="selectedLabelIndex" (selectedTabChange)="onLabelTabChange($event.index)" color="accent">
             @for(label of labels; track label; let i = $index) {
             <mat-tab [label]="label"></mat-tab>
             }
         </mat-tab-group>
 
-        <ng-container *ngIf="pathsImages?.length; else noPaths">
+        <ng-container *ngIf="pathsImages?.length">
             <div class="images-container">
                 <mat-grid-list [cols]="imagesPerRow" rowHeight="220px" gutterSize="10px">
                     @for(path of paginatedImages; track path) {
@@ -43,15 +43,3 @@
 
     </ng-container>
 </ng-container>
-
-<ng-template #noDatasets>
-    <div class="centered">Brak zbiorów danych</div>
-</ng-template>
-
-<ng-template #noLabels>
-    <div class="centered" *ngIf="selectDataset">Brak klas w zbiorze danych</div>
-</ng-template>
-
-<ng-template #noPaths>
-    <div class="centered" *ngIf="selectedDataset && selectedLabel">Brak zdjęć w wybranej klasie</div>
-</ng-template>
