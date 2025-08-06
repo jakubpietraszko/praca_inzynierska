@@ -12,14 +12,33 @@
         </mat-tab-group>
 
         <ng-container *ngIf="pathsImages?.length; else noPaths">
-            <div class="paths-container">
-                <div class="paths-list">
-                    @for(path of pathsImages;track path) {
-                    {{path}}
+            <div class="images-container">
+                <mat-grid-list [cols]="imagesPerRow" rowHeight="220px" gutterSize="10px">
+                    @for(path of paginatedImages; track path) {
+                    <mat-grid-tile>
+                        <div class="image-wrapper">
+                            <img 
+                                appLoadImageDirective
+                                [dataset]="selectedDataset!"
+                                [label]="selectedLabel!"
+                                [filename]="getImageFileName(path)"
+                                [alt]="getImageFileName(path)"
+                                class="grid-image">
+                            <div class="image-filename">{{ getImageFileName(path) }}</div>
+                        </div>
+                    </mat-grid-tile>
                     }
+                </mat-grid-list>
 
+                <div class="paginator-bottom"></div>
+                    <mat-paginator 
+                        [length]="totalImages"
+                        [pageSize]="imagesPerPage"
+                        [pageIndex]="currentPage"
+                        (page)="onPageChange($event)"
+                        showFirstLastButtons>
+                    </mat-paginator>
                 </div>
-            </div>
         </ng-container>
 
     </ng-container>
