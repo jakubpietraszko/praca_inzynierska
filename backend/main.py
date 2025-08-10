@@ -21,6 +21,7 @@ from interfaces.fetch_image import FetchImageRequest, FetchImageResponse
 from interfaces.use_dataset import UseDatasetRequest, UseDatasetResponse
 from interfaces.use_model import UseModelRequest, UseModelResponse
 from interfaces.env import EnvResponse
+from interfaces.model_layers import ModelLayersRequest, ModelLayersResponse
 
 
 ENV = os.getenv('APP_ENV', 'development')
@@ -90,6 +91,58 @@ async def fetch_image(request: FetchImageRequest):
     with open(path, 'rb') as f:
         image = base64.b64encode(f.read()).decode('utf-8')
         return FetchImageResponse(image=image)
+    
+@app.post('/model-layers')
+async def model_layers(request: ModelLayersRequest):
+    response: ModelLayersResponse = _generate_layers(request)
+    return response 
+
+def _generate_layers(request: ModelLayersRequest) -> ModelLayersResponse:
+    model, shape = _load_model(request.model)
+
+    dummy_input = torch.randn(1, *shape)
+    layers = list()
+    hooks = list()
+
+    def hook_fn(name):
+        def hook(module, input, output):
+            layers.append((name, module))
+        return hook
+    
+    for name, module in model.named_modules():
+        if name:
+            hook = module.register_forward_hook(hook_fn(name))
+            hooks.append(hook)
+    
+    model.eval()
+    with torch.no_grad():
+        model(dummy_input)
+
+    for hook in hooks:
+        hook.remove()
+    
+    result = list()
+
+    for i, (name, layer) in enumerate(layers):
+        result.append(str(layer))
+
+    return ModelLayersResponse(layers=result)
+
+def _load_model(model_name: str):
+    path = os.path.join(PATH_MODELS, model_name, 'model.py')
+    spec = importlib.util.spec_from_file_location('loadModel', path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    model, _, _, _, shape = getattr(module, 'loadModel')()
+    return model, shape
+
+
+
+
+
+
+
 
 @app.get('/use-model')
 async def use_model(request: UseModelRequest):
@@ -105,7 +158,7 @@ def _use_model(request: UseModelRequest) -> bool:
     try:
         if hasattr(module, 'loadModel'):
             MODEL['name'] = request.model
-            model, last_conv, transform, idx_to_label = getattr(module, 'loadModel')()
+            model, last_conv, transform, idx_to_label, shape = getattr(module, 'loadModel')()
             MODEL['model'] = model
             MODEL['last_cnn'] = last_conv
             MODEL['transform'] = transform
@@ -131,7 +184,14 @@ def _use_dataset(request: UseDatasetRequest) -> bool:
     except:
         return False
     return False
-        
+
+
+
+
+
+
+
+
 @app.get("/mask/slic")
 def slic():
     raise NotImplemented

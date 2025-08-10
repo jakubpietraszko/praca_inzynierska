@@ -10,18 +10,31 @@ import { MatGridListModule } from '@angular/material/grid-list';
 import { LabelsService } from '../../../services/labels/labels-service';
 import { ImagesService } from '../../../services/images/images-service';
 import { AllDatasetsResponse } from '../../../interfaces/all-datasets';
-import { AllLabelsRequest, AllLabelsResponse } from '../../../interfaces/all-labels';
-import { AllImagesRequest, AllImagesResponse } from '../../../interfaces/all-images';
+import {
+  AllLabelsRequest,
+  AllLabelsResponse,
+} from '../../../interfaces/all-labels';
+import {
+  AllImagesRequest,
+  AllImagesResponse,
+} from '../../../interfaces/all-images';
 import { LoadImageDirective } from '../../../directives/load-image/load-image-directive';
 import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-datasets-component',
-  imports: [CommonModule, MatTabsModule, MatButtonModule, MatPaginatorModule, MatGridListModule, LoadImageDirective],
+  imports: [
+    CommonModule,
+    MatTabsModule,
+    MatButtonModule,
+    MatPaginatorModule,
+    MatGridListModule,
+    LoadImageDirective,
+  ],
   templateUrl: './datasets-component.html',
-  styleUrl: './datasets-component.css'
+  styleUrl: './datasets-component.css',
 })
-export class DatasetsComponent implements OnInit, OnDestroy{
+export class DatasetsComponent implements OnInit, OnDestroy {
   datasetsService = inject(DatasetsService);
   labelsService = inject(LabelsService);
   imagesService = inject(ImagesService);
@@ -45,29 +58,30 @@ export class DatasetsComponent implements OnInit, OnDestroy{
   currentPage = 0;
   totalImages = 0;
 
-  constructor() {
-
-  }
+  constructor() {}
 
   ngOnInit(): void {
     this.subscription.add(
-      this.datasetsService.allDatasets()
-        .subscribe(
-          (response: AllDatasetsResponse) => {
-            this.datasets = response.datasets;
+      this.datasetsService
+        .allDatasets()
+        .subscribe((response: AllDatasetsResponse) => {
+          this.datasets = response.datasets;
+          // Automatically select the first dataset on initial load
+          if (this.datasets && this.datasets.length > 0) {
+            this.selectDataset(this.datasets[0]);
           }
-      )
+        })
     );
   }
 
   ngOnDestroy(): void {
-    if(this.subscription) {
+    if (this.subscription) {
       this.subscription.unsubscribe();
     }
-    if(this.labelsSubscription) {
+    if (this.labelsSubscription) {
       this.labelsSubscription.unsubscribe();
     }
-    if(this.pathsImagesSubscription) {
+    if (this.pathsImagesSubscription) {
       this.pathsImagesSubscription.unsubscribe();
     }
   }
@@ -81,24 +95,28 @@ export class DatasetsComponent implements OnInit, OnDestroy{
     this.currentPage = 0;
     this.totalImages = 0;
 
-    if(this.labelsSubscription) {
+    if (this.labelsSubscription) {
       this.labelsSubscription.unsubscribe();
     }
 
-    if(this.pathsImagesSubscription) {
+    if (this.pathsImagesSubscription) {
       this.pathsImagesSubscription.unsubscribe();
     }
 
     const request: AllLabelsRequest = {
-      dataset: dataset
+      dataset: dataset,
     };
 
-
-    this.labelsSubscription = this.labelsService.allLabels(request)
-    .subscribe((response: AllLabelsResponse) => {
-      console.log(response.labels);
-      this.labels = response.labels;
-    });
+    this.labelsSubscription = this.labelsService
+      .allLabels(request)
+      .subscribe((response: AllLabelsResponse) => {
+        console.log(response.labels);
+        this.labels = response.labels;
+        // Automatically select the first label when labels are loaded
+        if (this.labels && this.labels.length > 0) {
+          this.selectLabel(this.labels[0]);
+        }
+      });
   }
 
   onDatasetTabChange(index: number): void {
@@ -111,16 +129,17 @@ export class DatasetsComponent implements OnInit, OnDestroy{
   selectLabel(label: string): void {
     this.selectedLabel = label;
 
-    if(this.pathsImagesSubscription) {
+    if (this.pathsImagesSubscription) {
       this.pathsImagesSubscription.unsubscribe();
     }
 
-    if(this.selectedDataset) {
+    if (this.selectedDataset) {
       const request: AllImagesRequest = {
         dataset: this.selectedDataset,
-        label: label
-      }
-      this.pathsImagesSubscription = this.imagesService.allImages(request)
+        label: label,
+      };
+      this.pathsImagesSubscription = this.imagesService
+        .allImages(request)
         .subscribe((response: AllImagesResponse) => {
           this.pathsImages = response.images;
           this.totalImages = response.images.length;

@@ -53,4 +53,4 @@ def loadModel():
         os.path.dirname(__file__), 'best_model.pth'
     )
     model.load_state_dict(torch.load(model_path))
-    return model, list(model.modules())[0].conv2, TRANSFORM, IDX_TO_LABEL
+    return model, list(model.modules())[0].conv2, TRANSFORM, IDX_TO_LABEL, (1, 28, 28)

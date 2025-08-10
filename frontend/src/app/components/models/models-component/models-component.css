@@ -1,0 +1,28 @@
+.model-layers {
+  padding: 16px;
+}
+
+.model-layers h3 {
+  margin-bottom: 16px;
+  color: #1976d2;
+}
+
+.model-layers ul {
+  list-style-type: disc;
+  padding-left: 20px;
+}
+
+.model-layers li {
+  margin-bottom: 8px;
+  padding: 4px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.model-layers li:last-child {
+  border-bottom: none;
+}
+
+.model-layers p {
+  color: #666;
+  font-style: italic;
+}
