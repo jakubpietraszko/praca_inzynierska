@@ -1,1 +1,17 @@
-<p>settings-component works!</p>
+<mat-form-field>
+  <mat-label>Model</mat-label>
+  <mat-select [(ngModel)]="selectedModel" (ngModelChange)="onModelChange()" canSelectNullableOptions>
+    @for (option of modelOptions; track option.value) {
+      <mat-option [value]="option.value">{{option.label}}</mat-option>
+    }
+  </mat-select>
+</mat-form-field>
+
+<mat-form-field>
+  <mat-label>Zbiór danych</mat-label>
+  <mat-select [(ngModel)]="selectedDataset" (ngModelChange)="onDatasetChange()" canSelectNullableOptions>
+    @for (option of datasetOptions; track option.value) {
+      <mat-option [value]="option.value">{{option.label}}</mat-option>
+    }
+  </mat-select>
+</mat-form-field>

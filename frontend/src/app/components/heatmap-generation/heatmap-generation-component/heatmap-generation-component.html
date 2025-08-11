@@ -1,1 +1,32 @@
-<p>heatmap-generation-component works!</p>
+@if (!isConfigurationComplete) {
+  <mat-card class="configuration-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>settings</mat-icon>
+        Konfiguracja wymagana
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <p>
+        Aby rozpocząć generowanie map ciepła, należy najpierw wybrać model i zbiór danych.
+      </p>
+      @if (!selectedModel && !selectedDataset) {
+        <p>Nie wybrano modelu ani zbioru danych.</p>
+      } @else if (!selectedModel) {
+        <p>Nie wybrano modelu.</p>
+      } @else if (!selectedDataset) {
+        <p>Nie wybrano zbioru danych.</p>
+      }
+    </mat-card-content>
+    <mat-card-actions>
+      <a mat-raised-button color="primary" routerLink="/settings">
+        <mat-icon>settings</mat-icon>
+        Przejdź do ustawień
+      </a>
+    </mat-card-actions>
+  </mat-card>
+} @else {
+  <div class="heatmap-generation-content">
+    <h2>Generowanie map ciepła</h2>
+  </div>
+}

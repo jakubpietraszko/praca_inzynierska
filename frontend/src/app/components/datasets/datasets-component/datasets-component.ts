@@ -66,7 +66,6 @@ export class DatasetsComponent implements OnInit, OnDestroy {
         .allDatasets()
         .subscribe((response: AllDatasetsResponse) => {
           this.datasets = response.datasets;
-          // Automatically select the first dataset on initial load
           if (this.datasets && this.datasets.length > 0) {
             this.selectDataset(this.datasets[0]);
           }
