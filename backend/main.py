@@ -12,6 +12,7 @@ import torch
 import numpy as np
 from PIL import Image
 import matplotlib.pyplot as plt
+import cv2
 
 from interfaces.all_images import AllsImagesRequest, AllImagesResponse
 from interfaces.all_labels import AllLabelsRequest, AllLabelsResponse
@@ -22,6 +23,8 @@ from interfaces.use_dataset import UseDatasetRequest, UseDatasetResponse
 from interfaces.use_model import UseModelRequest, UseModelResponse
 from interfaces.env import EnvResponse
 from interfaces.model_layers import ModelLayersRequest, ModelLayersResponse
+from interfaces.init_dir import InitDirRequest, InitDirResponse
+from interfaces.generate_mask import LabelFilename, GenerateManyMaskRequest, GenerateMasManykResponse, GenerateOneMaskRequest, GenerateOneMaskResponse
 
 
 ENV = os.getenv('APP_ENV', 'development')
@@ -137,10 +140,128 @@ def _load_model(model_name: str):
     model, _, _, _, shape = getattr(module, 'loadModel')()
     return model, shape
 
+@app.post('/init-dir')
+async def init_dir(request: InitDirRequest):
+    success = _create_model_dataset_dirs(request)
+    return InitDirResponse(success=success)
+
+ALL_DIRS = [
+    'mask_rise',
+    'mask_slic',
+    'mask_seed',
+    'gradient',
+    'gradient_integrated',
+    'gradient_smooth',
+    'gradient_var',
+    'gradient_grad_cam',
+    'gradient_grad_cam_plus_plus',
+]
+
+def _create_model_dataset_dirs(request: InitDirRequest):
+    root_path = os.path.join(PATH_MODELS_DATASETS, f'{request.model}_{request.dataset}')
+    try:
+        os.makedirs(root_path, exist_ok=True)
+
+        for dir_name in ALL_DIRS:
+            dir_path = os.path.join(root_path, dir_name)
+            os.makedirs(dir_path, exist_ok=True)
+    except:
+        return False
+    return True
+
+@app.post('/mask/rise')
+async def mask_rise(request: GenerateManyMaskRequest):
+    model, shape = _load_model(request.model)
+    shape = shape[1:]
+
+    for image in request.images:
+        label, filename = image.label, image.filename
+        filename = filename.split('.')[0]
+
+        path = os.path.join(PATH_MODELS_DATASETS, f'{request.model}_{request.dataset}', 'mask_rise', label, filename)
+        os.makedirs(path, exist_ok=True)
+        print('Creating directory:', path)
+
+        masks = _generate_rise_masks(shape, scale=5, numberOfRandomMask=request.count)
+
+        for i, mask in enumerate(masks):
+            mask_path = os.path.join(path, f'{i}.png')
+            cv2.imwrite(mask_path, mask * 255)
+
+    return GenerateMasManykResponse(success=True)
+
+def _generate_rise_masks(shape: tuple,
+                         scale: int = 10,
+                         numberOfRandomMask: int = 25,
+                         threshold: float = 0.5) -> np.ndarray:
+    height, width = shape
+    masks = np.random.random((numberOfRandomMask, height // scale, width // scale))
+    masks = np.where(masks > threshold, 1, 0).astype(np.uint8)
+
+    temp = np.zeros((numberOfRandomMask, height, width), dtype=np.uint8)
+
+    for i in range(len(masks)):
+        temp[i] = cv2.resize(
+            masks[i],
+            (width, height),
+            interpolation=cv2.INTER_LINEAR
+        )
+    
+    return temp
+
+@app.post('/mask/slic')
+async def mask_slic(request: GenerateOneMaskRequest):
+    model, shape = _load_model(request.model)
+    dim, height, width = shape
+    shape = shape[1:]
+
+    path = os.path.join(PATH_MODELS_DATASETS, f'{request.model}_{request.dataset}', 'mask_slic')
+    os.makedirs(path, exist_ok=True)
+
+    for image in request.images:
+        label, filename = image.label, image.filename
+        label_path = os.path.join(PATH_MODELS_DATASETS, f'{request.model}_{request.dataset}', 'mask_slic', label)
+        os.makedirs(label_path, exist_ok=True)
+
+        image_path = os.path.join(PATH_DATASETS, request.dataset, label, filename)
+
+        image_np = cv2.imread(image_path)
+        mask = _generate_slic_masks(image_np, height, width, numberOfSuperpixels=10)
+
+        mask_path = os.path.join(label_path, f'{filename.split(".")[0]}.png')
+        cv2.imwrite(mask_path, mask * 10)
+
+    return GenerateOneMaskResponse(success=True)
+
+def _generate_slic_masks(image: np.ndarray,
+                         height: int,
+                         width: int,
+                         numberOfSuperpixels: int = 100,
+                         iterations: int = 5) -> np.ndarray:
+
+    area = height * width
+    regionSize = int(np.sqrt(area / numberOfSuperpixels))
+
+    
+    slic = cv2.ximgproc.createSuperpixelSLIC(
+        image, region_size=regionSize
+    )
+
+    slic.iterate(iterations)
+    labels = slic.getLabels()
+    print(f'max label: {np.max(labels)}')
+    return labels
 
 
 
+@app.post('/mask/seed')
+async def mask_seed():
+    raise NotImplementedError("Seed mask generation is not implemented yet.")
 
+def _generate_seed_masks(image: np.ndarray,
+                            numberOfSuperpixels: int = 10,
+                            iterations: int = 5) -> np.ndarray:
+    pass
 
 
 
@@ -191,18 +312,6 @@ def _use_dataset(request: UseDatasetRequest) -> bool:
 
 
 
-
-@app.get("/mask/slic")
-def slic():
-    raise NotImplemented
-
-@app.get("/mask/seed")
-def seed():
-    raise NotImplemented
-
-@app.get("/mask/rise")
-def mask():
-    raise NotImplemented
 
 @app.get("/activation-maps")
 def activation_maps():
