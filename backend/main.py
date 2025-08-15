@@ -24,8 +24,8 @@ from interfaces.use_model import UseModelRequest, UseModelResponse
 from interfaces.env import EnvResponse
 from interfaces.model_layers import ModelLayersRequest, ModelLayersResponse
 from interfaces.init_dir import InitDirRequest, InitDirResponse
-from interfaces.generate_mask import LabelFilename, GenerateManyMaskRequest, GenerateMasManykResponse, GenerateOneMaskRequest, GenerateOneMaskResponse
-
+from interfaces.masks import MasksRequest, MasksResponse
+from interfaces.activations import ActivationsRequest, ActivationsResponse
 
 ENV = os.getenv('APP_ENV', 'development')
 
@@ -101,7 +101,7 @@ async def model_layers(request: ModelLayersRequest):
     return response 
 
 def _generate_layers(request: ModelLayersRequest) -> ModelLayersResponse:
-    model, shape = _load_model(request.model)
+    model, _, _, _, shape = _load_model(request.model)
 
     dummy_input = torch.randn(1, *shape)
     layers = list()
@@ -137,8 +137,8 @@ def _load_model(model_name: str):
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
 
-    model, _, _, _, shape = getattr(module, 'loadModel')()
-    return model, shape
+    model, last_conv, transform, idx_to_label, shape = getattr(module, 'loadModel')()
+    return model, last_conv, transform, idx_to_label, shape
 
 @app.post('/init-dir')
 async def init_dir(request: InitDirRequest):
@@ -149,12 +149,6 @@ ALL_DIRS = [
     'mask_rise',
     'mask_slic',
     'mask_seed',
-    'gradient',
-    'gradient_integrated',
-    'gradient_smooth',
-    'gradient_var',
-    'gradient_grad_cam',
-    'gradient_grad_cam_plus_plus',
 ]
 
 def _create_model_dataset_dirs(request: InitDirRequest):
@@ -170,8 +164,8 @@ def _create_model_dataset_dirs(request: InitDirRequest):
     return True
 
 @app.post('/mask/rise')
-async def mask_rise(request: GenerateManyMaskRequest):
-    model, shape = _load_model(request.model)
+async def mask_rise(request: MasksRequest):
+    model, _, _, _, shape = _load_model(request.model)
     shape = shape[1:]
 
     for image in request.images:
@@ -180,7 +174,6 @@ async def mask_rise(request: GenerateManyMaskRequest):
 
         path = os.path.join(PATH_MODELS_DATASETS, f'{request.model}_{request.dataset}', 'mask_rise', label, filename)
         os.makedirs(path, exist_ok=True)
-        print('Creating directory:', path)
 
         masks = _generate_rise_masks(shape, scale=5, numberOfRandomMask=request.count)
 
@@ -188,7 +181,7 @@ async def mask_rise(request: GenerateManyMaskRequest):
             mask_path = os.path.join(path, f'{i}.png')
             cv2.imwrite(mask_path, mask * 255)
 
-    return GenerateMasManykResponse(success=True)
+    return MasksResponse(success=True)
 
 def _generate_rise_masks(shape: tuple,
                          scale: int = 10,
@@ -210,8 +203,8 @@ def _generate_rise_masks(shape: tuple,
     return temp
 
 @app.post('/mask/slic')
-async def mask_slic(request: GenerateOneMaskRequest):
-    model, shape = _load_model(request.model)
+async def mask_slic(request: MasksRequest):
+    model, _, _, _, shape = _load_model(request.model)
     dim, height, width = shape
     shape = shape[1:]
 
@@ -226,12 +219,14 @@ async def mask_slic(request: GenerateOneMaskRequest):
         image_path = os.path.join(PATH_DATASETS, request.dataset, label, filename)
 
         image_np = cv2.imread(image_path)
-        mask = _generate_slic_masks(image_np, height, width, numberOfSuperpixels=10)
+        mask = _generate_slic_masks(image_np, height, width, numberOfSuperpixels=request.count)
 
         mask_path = os.path.join(label_path, f'{filename.split(".")[0]}.png')
-        cv2.imwrite(mask_path, mask * 10)
+        mask = cv2.normalize(mask, None, 0, 255, cv2.NORM_MINMAX)
+        mask = mask.astype(np.uint8)
+        cv2.imwrite(mask_path, mask)
 
-    return GenerateOneMaskResponse(success=True)
+    return MasksResponse(success=True)
 
 def _generate_slic_masks(image: np.ndarray,
                          height: int,
@@ -239,10 +234,8 @@ def _generate_slic_masks(image: np.ndarray,
                          numberOfSuperpixels: int = 100,
                          iterations: int = 5) -> np.ndarray:
 
-    area = height * width
-    regionSize = int(np.sqrt(area / numberOfSuperpixels))
+    regionSize = int(np.sqrt((width * height) / numberOfSuperpixels))
 
-    
     slic = cv2.ximgproc.createSuperpixelSLIC(
         image, region_size=regionSize
     )
@@ -255,13 +248,50 @@ def _generate_slic_masks(image: np.ndarray,
 
 
 @app.post('/mask/seed')
-async def mask_seed():
-    raise NotImplementedError("Seed mask generation is not implemented yet.")
+async def mask_seed(request: MasksRequest):
+    print('aa')
+    model, _, _, _, shape = _load_model(request.model)
+    dim, height, width = shape
+    shape = shape[1:]
+
+    path = os.path.join(PATH_MODELS_DATASETS, f'{request.model}_{request.dataset}', 'mask_seed')
+    os.makedirs(path, exist_ok=True)
+
+    for image in request.images:
+        label, filename = image.label, image.filename
+        label_path = os.path.join(PATH_MODELS_DATASETS, f'{request.model}_{request.dataset}', 'mask_seed', label)
+        os.makedirs(label_path, exist_ok=True)
+
+        image_path = os.path.join(PATH_DATASETS, request.dataset, label, filename)
+
+        image_np = cv2.imread(image_path)
+        mask = _generate_seed_masks(image_np, height, width, numberOfSuperpixels=request.count)
+
+        mask_path = os.path.join(label_path, f'{filename.split(".")[0]}.png')
+        mask = cv2.normalize(mask, None, 0, 255, cv2.NORM_MINMAX)
+        mask = mask.astype(np.uint8)
+        cv2.imwrite(mask_path, mask)
+
+    return MasksResponse(success=True)
 
 def _generate_seed_masks(image: np.ndarray,
-                            numberOfSuperpixels: int = 10,
-                            iterations: int = 5) -> np.ndarray:
-    pass
+                         height: int,
+                         width: int,
+                         numberOfSuperpixels: int = 10,
+                         iterations: int = 5) -> np.ndarray:
+    LEVELS = 2
+    seeds = cv2.ximgproc.createSuperpixelSEEDS(
+        image_width=width,
+        image_height=height,
+        image_channels=image.shape[2],
+        num_superpixels=numberOfSuperpixels,
+        num_levels=LEVELS
+    )
+
+    seeds.iterate(image, iterations)
+    labels = seeds.getLabels()
+    print(f'max label: {np.max(labels)}')
+    return labels
 
 
 
@@ -314,8 +344,41 @@ def _use_dataset(request: UseDatasetRequest) -> bool:
 
 
 @app.get("/activation-maps")
-def activation_maps():
-    raise NotImplemented
+async def activation_maps(request: ActivationsRequest):
+    model_name = request.model
+    dataset = request.dataset
+    images = request.images
+
+    model, last_conv, transform, _, _ = _load_model(model_name)
+
+    for image in images:
+        label = image.label
+        filename = image.filename
+
+        path = os.path.join(PATH_DATASETS, dataset, label, filename)
+        base = filename.split('.')[0]
+        print(f"Path to image: {path}")
+        
+        image = Image.open(path).convert("RGB")
+        image = transform(image).unsqueeze(0)
+
+        def activation_hook(module, input, output):
+            activation = output.detach().cpu().numpy()
+            print(f"Activation shape: {activation.shape}")
+
+        last_conv.register_forward_hook(activation_hook)
+
+        model.eval()
+        with torch.no_grad():
+            model(image)
+
+
+
+
+
+
+
+    
 
 
 @app.get("/heat-map/grad")
