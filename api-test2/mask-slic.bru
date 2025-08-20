@@ -1,0 +1,30 @@
+meta {
+  name: mask/slic
+  type: http
+  seq: 14
+}
+
+post {
+  url: http://localhost:8000/mask/slic
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "model": "mnist",
+    "dataset": "mnist-dataset",
+    "images": [
+      {
+        "label": "five",
+        "filename": "8.png"
+      }
+    ],
+    "superPixels": 10,
+    "overwrite": false
+  }
+}
+
+settings {
+  encodeUrl: true
+}

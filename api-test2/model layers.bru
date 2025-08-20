@@ -1,0 +1,21 @@
+meta {
+  name: model layers
+  type: http
+  seq: 8
+}
+
+post {
+  url: http://localhost:8000/model-layers
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "model": "fashion"
+  }
+}
+
+settings {
+  encodeUrl: true
+}

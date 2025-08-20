@@ -1,0 +1,101 @@
+import os
+from .datasets_service import DatasetsService
+from .heatmaps_service import HeatmapsService
+from .models_service import ModelsService
+from .masks_service import MasksService
+from .utilities_service import UtilitiesService
+from .models_datasets_service import ModelsDatasetsService
+from constans import Constants
+
+class ServiceContainer:
+    def __init__(self, env: str = 'development'):
+        self.env = env
+
+        if env == 'development':
+            self.base_dir = os.path.join('..', 'DIR')
+        else:
+            self.base_dir = os.path.join('/app', 'DIR')
+
+        self.constants = Constants()
+
+        self.datasets_path = os.path.join(self.base_dir, self.constants.DATASETS)
+        self.models_path = os.path.join(self.base_dir, self.constants.MODELS)
+        self.models_datasets_path = os.path.join(self.base_dir, self.constants.MODELS_DATASETS)
+
+        self._datasets_service = None
+        self._heatmaps_service = None
+        self._models_service = None
+        self._masks_service = None
+        self._utilities_service = None
+        self._models_datasets_service = None
+
+    @property
+    def datasets_service(self) -> DatasetsService:
+        if self._datasets_service is None:
+            self._datasets_service = DatasetsService(self.datasets_path)
+        return self._datasets_service
+
+    @property
+    def heatmaps_service(self) -> HeatmapsService:
+        if self._heatmaps_service is None:
+            self._heatmaps_service = HeatmapsService(self.models_datasets_path)
+        return self._heatmaps_service
+    
+    @property
+    def models_service(self) -> ModelsService:
+        if self._models_service is None:
+            self._models_service = ModelsService(self.models_path)
+        return self._models_service
+
+    @property
+    def masks_service(self) -> MasksService:
+        if self._masks_service is None:
+            self._masks_service = MasksService(self.datasets_path, self.models_datasets_path)
+        return self._masks_service
+    
+    @property
+    def utilities_service(self) -> UtilitiesService:
+        if self._utilities_service is None:
+            self._utilities_service = UtilitiesService()
+        return self._utilities_service
+    
+    @property
+    def models_datasets_service(self) -> ModelsDatasetsService:
+        if self._models_datasets_service is None:
+            self._models_datasets_service = ModelsDatasetsService(
+                self.models_datasets_path, 
+                self.utilities_service, 
+                self.constants
+            )
+        return self._models_datasets_service
+    
+
+_container: ServiceContainer = None
+
+def get_container() -> ServiceContainer:
+    global _container
+    if _container is None:
+        env = os.getenv('APP_ENV', 'development')
+        _container = ServiceContainer(env)
+    return _container
+
+def get_datasets_service() -> DatasetsService:
+    return get_container().datasets_service
+
+def get_heatmaps_service() -> HeatmapsService:
+    return get_container().heatmaps_service
+
+def get_models_service() -> ModelsService:
+    return get_container().models_service
+
+def get_masks_service() -> MasksService:
+    return get_container().masks_service
+
+def get_utilities_service() -> UtilitiesService:
+    return get_container().utilities_service
+
+def get_models_datasets_service() -> ModelsDatasetsService:
+    return get_container().models_datasets_service
+
+def get_constants() -> Constants:
+    return get_container().constants
