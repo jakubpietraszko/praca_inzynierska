@@ -35,25 +35,6 @@ async def activations(request: ActivationsRequest,
 
     image_np = datasets_service.load_image(filepath, model_info.input_shape)
 
-    # image_np = np.array(Image.open(filepath))
-    # if len(image_np.shape) == 2:
-    #     image_np = np.expand_dims(image_np, axis=-1)
-
-
-
-    # image_np = cv2.resize(
-    #     image_np,
-    #     model_info.input_shape[2:0:-1],
-    # )
-
-    # if len(image_np.shape) == 3 and image_np.shape[2] == 1:
-    #     image_np = np.squeeze(image_np, axis=2)
-    #     image_np = np.expand_dims(image_np, axis=0)
-    # elif len(image_np.shape) == 3:
-    #     image_np = np.transpose(image_np, (2, 0, 1))
-    # elif len(image_np.shape) == 2:
-    #     image_np = np.expand_dims(image_np, axis=0)
-
     activations = None
     def hook(module, input, output):
         nonlocal activations
@@ -98,7 +79,8 @@ async def gradient(request: GradientRequest,
                       models_service: ModelsService = Depends(get_models_service),
                       heatmaps_service: HeatmapsService = Depends(get_heatmaps_service),
                       utilities_service: UtilitiesService = Depends(get_utilities_service),
-                      models_datasets_service: ModelsDatasetsService = Depends(get_models_datasets_service)
+                      models_datasets_service: ModelsDatasetsService = Depends(get_models_datasets_service),
+                        datasets_service: DatasetsService = Depends(get_datasets_service)
                    ):
     model_info = models_service.load_model(request.model)
 
@@ -128,20 +110,8 @@ async def gradient(request: GradientRequest,
             filename
         )
 
-        image_np = np.array(Image.open(image_path))
-        if len(image_np.shape) == 2:
-            image_np = np.expand_dims(image_np, axis=-1)
-        image_np = cv2.resize(
-            image_np,
-            model_info.input_shape[2:0:-1],
-        )
-        if len(image_np.shape) == 3 and image_np.shape[2] == 1:
-            image_np = np.squeeze(image_np, axis=2)
-            image_np = np.expand_dims(image_np, axis=0)
-        elif len(image_np.shape) == 3:
-            image_np = np.transpose(image_np, (2, 0, 1))
-        elif len(image_np.shape) == 2:
-            image_np = np.expand_dims(image_np, axis=0)
+        image_np = datasets_service.load_image(image_path, model_info.input_shape)
+
 
         image_np = image_np.astype(np.float32) / 255.0
         image_tensor = torch.from_numpy(image_np).unsqueeze(0).float()
@@ -181,7 +151,8 @@ async def integrated_gradient(request: GradientRequest,
                               models_service: ModelsService = Depends(get_models_service),
                               heatmaps_service: HeatmapsService = Depends(get_heatmaps_service),
                               utilities_service: UtilitiesService = Depends(get_utilities_service),
-                              models_datasets_service: ModelsDatasetsService = Depends(get_models_datasets_service)
+                              models_datasets_service: ModelsDatasetsService = Depends(get_models_datasets_service),
+                                datasets_service: DatasetsService = Depends(get_datasets_service)
                               ):
     BASELINE = 0
     STEPS = 100
@@ -213,20 +184,7 @@ async def integrated_gradient(request: GradientRequest,
             filename
         )
 
-        image_np = np.array(Image.open(image_path))
-        if len(image_np.shape) == 2:
-            image_np = np.expand_dims(image_np, axis=-1)
-        image_np = cv2.resize(
-            image_np,
-            model_info.input_shape[2:0:-1],
-        )
-        if len(image_np.shape) == 3 and image_np.shape[2] == 1:
-            image_np = np.squeeze(image_np, axis=2)
-            image_np = np.expand_dims(image_np, axis=0)
-        elif len(image_np.shape) == 3:
-            image_np = np.transpose(image_np, (2, 0, 1))
-        elif len(image_np.shape) == 2:
-            image_np = np.expand_dims(image_np, axis=0)
+        image_np = datasets_service.load_image(image_path, model_info.input_shape)
 
         image_np = image_np.astype(np.float32) / 255.0
         image_tensor = torch.from_numpy(image_np).unsqueeze(0).float()
@@ -278,7 +236,8 @@ async def smooth_grad(request: GradientRequest,
                       models_service: ModelsService = Depends(get_models_service),
                       heatmaps_service: HeatmapsService = Depends(get_heatmaps_service),
                       utilities_service: UtilitiesService = Depends(get_utilities_service),
-                      models_datasets_service: ModelsDatasetsService = Depends(get_models_datasets_service)
+                      models_datasets_service: ModelsDatasetsService = Depends(get_models_datasets_service),
+                        datasets_service: DatasetsService = Depends(get_datasets_service)
                       ):
     model_info = models_service.load_model(request.model)
     NOISE_LEVEL = 0.1
@@ -308,20 +267,8 @@ async def smooth_grad(request: GradientRequest,
             filename
         )
 
-        image_np = np.array(Image.open(image_path))
-        if len(image_np.shape) == 2:
-            image_np = np.expand_dims(image_np, axis=-1)
-        image_np = cv2.resize(
-            image_np,
-            model_info.input_shape[2:0:-1],
-        )
-        if len(image_np.shape) == 3 and image_np.shape[2] == 1:
-            image_np = np.squeeze(image_np, axis=2)
-            image_np = np.expand_dims(image_np, axis=0)
-        elif len(image_np.shape) == 3:
-            image_np = np.transpose(image_np, (2, 0, 1))
-        elif len(image_np.shape) == 2:
-            image_np = np.expand_dims(image_np, axis=0)
+        image_np = datasets_service.load_image(image_path, model_info.input_shape)
+
 
         image_np = image_np.astype(np.float32) / 255.0
         image_tensor = torch.from_numpy(image_np).unsqueeze(0).float()
@@ -366,7 +313,8 @@ async def var_grad(request: GradientRequest,
                         models_service: ModelsService = Depends(get_models_service),
                         heatmaps_service: HeatmapsService = Depends(get_heatmaps_service),
                         utilities_service: UtilitiesService = Depends(get_utilities_service),
-                        models_datasets_service: ModelsDatasetsService = Depends(get_models_datasets_service)
+                        models_datasets_service: ModelsDatasetsService = Depends(get_models_datasets_service),
+                        datasets_service: DatasetsService = Depends(get_datasets_service)
                         ):
     model_info = models_service.load_model(request.model)
     NOISE_LEVEL = 0.1
@@ -396,20 +344,8 @@ async def var_grad(request: GradientRequest,
             filename
         )
 
-        image_np = np.array(Image.open(image_path))
-        if len(image_np.shape) == 2:
-            image_np = np.expand_dims(image_np, axis=-1)
-        image_np = cv2.resize(
-            image_np,
-            model_info.input_shape[2:0:-1],
-        )
-        if len(image_np.shape) == 3 and image_np.shape[2] == 1:
-            image_np = np.squeeze(image_np, axis=2)
-            image_np = np.expand_dims(image_np, axis=0)
-        elif len(image_np.shape) == 3:
-            image_np = np.transpose(image_np, (2, 0, 1))
-        elif len(image_np.shape) == 2:
-            image_np = np.expand_dims(image_np, axis=0)
+        image_np = datasets_service.load_image(image_path, model_info.input_shape)
+
 
         image_np = image_np.astype(np.float32) / 255.0
         image_tensor = torch.from_numpy(image_np).unsqueeze(0).float()
@@ -455,7 +391,8 @@ async def grad_cam(request: GradientRequest,
                         models_service: ModelsService = Depends(get_models_service),
                         heatmaps_service: HeatmapsService = Depends(get_heatmaps_service),
                         utilities_service: UtilitiesService = Depends(get_utilities_service),
-                        models_datasets_service: ModelsDatasetsService = Depends(get_models_datasets_service)
+                        models_datasets_service: ModelsDatasetsService = Depends(get_models_datasets_service),
+                        datasets_service: DatasetsService = Depends(get_datasets_service)
 ):
     model_info = models_service.load_model(request.model)
     path = os.path.join(
@@ -483,20 +420,8 @@ async def grad_cam(request: GradientRequest,
             filename
         )
 
-        image_np = np.array(Image.open(image_path))
-        if len(image_np.shape) == 2:
-            image_np = np.expand_dims(image_np, axis=-1)
-        image_np = cv2.resize(
-            image_np,
-            model_info.input_shape[2:0:-1],
-        )
-        if len(image_np.shape) == 3 and image_np.shape[2] == 1:
-            image_np = np.squeeze(image_np, axis=2)
-            image_np = np.expand_dims(image_np, axis=0)
-        elif len(image_np.shape) == 3:
-            image_np = np.transpose(image_np, (2, 0, 1))
-        elif len(image_np.shape) == 2:
-            image_np = np.expand_dims(image_np, axis=0)
+        image_np = datasets_service.load_image(image_path, model_info.input_shape)
+
 
         image_tensor = torch.from_numpy(image_np.astype(np.float32) / 255.0).float()
 
@@ -546,7 +471,8 @@ async def grad_cam_plus(request: GradientRequest,
                         models_service: ModelsService = Depends(get_models_service),
                         heatmaps_service: HeatmapsService = Depends(get_heatmaps_service),
                         utilities_service: UtilitiesService = Depends(get_utilities_service),
-                        models_datasets_service: ModelsDatasetsService = Depends(get_models_datasets_service)
+                        models_datasets_service: ModelsDatasetsService = Depends(get_models_datasets_service),
+                        datasets_service: DatasetsService = Depends(get_datasets_service)
 ):
     model_info = models_service.load_model(request.model)
     path = os.path.join(
@@ -574,20 +500,7 @@ async def grad_cam_plus(request: GradientRequest,
             filename
         )
 
-        image_np = np.array(Image.open(image_path))
-        if len(image_np.shape) == 2:
-            image_np = np.expand_dims(image_np, axis=-1)
-        image_np = cv2.resize(
-            image_np,
-            model_info.input_shape[2:0:-1],
-        )
-        if len(image_np.shape) == 3 and image_np.shape[2] == 1:
-            image_np = np.squeeze(image_np, axis=2)
-            image_np = np.expand_dims(image_np, axis=0)
-        elif len(image_np.shape) == 3:
-            image_np = np.transpose(image_np, (2, 0, 1))
-        elif len(image_np.shape) == 2:
-            image_np = np.expand_dims(image_np, axis=0)
+        image_np = datasets_service.load_image(image_path, model_info.input_shape)
 
         image_tensor = torch.from_numpy(image_np.astype(np.float32) / 255.0).float()
 
@@ -625,7 +538,8 @@ async def hires_cam(request: GradientRequest,
                         models_service: ModelsService = Depends(get_models_service),
                         heatmaps_service: HeatmapsService = Depends(get_heatmaps_service),
                         utilities_service: UtilitiesService = Depends(get_utilities_service),
-                        models_datasets_service: ModelsDatasetsService = Depends(get_models_datasets_service)
+                        models_datasets_service: ModelsDatasetsService = Depends(get_models_datasets_service),
+                        datasets_service: DatasetsService = Depends(get_datasets_service)
 ):
     model_info = models_service.load_model(request.model)
     path = os.path.join(
@@ -653,20 +567,7 @@ async def hires_cam(request: GradientRequest,
             filename
         )
 
-        image_np = np.array(Image.open(image_path))
-        if len(image_np.shape) == 2:
-            image_np = np.expand_dims(image_np, axis=-1)
-        image_np = cv2.resize(
-            image_np,
-            model_info.input_shape[2:0:-1],
-        )
-        if len(image_np.shape) == 3 and image_np.shape[2] == 1:
-            image_np = np.squeeze(image_np, axis=2)
-            image_np = np.expand_dims(image_np, axis=0)
-        elif len(image_np.shape) == 3:
-            image_np = np.transpose(image_np, (2, 0, 1))
-        elif len(image_np.shape) == 2:
-            image_np = np.expand_dims(image_np, axis=0)
+        image_np = datasets_service.load_image(image_path, model_info.input_shape)
 
         image_tensor = torch.from_numpy(image_np.astype(np.float32) / 255.0).float()
 
