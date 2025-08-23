@@ -29,6 +29,7 @@ async def activations(request: ActivationsRequest,
                           get_models_datasets_service),
                       datasets_service: DatasetsService = Depends(
                           get_datasets_service),
+                      constants: Constants = Depends(get_constants)
                       ):
     model_info = models_service.load_model(request.model)
 
@@ -58,14 +59,26 @@ async def activations(request: ActivationsRequest,
     path = os.path.join(
         container.models_datasets_path,
         utilities_service.models_datasets_path(request.model, request.dataset),
-        'activations',
-        
+        constants.ACTIVATIONS,
         request.label,
-        request.filename.split('.')[0]
+        utilities_service.delete_extension(request.filename)
     )
     os.makedirs(path, exist_ok=True)
 
+    print(activations.shape)
+    print(type(activations))
+    print(activations.min(), activations.max())
+
     for i, activation in enumerate(activations):
+        activation = np.maximum(activation, 0)
+        activation = (activation - activation.min()) / \
+            (activation.max() - activation.min() + 1e-8)
+        print(activation.shape, activation.min(), activation.max())
+
+        activation = cv2.resize(
+            activation, (model_info.input_shape[2], model_info.input_shape[1])
+        )
+        
         activation_path = os.path.join(
             path,
             f'{i}.png'
@@ -89,14 +102,15 @@ async def gradient(request: GradientRequest,
                    models_datasets_service: ModelsDatasetsService = Depends(
                        get_models_datasets_service),
                    datasets_service: DatasetsService = Depends(
-                       get_datasets_service)
+                       get_datasets_service),
+                   constants: Constants = Depends(get_constants)
                    ):
     model_info = models_service.load_model(request.model)
 
     path = os.path.join(
         container.models_datasets_path,
         utilities_service.models_datasets_path(request.model, request.dataset),
-        'gradient',
+        constants.GRADIENT,
     )
     os.makedirs(path, exist_ok=True)
 
@@ -131,6 +145,9 @@ async def gradient(request: GradientRequest,
         grad = torch.autograd.grad(y_c, image_tensor)[0]
         result = grad.squeeze().cpu().detach().numpy()
 
+        print(result.shape)
+        print(result.min(), result.max())
+
         if len(result.shape) == 3 and result.shape[0] == 3:
             result = np.max(result, axis=0)
 
@@ -164,7 +181,8 @@ async def integrated_gradient(request: GradientRequest,
                               models_datasets_service: ModelsDatasetsService = Depends(
                                   get_models_datasets_service),
                               datasets_service: DatasetsService = Depends(
-                                  get_datasets_service)
+                                  get_datasets_service),
+                              constants: Constants = Depends(get_constants)
                               ):
     BASELINE = 0
     STEPS = 100
@@ -174,7 +192,7 @@ async def integrated_gradient(request: GradientRequest,
     path = os.path.join(
         container.models_datasets_path,
         utilities_service.models_datasets_path(request.model, request.dataset),
-        'integrated_gradient',
+        constants.INTEGRATED_GRADIENT,
     )
     os.makedirs(path, exist_ok=True)
 
@@ -251,7 +269,8 @@ async def smooth_grad(request: GradientRequest,
                       models_datasets_service: ModelsDatasetsService = Depends(
                           get_models_datasets_service),
                       datasets_service: DatasetsService = Depends(
-                          get_datasets_service)
+                          get_datasets_service),
+                      constants: Constants = Depends(get_constants)
                       ):
     model_info = models_service.load_model(request.model)
     NOISE_LEVEL = 0.1
@@ -259,7 +278,7 @@ async def smooth_grad(request: GradientRequest,
     path = os.path.join(
         container.models_datasets_path,
         utilities_service.models_datasets_path(request.model, request.dataset),
-        'smooth_gradient',
+        constants.SMOOTH_GRADIENT,
     )
     os.makedirs(path, exist_ok=True)
 
@@ -330,7 +349,8 @@ async def var_grad(request: GradientRequest,
                    models_datasets_service: ModelsDatasetsService = Depends(
                        get_models_datasets_service),
                    datasets_service: DatasetsService = Depends(
-                       get_datasets_service)
+                       get_datasets_service),
+                   constants: Constants = Depends(get_constants)
                    ):
     model_info = models_service.load_model(request.model)
     NOISE_LEVEL = 0.1
@@ -338,7 +358,7 @@ async def var_grad(request: GradientRequest,
     path = os.path.join(
         container.models_datasets_path,
         utilities_service.models_datasets_path(request.model, request.dataset),
-        'var_grad',
+        constants.VAR_GRADIENT,
     )
     os.makedirs(path, exist_ok=True)
 
@@ -412,13 +432,14 @@ async def grad_cam(request: GradientRequest,
                    models_datasets_service: ModelsDatasetsService = Depends(
                        get_models_datasets_service),
                    datasets_service: DatasetsService = Depends(
-                       get_datasets_service)
+                       get_datasets_service),
+                   constants: Constants = Depends(get_constants)
                    ):
     model_info = models_service.load_model(request.model)
     path = os.path.join(
         container.models_datasets_path,
         utilities_service.models_datasets_path(request.model, request.dataset),
-        'grad_cam',
+        constants.GRAD_CAM,
     )
     os.makedirs(path, exist_ok=True)
 
@@ -495,13 +516,14 @@ async def grad_cam_plus(request: GradientRequest,
                         models_datasets_service: ModelsDatasetsService = Depends(
                             get_models_datasets_service),
                         datasets_service: DatasetsService = Depends(
-                            get_datasets_service)
+                            get_datasets_service),
+                        constants: Constants = Depends(get_constants)
                         ):
     model_info = models_service.load_model(request.model)
     path = os.path.join(
         container.models_datasets_path,
         utilities_service.models_datasets_path(request.model, request.dataset),
-        'grad_cam_plus_plus',
+        constants.GRAD_CAM_PLUS_PLUS,
     )
     os.makedirs(path, exist_ok=True)
 
@@ -568,13 +590,14 @@ async def hires_cam(request: GradientRequest,
                     models_datasets_service: ModelsDatasetsService = Depends(
                         get_models_datasets_service),
                     datasets_service: DatasetsService = Depends(
-                        get_datasets_service)
+                        get_datasets_service),
+                    constants: Constants = Depends(get_constants)
                     ):
     model_info = models_service.load_model(request.model)
     path = os.path.join(
         container.models_datasets_path,
         utilities_service.models_datasets_path(request.model, request.dataset),
-        'hires_cam',
+        constants.HIRES_CAM,
     )
     os.makedirs(path, exist_ok=True)
 

@@ -33,6 +33,7 @@ class Constants:
         Constants.HIRES_CAM,
     ])
 
-    CMAP: str = 'hot'
+    CMAP: str = 'hot',
+    EPSILON: float = 1e-8
 
     

@@ -30,3 +30,7 @@ class UtilitiesService:
             image.requires_grad = True
 
         return image
+    
+    def delete_extension(self, filename: str) -> str:
+        base = filename.split('.')[0]
+        return base
