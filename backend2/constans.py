@@ -35,5 +35,9 @@ class Constants:
 
     CMAP: str = 'hot',
     EPSILON: float = 1e-8
+    BASELINE: int = 0
+    STEPS: int = 50
+    NOISE_LEVEL: float = 0.1
+    NUM_SAMPLES: int = 50
 
     

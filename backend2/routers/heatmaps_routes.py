@@ -51,7 +51,7 @@ async def activations(request: ActivationsRequest,
 
     ref = model_info.last_conv_layer.register_forward_hook(hook)
     model_info.model.eval()
-    output = model_info.model(image_tensor)
+    model_info.model(image_tensor)
     ref.remove()
 
     activations = np.squeeze(activations, axis=0)
@@ -65,25 +65,15 @@ async def activations(request: ActivationsRequest,
     )
     os.makedirs(path, exist_ok=True)
 
-    print(activations.shape)
-    print(type(activations))
-    print(activations.min(), activations.max())
-
     for i, activation in enumerate(activations):
-        activation = np.maximum(activation, 0)
-        activation = (activation - activation.min()) / \
-            (activation.max() - activation.min() + 1e-8)
-        print(activation.shape, activation.min(), activation.max())
+        activation = utilities_service.relu_normalize(
+            activation, model_info.input_shape, epsilon=constants.EPSILON)
 
-        activation = cv2.resize(
-            activation, (model_info.input_shape[2], model_info.input_shape[1])
-        )
-        
         activation_path = os.path.join(
             path,
             f'{i}.png'
         )
-        cv2.imwrite(activation_path, activation * 255)
+        cv2.imwrite(activation_path, activation)
 
     return ActivationsResponse(
         success=True,
@@ -145,20 +135,16 @@ async def gradient(request: GradientRequest,
         grad = torch.autograd.grad(y_c, image_tensor)[0]
         result = grad.squeeze().cpu().detach().numpy()
 
-        print(result.shape)
-        print(result.min(), result.max())
-
         if len(result.shape) == 3 and result.shape[0] == 3:
-            result = np.max(result, axis=0)
+            result = utilities_service.aggregate_channels(result, 'sum')
 
-        result = np.maximum(result, 0)
-
-        result *= 255.0 / result.max()
-        result = result.astype(np.uint8)
+        result = utilities_service.relu_normalize(
+            result, model_info.input_shape, epsilon=constants.EPSILON
+        )
 
         save_path = os.path.join(
             label_path,
-            filename.split('.')[0] + '.png'
+            utilities_service.add_png_extension(filename)
         )
 
         cv2.imwrite(save_path, result)
@@ -184,9 +170,6 @@ async def integrated_gradient(request: GradientRequest,
                                   get_datasets_service),
                               constants: Constants = Depends(get_constants)
                               ):
-    BASELINE = 0
-    STEPS = 100
-
     model_info = models_service.load_model(request.model)
 
     path = os.path.join(
@@ -220,34 +203,33 @@ async def integrated_gradient(request: GradientRequest,
             image_np, grad=True)
         model_info.model.eval()
 
-        baseline = torch.ones_like(image_tensor) * BASELINE
-        alphas = torch.linspace(0, 1, STEPS).reshape(-1, 1, 1, 1)
+        baseline = torch.ones_like(image_tensor) * constants.BASELINE
+        alphas = torch.linspace(0, 1, constants.STEPS).reshape(-1, 1, 1, 1)
 
         interpolated_images = baseline + alphas * (image_tensor - baseline)
 
         result = torch.zeros_like(image_tensor)
 
-        for i in range(STEPS):
+        for i in range(constants.STEPS):
             interpolated_image = interpolated_images[i].requires_grad_()
             output = model_info.model(interpolated_image.unsqueeze(0))
             y_c = output[0, target]
             grad = torch.autograd.grad(y_c, interpolated_image)[0]
             grad = torch.clamp(grad, min=0)
             result += grad
-        result /= STEPS
+        result /= constants.STEPS
         result = result.squeeze().cpu().detach().numpy()
-        result = np.maximum(result, 0)
 
         if len(result.shape) == 3 and result.shape[0] == 3:
-            result = np.max(result, axis=0)
+            result = utilities_service.aggregate_channels(result, 'sum')
 
-        result = (result - result.min()) / (result.max() - result.min() + 1e-8)
-        result *= 255.0
-        result = result.astype(np.uint8)
+        result = utilities_service.relu_normalize(
+            result, model_info.input_shape, epsilon=constants.EPSILON
+        )
 
         save_path = os.path.join(
             label_path,
-            filename.split('.')[0] + '.png'
+            utilities_service.add_png_extension(filename)
         )
 
         cv2.imwrite(save_path, result)
@@ -273,8 +255,6 @@ async def smooth_grad(request: GradientRequest,
                       constants: Constants = Depends(get_constants)
                       ):
     model_info = models_service.load_model(request.model)
-    NOISE_LEVEL = 0.1
-    NUM_SAMPLES = 50
     path = os.path.join(
         container.models_datasets_path,
         utilities_service.models_datasets_path(request.model, request.dataset),
@@ -308,8 +288,8 @@ async def smooth_grad(request: GradientRequest,
 
         result = torch.zeros_like(image_tensor)
 
-        for _ in range(NUM_SAMPLES):
-            noise = torch.randn_like(image_tensor) * NOISE_LEVEL
+        for _ in range(constants.NUM_SAMPLES):
+            noise = torch.randn_like(image_tensor) * constants.NOISE_LEVEL
             noisy_image = (image_tensor + noise).clone().detach()
             noisy_image.requires_grad_()
             output = model_info.model(noisy_image)
@@ -317,20 +297,18 @@ async def smooth_grad(request: GradientRequest,
             grad = torch.autograd.grad(y_c, noisy_image)[0]
             grad = torch.clamp(grad, min=0)
             result += grad
-        result /= NUM_SAMPLES
+        result /= constants.NUM_SAMPLES
         result = result.squeeze().cpu().detach().numpy()
-        result = np.maximum(result, 0)
 
         if len(result.shape) == 3 and result.shape[0] == 3:
-            result = np.max(result, axis=0)
-
-        result = (result - result.min()) / (result.max() - result.min() + 1e-8)
-        result *= 255.0
-        result = result.astype(np.uint8)
+            result = utilities_service.aggregate_channels(result, 'sum')
+        result = utilities_service.relu_normalize(
+            result, model_info.input_shape, epsilon=constants.EPSILON
+        )
 
         save_path = os.path.join(
             label_path,
-            filename.split('.')[0] + '.png'
+            utilities_service.add_png_extension(filename)
         )
         cv2.imwrite(save_path, result)
     return GradientResponse(
@@ -353,8 +331,6 @@ async def var_grad(request: GradientRequest,
                    constants: Constants = Depends(get_constants)
                    ):
     model_info = models_service.load_model(request.model)
-    NOISE_LEVEL = 0.1
-    NUM_SAMPLES = 50
     path = os.path.join(
         container.models_datasets_path,
         utilities_service.models_datasets_path(request.model, request.dataset),
@@ -389,8 +365,8 @@ async def var_grad(request: GradientRequest,
 
         results_list = []
 
-        for _ in range(NUM_SAMPLES):
-            noise = torch.randn_like(image_tensor) * NOISE_LEVEL
+        for _ in range(constants.NUM_SAMPLES):
+            noise = torch.randn_like(image_tensor) * constants.NOISE_LEVEL
             noisy_image = (image_tensor + noise).clone().detach().contiguous()
             noisy_image.requires_grad_()
             output = model_info.model(noisy_image)
@@ -402,18 +378,17 @@ async def var_grad(request: GradientRequest,
         all_grads = torch.stack(results_list, dim=0)
         result = torch.var(all_grads, dim=0)
         result = result.squeeze().cpu().detach().numpy()
-        result = np.maximum(result, 0)
 
         if len(result.shape) == 3 and result.shape[0] == 3:
-            result = np.max(result, axis=0)
-
-        result = (result - result.min()) / (result.max() - result.min() + 1e-8)
-        result *= 255.0
-        result = result.astype(np.uint8)
+            result = utilities_service.aggregate_channels(result, 'sum')
+        
+        result = utilities_service.relu_normalize(
+            result, model_info.input_shape, epsilon=constants.EPSILON
+        )
 
         save_path = os.path.join(
             label_path,
-            filename.split('.')[0] + '.png'
+            utilities_service.add_png_extension(filename)
         )
         cv2.imwrite(save_path, result)
     return GradientResponse(
@@ -465,7 +440,10 @@ async def grad_cam(request: GradientRequest,
             image_path, model_info.input_shape)
         image_tensor = utilities_service.convert_image_to_tensor(
             image_np, grad=True)
+        
+
         model_info.model.eval()
+
 
         activations = None
         gradients = None
@@ -479,26 +457,28 @@ async def grad_cam(request: GradientRequest,
             gradients = o[0]
 
         h1 = model_info.last_conv_layer.register_forward_hook(forward_hook)
-        h2 = model_info.last_conv_layer.register_backward_hook(backward_hook)
-        image_tensor = image_tensor.unsqueeze(0)
+        h2 = model_info.last_conv_layer.register_full_backward_hook(backward_hook)
         output = model_info.model(image_tensor)
         output[0, target].backward()
         h1.remove()
         h2.remove()
 
+
+
         weights = gradients.mean(dim=(2, 3), keepdim=True)
         cam = (weights * activations).sum(dim=1, keepdim=True)
         cam = cam.squeeze().cpu().detach().numpy()
-        cam = np.maximum(cam, 0)
-        cam = (cam - cam.min()) / (cam.max() - cam.min() + 1e-8)
-        cam *= 255.0
-        cam = cam.astype(np.uint8)
+
+        cam = utilities_service.relu_normalize(
+            cam, model_info.input_shape, constants.EPSILON
+        )
 
         save_path = os.path.join(
             label_path,
-            filename.split('.')[0] + '.png'
+            utilities_service.add_png_extension(filename)
         )
         cv2.imwrite(save_path, cam)
+
     return GradientResponse(
         success=True,
     )
@@ -519,58 +499,7 @@ async def grad_cam_plus(request: GradientRequest,
                             get_datasets_service),
                         constants: Constants = Depends(get_constants)
                         ):
-    model_info = models_service.load_model(request.model)
-    path = os.path.join(
-        container.models_datasets_path,
-        utilities_service.models_datasets_path(request.model, request.dataset),
-        constants.GRAD_CAM_PLUS_PLUS,
-    )
-    os.makedirs(path, exist_ok=True)
-
-    for image in request.images:
-        label = image.label
-        filename = image.filename
-        target = image.target
-
-        label_path = os.path.join(
-            path,
-            label,
-        )
-        os.makedirs(label_path, exist_ok=True)
-
-        image_path = os.path.join(
-            container.datasets_path,
-            request.dataset,
-            label,
-            filename
-        )
-
-        image_np = datasets_service.load_image(
-            image_path, model_info.input_shape)
-
-        image_tensor = utilities_service.convert_image_to_tensor(
-            image_np, grad=True)
-
-        model_info.model.eval()
-
-        activations = None
-        gradients = None
-
-        def forward_hook(module, i, o):
-            nonlocal activations
-            activations = o
-
-        def backward_hook(module, i, o):
-            nonlocal gradients
-            gradients = o[0]
-
-        h1 = model_info.last_conv_layer.register_forward_hook(forward_hook)
-        h2 = model_info.last_conv_layer.register_backward_hook(backward_hook)
-        image_tensor = image_tensor.unsqueeze(0)
-        output = model_info.model(image_tensor)
-        output[0, target].backward()
-        h1.remove()
-        h2.remove()
+    pass
 
 
 @router.post('/group-cam', response_model=GradientResponse)
@@ -639,7 +568,7 @@ async def hires_cam(request: GradientRequest,
 
         h1 = model_info.last_conv_layer.register_forward_hook(forward_hook)
         h2 = model_info.last_conv_layer.register_backward_hook(backward_hook)
-        image_tensor = image_tensor.unsqueeze(0)
+
         output = model_info.model(image_tensor)
         output[0, target].backward()
         h1.remove()
@@ -649,15 +578,14 @@ async def hires_cam(request: GradientRequest,
 
         cam = (activations * weights).sum(dim=1, keepdim=True)
         cam = cam.squeeze().cpu().detach().numpy()
-        cam = np.maximum(cam, 0)
 
-        cam = (cam - cam.min()) / (cam.max() - cam.min() + 1e-8)
-        cam *= 255.0
-        cam = cam.astype(np.uint8)
+        cam = utilities_service.relu_normalize(
+            cam, model_info.input_shape, constants.EPSILON
+        )
 
         save_path = os.path.join(
             label_path,
-            filename.split('.')[0] + '.png'
+            utilities_service.add_png_extension(filename) 
         )
         cv2.imwrite(save_path, cam)
     return GradientResponse(
