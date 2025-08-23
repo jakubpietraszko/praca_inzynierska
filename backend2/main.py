@@ -24,7 +24,7 @@ app.include_router(utilities_router)
 app.include_router(models_router)
 app.include_router(models_datasets_router)
 app.include_router(masks_router, prefix="/mask")
-app.include_router(heatmaps_router, prefix="/heatmaps")
+app.include_router(heatmaps_router, prefix="/heatmap")
 
 @app.get("/")
 async def root():

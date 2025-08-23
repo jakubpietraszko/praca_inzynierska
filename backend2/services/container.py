@@ -38,7 +38,7 @@ class ServiceContainer:
     @property
     def heatmaps_service(self) -> HeatmapsService:
         if self._heatmaps_service is None:
-            self._heatmaps_service = HeatmapsService(self.models_datasets_path)
+            self._heatmaps_service = HeatmapsService(self.datasets_path, self.models_datasets_path)
         return self._heatmaps_service
     
     @property

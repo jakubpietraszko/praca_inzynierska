@@ -1,0 +1,47 @@
+meta {
+  name: heatmap/hires-cam
+  type: http
+  seq: 19
+}
+
+post {
+  url: http://localhost:8000/heatmap/hires-cam
+  body: json
+  auth: inherit
+}
+
+body:json {
+  // {
+  //   "model": "mnist",
+  //   "dataset": "mnist-dataset",
+  //   "images": [
+  //     {
+  //       "label": "five",
+  //       "filename": "8.png",
+  //       "target": 4
+  //     },
+  //     {
+  //       "label": "five",
+  //       "filename": "15.png",
+  //       "target": 4
+  //     }
+  //   ],
+  //   "overwrite": false
+  // }
+  {
+    "model": "dogs-vs-cats",
+    "dataset": "dogs-vs-cats-dataset",
+    "images": [
+      {
+        "label": "cat",
+        "filename": "10000.jpg",
+        "target": 0
+      }
+    ],
+    "overwrite": false
+  }
+}
+
+settings {
+  encodeUrl: true
+}

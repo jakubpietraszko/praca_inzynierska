@@ -6,11 +6,33 @@ class Constants:
     DATASETS: str = 'datasets' 
     MODELS: str = 'models'
     MODELS_DATASETS: str = 'models-datasets'
+
+    MASK_RISE: str = 'mask_rise'
+    MASK_SLIC: str = 'mask_slic'
+    MASK_SEED: str = 'mask_seed'
+    ACTIVATIONS: str = 'activations'
+    GRADIENT: str = 'gradient'
+    INTEGRATED_GRADIENT: str = 'integrated_gradient'
+    SMOOTH_GRADIENT: str = 'smooth_gradient'
+    VAR_GRADIENT: str = 'var_gradient'
+    GRAD_CAM: str = 'grad_cam'
+    GRAD_CAM_PLUS_PLUS: str = 'grad_cam_plus_plus'
+    HIRES_CAM: str = 'hires_cam'
+
     ALL_DIRS: list[str] = field(default_factory=lambda: [
-        'mask_rise',
-        'mask_slic',
-        'mask_seed'
+        Constants.MASK_RISE,
+        Constants.MASK_SLIC,
+        Constants.MASK_SEED,
+        Constants.ACTIVATIONS,
+        Constants.GRADIENT,
+        Constants.INTEGRATED_GRADIENT,
+        Constants.SMOOTH_GRADIENT,
+        Constants.VAR_GRADIENT,
+        Constants.GRAD_CAM,
+        Constants.GRAD_CAM_PLUS_PLUS,
+        Constants.HIRES_CAM,
     ])
+
     CMAP: str = 'hot'
 
     

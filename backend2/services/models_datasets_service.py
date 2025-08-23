@@ -21,4 +21,3 @@ class ModelsDatasetsService:
         except:
             return False
         return True
-

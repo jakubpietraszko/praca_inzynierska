@@ -1,7 +1,741 @@
+import os
+import numpy as np
+import cv2
+import torch
 from fastapi import APIRouter, Depends
+from interfaces.label_filename import LabelFilename
+from interfaces.activations import ActivationsRequest, ActivationsResponse
+from interfaces.gradient import GradientRequest, GradientResponse
+from services.container import ServiceContainer, ModelsService, HeatmapsService, UtilitiesService, ModelsDatasetsService, DatasetsService
+from services.container import get_container, get_models_service, get_heatmaps_service, get_utilities_service, get_models_datasets_service, get_datasets_service
+from PIL import Image
+import matplotlib.pyplot as plt
+
 
 router = APIRouter()
 
-@router.post('/activations')
-async def activations():
-    raise NotImplemented
+@router.post('/activations', response_model=ActivationsResponse)
+async def activations(request: ActivationsRequest,
+                      container: ServiceContainer = Depends(get_container),
+                      models_service: ModelsService = Depends(get_models_service),
+                      heatmaps_service: HeatmapsService = Depends(get_heatmaps_service),
+                      utilities_service: UtilitiesService = Depends(get_utilities_service),
+                      models_datasets_service: ModelsDatasetsService = Depends(get_models_datasets_service),
+                      datasets_service: DatasetsService = Depends(get_datasets_service)
+                      ):
+    model_info = models_service.load_model(request.model)
+
+
+    filepath = os.path.join(
+        container.datasets_path,
+        request.dataset,
+        request.label,
+        request.filename
+    )
+
+    image_np = datasets_service.load_image(filepath, model_info.input_shape)
+
+    # image_np = np.array(Image.open(filepath))
+    # if len(image_np.shape) == 2:
+    #     image_np = np.expand_dims(image_np, axis=-1)
+
+
+
+    # image_np = cv2.resize(
+    #     image_np,
+    #     model_info.input_shape[2:0:-1],
+    # )
+
+    # if len(image_np.shape) == 3 and image_np.shape[2] == 1:
+    #     image_np = np.squeeze(image_np, axis=2)
+    #     image_np = np.expand_dims(image_np, axis=0)
+    # elif len(image_np.shape) == 3:
+    #     image_np = np.transpose(image_np, (2, 0, 1))
+    # elif len(image_np.shape) == 2:
+    #     image_np = np.expand_dims(image_np, axis=0)
+
+    activations = None
+    def hook(module, input, output):
+        nonlocal activations
+        activations = output.detach().cpu().numpy()
+
+    image_np = image_np.astype(np.float32) / 255.0
+
+    ref = model_info.last_conv_layer.register_forward_hook(hook)
+    model_info.model.eval()
+    image_tensor = torch.from_numpy(image_np).unsqueeze(0).float()
+    output = model_info.model(image_tensor)
+    ref.remove()
+
+    activations = np.squeeze(activations, axis=0)
+
+    path = os.path.join(
+        container.models_datasets_path,
+        utilities_service.models_datasets_path(request.model, request.dataset),
+        'activations',
+        request.label,
+        request.filename.split('.')[0]
+    )
+    os.makedirs(path, exist_ok=True)
+
+    for i, activation in enumerate(activations):
+        activation_path = os.path.join(
+            path,
+            f'{i}.png'
+        )
+        cv2.imwrite(activation_path, activation * 255)
+
+
+
+    return ActivationsResponse(
+        success=True,
+        count=len(activations)
+    )
+
+@router.post('/gradient', response_model=GradientResponse)
+async def gradient(request: GradientRequest,
+                      container: ServiceContainer = Depends(get_container),
+                      models_service: ModelsService = Depends(get_models_service),
+                      heatmaps_service: HeatmapsService = Depends(get_heatmaps_service),
+                      utilities_service: UtilitiesService = Depends(get_utilities_service),
+                      models_datasets_service: ModelsDatasetsService = Depends(get_models_datasets_service)
+                   ):
+    model_info = models_service.load_model(request.model)
+
+    path = os.path.join(
+        container.models_datasets_path,
+        utilities_service.models_datasets_path(request.model, request.dataset),
+        'gradient',
+    )
+    os.makedirs(path, exist_ok=True)
+
+    for image in request.images:
+        label = image.label
+        filename = image.filename
+        target = image.target
+
+        label_path = os.path.join(
+            path,
+            label,
+        )
+
+        os.makedirs(label_path, exist_ok=True)
+
+        image_path = os.path.join(
+            container.datasets_path,
+            request.dataset,
+            label,
+            filename
+        )
+
+        image_np = np.array(Image.open(image_path))
+        if len(image_np.shape) == 2:
+            image_np = np.expand_dims(image_np, axis=-1)
+        image_np = cv2.resize(
+            image_np,
+            model_info.input_shape[2:0:-1],
+        )
+        if len(image_np.shape) == 3 and image_np.shape[2] == 1:
+            image_np = np.squeeze(image_np, axis=2)
+            image_np = np.expand_dims(image_np, axis=0)
+        elif len(image_np.shape) == 3:
+            image_np = np.transpose(image_np, (2, 0, 1))
+        elif len(image_np.shape) == 2:
+            image_np = np.expand_dims(image_np, axis=0)
+
+        image_np = image_np.astype(np.float32) / 255.0
+        image_tensor = torch.from_numpy(image_np).unsqueeze(0).float()
+        image_tensor.requires_grad = True
+        model_info.model.eval()
+
+        output = model_info.model(image_tensor)
+        y_c = output[0, target]
+        grad = torch.autograd.grad(y_c, image_tensor)[0]
+        result = grad.squeeze().cpu().detach().numpy()
+
+        if len(result.shape) == 3 and result.shape[0] == 3:
+            result = np.max(result, axis=0)
+        
+        result = np.maximum(result, 0)
+
+        result *= 255.0 / result.max()
+        result = result.astype(np.uint8)
+
+        save_path = os.path.join(
+            label_path,
+            filename.split('.')[0] + '.png'
+        )
+
+        cv2.imwrite(save_path, result)
+
+
+
+
+    return GradientResponse(
+        success=True,
+    )
+
+@router.post('/integrated-gradient', response_model=GradientResponse)
+async def integrated_gradient(request: GradientRequest,
+                              container: ServiceContainer = Depends(get_container),
+                              models_service: ModelsService = Depends(get_models_service),
+                              heatmaps_service: HeatmapsService = Depends(get_heatmaps_service),
+                              utilities_service: UtilitiesService = Depends(get_utilities_service),
+                              models_datasets_service: ModelsDatasetsService = Depends(get_models_datasets_service)
+                              ):
+    BASELINE = 0
+    STEPS = 100
+
+    model_info = models_service.load_model(request.model)
+
+    path = os.path.join(
+        container.models_datasets_path,
+        utilities_service.models_datasets_path(request.model, request.dataset),
+        'integrated_gradient',
+    )
+    os.makedirs(path, exist_ok=True)
+
+    for image in request.images:
+        label = image.label
+        filename = image.filename
+        target = image.target
+
+        label_path = os.path.join(
+            path,
+            label,
+        )
+        os.makedirs(label_path, exist_ok=True)
+
+        image_path = os.path.join(
+            container.datasets_path,
+            request.dataset,
+            label,
+            filename
+        )
+
+        image_np = np.array(Image.open(image_path))
+        if len(image_np.shape) == 2:
+            image_np = np.expand_dims(image_np, axis=-1)
+        image_np = cv2.resize(
+            image_np,
+            model_info.input_shape[2:0:-1],
+        )
+        if len(image_np.shape) == 3 and image_np.shape[2] == 1:
+            image_np = np.squeeze(image_np, axis=2)
+            image_np = np.expand_dims(image_np, axis=0)
+        elif len(image_np.shape) == 3:
+            image_np = np.transpose(image_np, (2, 0, 1))
+        elif len(image_np.shape) == 2:
+            image_np = np.expand_dims(image_np, axis=0)
+
+        image_np = image_np.astype(np.float32) / 255.0
+        image_tensor = torch.from_numpy(image_np).unsqueeze(0).float()
+        image_tensor.requires_grad = True
+        model_info.model.eval()
+
+        baseline = torch.ones_like(image_tensor) * BASELINE
+        alphas = torch.linspace(0, 1, STEPS).reshape(-1, 1, 1, 1)
+
+        interpolated_images = baseline + alphas * (image_tensor - baseline)
+
+        result = torch.zeros_like(image_tensor)
+
+        for i in range(STEPS):
+            interpolated_image = interpolated_images[i].requires_grad_()
+            output = model_info.model(interpolated_image.unsqueeze(0))
+            y_c = output[0, target]
+            grad = torch.autograd.grad(y_c, interpolated_image)[0]
+            grad = torch.clamp(grad, min=0)
+            result += grad
+        result /= STEPS
+        result = result.squeeze().cpu().detach().numpy()
+        result = np.maximum(result, 0)
+        
+        if len(result.shape) == 3 and result.shape[0] == 3:
+            result = np.max(result, axis=0)
+        
+        result = (result - result.min()) / (result.max() - result.min() + 1e-8)
+        result *= 255.0
+        result = result.astype(np.uint8)
+
+        save_path = os.path.join(
+            label_path,
+            filename.split('.')[0] + '.png'
+        )
+
+
+        cv2.imwrite(save_path, result)
+
+
+    return GradientResponse(
+        success=True,
+    )
+        
+
+@router.post('/smooth-gradient', response_model=GradientResponse)
+async def smooth_grad(request: GradientRequest,
+                      container: ServiceContainer = Depends(get_container),
+                      models_service: ModelsService = Depends(get_models_service),
+                      heatmaps_service: HeatmapsService = Depends(get_heatmaps_service),
+                      utilities_service: UtilitiesService = Depends(get_utilities_service),
+                      models_datasets_service: ModelsDatasetsService = Depends(get_models_datasets_service)
+                      ):
+    model_info = models_service.load_model(request.model)
+    NOISE_LEVEL = 0.1
+    NUM_SAMPLES = 50
+    path = os.path.join(
+        container.models_datasets_path,
+        utilities_service.models_datasets_path(request.model, request.dataset),
+        'smooth_gradient',
+    )
+    os.makedirs(path, exist_ok=True)
+
+    for image in request.images:
+        label = image.label
+        filename = image.filename
+        target = image.target
+
+        label_path = os.path.join(
+            path,
+            label,
+        )
+        os.makedirs(label_path, exist_ok=True)
+
+        image_path = os.path.join(
+            container.datasets_path,
+            request.dataset,
+            label,
+            filename
+        )
+
+        image_np = np.array(Image.open(image_path))
+        if len(image_np.shape) == 2:
+            image_np = np.expand_dims(image_np, axis=-1)
+        image_np = cv2.resize(
+            image_np,
+            model_info.input_shape[2:0:-1],
+        )
+        if len(image_np.shape) == 3 and image_np.shape[2] == 1:
+            image_np = np.squeeze(image_np, axis=2)
+            image_np = np.expand_dims(image_np, axis=0)
+        elif len(image_np.shape) == 3:
+            image_np = np.transpose(image_np, (2, 0, 1))
+        elif len(image_np.shape) == 2:
+            image_np = np.expand_dims(image_np, axis=0)
+
+        image_np = image_np.astype(np.float32) / 255.0
+        image_tensor = torch.from_numpy(image_np).unsqueeze(0).float()
+        image_tensor.requires_grad = True
+        model_info.model.eval()
+
+        result = torch.zeros_like(image_tensor)
+
+        for _ in range(NUM_SAMPLES):
+            noise = torch.randn_like(image_tensor) * NOISE_LEVEL
+            noisy_image = (image_tensor + noise).clone().detach()
+            noisy_image.requires_grad_()
+            output = model_info.model(noisy_image)
+            y_c = output[0, target]
+            grad = torch.autograd.grad(y_c, noisy_image)[0]
+            grad = torch.clamp(grad, min=0)
+            result += grad
+        result /= NUM_SAMPLES
+        result = result.squeeze().cpu().detach().numpy()
+        result = np.maximum(result, 0)
+        
+        if len(result.shape) == 3 and result.shape[0] == 3:
+            result = np.max(result, axis=0)
+        
+        result = (result - result.min()) / (result.max() - result.min() + 1e-8)
+        result *= 255.0
+        result = result.astype(np.uint8)
+
+        save_path = os.path.join(
+            label_path,
+            filename.split('.')[0] + '.png'
+        )
+        cv2.imwrite(save_path, result)
+    return GradientResponse(
+        success=True,
+    )
+    
+
+@router.post('/var-gradient', response_model=GradientResponse)
+async def var_grad(request: GradientRequest,
+                        container: ServiceContainer = Depends(get_container),
+                        models_service: ModelsService = Depends(get_models_service),
+                        heatmaps_service: HeatmapsService = Depends(get_heatmaps_service),
+                        utilities_service: UtilitiesService = Depends(get_utilities_service),
+                        models_datasets_service: ModelsDatasetsService = Depends(get_models_datasets_service)
+                        ):
+    model_info = models_service.load_model(request.model)
+    NOISE_LEVEL = 0.1
+    NUM_SAMPLES = 50
+    path = os.path.join(
+        container.models_datasets_path,
+        utilities_service.models_datasets_path(request.model, request.dataset),
+        'var_grad',
+    )
+    os.makedirs(path, exist_ok=True)
+
+    for image in request.images:
+        label = image.label
+        filename = image.filename
+        target = image.target
+
+        label_path = os.path.join(
+            path,
+            label,
+        )
+        os.makedirs(label_path, exist_ok=True)
+
+        image_path = os.path.join(
+            container.datasets_path,
+            request.dataset,
+            label,
+            filename
+        )
+
+        image_np = np.array(Image.open(image_path))
+        if len(image_np.shape) == 2:
+            image_np = np.expand_dims(image_np, axis=-1)
+        image_np = cv2.resize(
+            image_np,
+            model_info.input_shape[2:0:-1],
+        )
+        if len(image_np.shape) == 3 and image_np.shape[2] == 1:
+            image_np = np.squeeze(image_np, axis=2)
+            image_np = np.expand_dims(image_np, axis=0)
+        elif len(image_np.shape) == 3:
+            image_np = np.transpose(image_np, (2, 0, 1))
+        elif len(image_np.shape) == 2:
+            image_np = np.expand_dims(image_np, axis=0)
+
+        image_np = image_np.astype(np.float32) / 255.0
+        image_tensor = torch.from_numpy(image_np).unsqueeze(0).float()
+        image_tensor.requires_grad = True
+        model_info.model.eval()
+
+        results_list = []
+
+        for _ in range(NUM_SAMPLES):
+            noise = torch.randn_like(image_tensor) * NOISE_LEVEL
+            noisy_image = (image_tensor + noise).clone().detach().contiguous()
+            noisy_image.requires_grad_()
+            output = model_info.model(noisy_image)
+            y_c = output[0, target]
+            grad = torch.autograd.grad(y_c, noisy_image)[0]
+            grad = torch.clamp(grad, min=0)
+            results_list.append(grad)
+
+        all_grads = torch.stack(results_list, dim=0)
+        result = torch.var(all_grads, dim=0)
+        result = result.squeeze().cpu().detach().numpy()
+        result = np.maximum(result, 0)
+        
+        if len(result.shape) == 3 and result.shape[0] == 3:
+            result = np.max(result, axis=0)
+        
+        result = (result - result.min()) / (result.max() - result.min() + 1e-8)
+        result *= 255.0
+        result = result.astype(np.uint8)
+
+        save_path = os.path.join(
+            label_path,
+            filename.split('.')[0] + '.png'
+        )
+        cv2.imwrite(save_path, result)
+    return GradientResponse(
+        success=True,
+    )
+    
+@router.post('/grad-cam', response_model=GradientResponse)
+async def grad_cam(request: GradientRequest,
+                        container: ServiceContainer = Depends(get_container),
+                        models_service: ModelsService = Depends(get_models_service),
+                        heatmaps_service: HeatmapsService = Depends(get_heatmaps_service),
+                        utilities_service: UtilitiesService = Depends(get_utilities_service),
+                        models_datasets_service: ModelsDatasetsService = Depends(get_models_datasets_service)
+):
+    model_info = models_service.load_model(request.model)
+    path = os.path.join(
+        container.models_datasets_path,
+        utilities_service.models_datasets_path(request.model, request.dataset),
+        'grad_cam',
+    )
+    os.makedirs(path, exist_ok=True)
+
+    for image in request.images:
+        label = image.label
+        filename = image.filename
+        target = image.target
+
+        label_path = os.path.join(
+            path,
+            label,
+        )
+        os.makedirs(label_path, exist_ok=True)
+
+        image_path = os.path.join(
+            container.datasets_path,
+            request.dataset,
+            label,
+            filename
+        )
+
+        image_np = np.array(Image.open(image_path))
+        if len(image_np.shape) == 2:
+            image_np = np.expand_dims(image_np, axis=-1)
+        image_np = cv2.resize(
+            image_np,
+            model_info.input_shape[2:0:-1],
+        )
+        if len(image_np.shape) == 3 and image_np.shape[2] == 1:
+            image_np = np.squeeze(image_np, axis=2)
+            image_np = np.expand_dims(image_np, axis=0)
+        elif len(image_np.shape) == 3:
+            image_np = np.transpose(image_np, (2, 0, 1))
+        elif len(image_np.shape) == 2:
+            image_np = np.expand_dims(image_np, axis=0)
+
+        image_tensor = torch.from_numpy(image_np.astype(np.float32) / 255.0).float()
+
+        image_tensor.requires_grad = True
+        model_info.model.eval()
+
+        activations = None
+        gradients = None
+
+        def forward_hook(module, i, o):
+            nonlocal activations
+            activations = o
+
+        def backward_hook(module, i, o):
+            nonlocal gradients
+            gradients = o[0]
+
+        h1 = model_info.last_conv_layer.register_forward_hook(forward_hook)
+        h2 = model_info.last_conv_layer.register_backward_hook(backward_hook)
+        image_tensor = image_tensor.unsqueeze(0)
+        output = model_info.model(image_tensor)
+        output[0, target].backward()
+        h1.remove()
+        h2.remove()
+
+        weights = gradients.mean(dim=(2, 3), keepdim=True)
+        cam = (weights * activations).sum(dim=1, keepdim=True)
+        cam = cam.squeeze().cpu().detach().numpy()
+        cam = np.maximum(cam, 0)
+        cam = (cam - cam.min()) / (cam.max() - cam.min() + 1e-8)
+        cam *= 255.0
+        cam = cam.astype(np.uint8)
+
+        save_path = os.path.join(
+            label_path,
+            filename.split('.')[0] + '.png'
+        )
+        cv2.imwrite(save_path, cam)
+    return GradientResponse(
+        success=True,
+    )
+
+
+@router.post('/grad-cam-plus-plus', response_model=GradientResponse)
+async def grad_cam_plus(request: GradientRequest,
+                        container: ServiceContainer = Depends(get_container),
+                        models_service: ModelsService = Depends(get_models_service),
+                        heatmaps_service: HeatmapsService = Depends(get_heatmaps_service),
+                        utilities_service: UtilitiesService = Depends(get_utilities_service),
+                        models_datasets_service: ModelsDatasetsService = Depends(get_models_datasets_service)
+):
+    model_info = models_service.load_model(request.model)
+    path = os.path.join(
+        container.models_datasets_path,
+        utilities_service.models_datasets_path(request.model, request.dataset),
+        'grad_cam_plus_plus',
+    )
+    os.makedirs(path, exist_ok=True)
+
+    for image in request.images:
+        label = image.label
+        filename = image.filename
+        target = image.target
+
+        label_path = os.path.join(
+            path,
+            label,
+        )
+        os.makedirs(label_path, exist_ok=True)
+
+        image_path = os.path.join(
+            container.datasets_path,
+            request.dataset,
+            label,
+            filename
+        )
+
+        image_np = np.array(Image.open(image_path))
+        if len(image_np.shape) == 2:
+            image_np = np.expand_dims(image_np, axis=-1)
+        image_np = cv2.resize(
+            image_np,
+            model_info.input_shape[2:0:-1],
+        )
+        if len(image_np.shape) == 3 and image_np.shape[2] == 1:
+            image_np = np.squeeze(image_np, axis=2)
+            image_np = np.expand_dims(image_np, axis=0)
+        elif len(image_np.shape) == 3:
+            image_np = np.transpose(image_np, (2, 0, 1))
+        elif len(image_np.shape) == 2:
+            image_np = np.expand_dims(image_np, axis=0)
+
+        image_tensor = torch.from_numpy(image_np.astype(np.float32) / 255.0).float()
+
+        image_tensor.requires_grad = True
+        model_info.model.eval()
+
+        activations = None
+        gradients = None
+
+        def forward_hook(module, i, o):
+            nonlocal activations
+            activations = o
+
+        def backward_hook(module, i, o):
+            nonlocal gradients
+            gradients = o[0]
+
+        h1 = model_info.last_conv_layer.register_forward_hook(forward_hook)
+        h2 = model_info.last_conv_layer.register_backward_hook(backward_hook)
+        image_tensor = image_tensor.unsqueeze(0)
+        output = model_info.model(image_tensor)
+        output[0, target].backward()
+        h1.remove()
+        h2.remove()
+
+        
+
+@router.post('/group-cam', response_model=GradientResponse)
+async def group_cam(request: GradientRequest):
+    pass
+
+@router.post('/hires-cam', response_model=GradientResponse)
+async def hires_cam(request: GradientRequest,
+                        container: ServiceContainer = Depends(get_container),
+                        models_service: ModelsService = Depends(get_models_service),
+                        heatmaps_service: HeatmapsService = Depends(get_heatmaps_service),
+                        utilities_service: UtilitiesService = Depends(get_utilities_service),
+                        models_datasets_service: ModelsDatasetsService = Depends(get_models_datasets_service)
+):
+    model_info = models_service.load_model(request.model)
+    path = os.path.join(
+        container.models_datasets_path,
+        utilities_service.models_datasets_path(request.model, request.dataset),
+        'hires_cam',
+    )
+    os.makedirs(path, exist_ok=True)
+
+    for image in request.images:
+        label = image.label
+        filename = image.filename
+        target = image.target
+
+        label_path = os.path.join(
+            path,
+            label,
+        )
+        os.makedirs(label_path, exist_ok=True)
+
+        image_path = os.path.join(
+            container.datasets_path,
+            request.dataset,
+            label,
+            filename
+        )
+
+        image_np = np.array(Image.open(image_path))
+        if len(image_np.shape) == 2:
+            image_np = np.expand_dims(image_np, axis=-1)
+        image_np = cv2.resize(
+            image_np,
+            model_info.input_shape[2:0:-1],
+        )
+        if len(image_np.shape) == 3 and image_np.shape[2] == 1:
+            image_np = np.squeeze(image_np, axis=2)
+            image_np = np.expand_dims(image_np, axis=0)
+        elif len(image_np.shape) == 3:
+            image_np = np.transpose(image_np, (2, 0, 1))
+        elif len(image_np.shape) == 2:
+            image_np = np.expand_dims(image_np, axis=0)
+
+        image_tensor = torch.from_numpy(image_np.astype(np.float32) / 255.0).float()
+
+        image_tensor.requires_grad = True
+        model_info.model.eval()
+
+        activations = None
+        gradients = None
+
+        def forward_hook(module, i, o):
+            nonlocal activations
+            activations = o
+
+        def backward_hook(module, i, o):
+            nonlocal gradients
+            gradients = o[0]
+
+        h1 = model_info.last_conv_layer.register_forward_hook(forward_hook)
+        h2 = model_info.last_conv_layer.register_backward_hook(backward_hook)
+        image_tensor = image_tensor.unsqueeze(0)
+        output = model_info.model(image_tensor)
+        output[0, target].backward()
+        h1.remove()
+        h2.remove()
+
+        weights = gradients
+
+        cam = (activations * weights).sum(dim=1, keepdim=True)
+        cam = cam.squeeze().cpu().detach().numpy()
+        cam = np.maximum(cam, 0)
+
+        cam = (cam - cam.min()) / (cam.max() - cam.min() + 1e-8)
+        cam *= 255.0
+        cam = cam.astype(np.uint8)
+
+        save_path = os.path.join(
+            label_path,
+            filename.split('.')[0] + '.png'
+        )
+        cv2.imwrite(save_path, cam)
+    return GradientResponse(
+        success=True,
+    )
+
+
+@router.post('/wgrad-cam', response_model=GradientResponse)
+async def wgrad_cam(request: GradientRequest):
+    pass
+
+@router.post('/ablation-cam', response_model=GradientResponse)
+async def ablation_cam(request: GradientRequest):
+    pass
+
+@router.post('/xrai', response_model=GradientResponse)
+async def xrai(request: GradientRequest):
+    pass
+
+@router.post('/rise', response_model=GradientResponse)
+async def rise(request: GradientRequest):
+    pass
+
+@router.post('/exact-shap', response_model=GradientResponse)
+async def exact_shap(request: GradientRequest):
+    pass
+
+@router.post('/kernel-shap', response_model=GradientResponse)
+async def kernel_shap(request: GradientRequest):
+    pass
+
+@router.post('/lime', response_model=GradientResponse)
+async def lime(request: GradientRequest):
+    pass
