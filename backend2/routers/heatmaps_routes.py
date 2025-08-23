@@ -7,24 +7,30 @@ from interfaces.label_filename import LabelFilename
 from interfaces.activations import ActivationsRequest, ActivationsResponse
 from interfaces.gradient import GradientRequest, GradientResponse
 from services.container import ServiceContainer, ModelsService, HeatmapsService, UtilitiesService, ModelsDatasetsService, DatasetsService
-from services.container import get_container, get_models_service, get_heatmaps_service, get_utilities_service, get_models_datasets_service, get_datasets_service
+from services.container import get_container, get_models_service, get_heatmaps_service, get_utilities_service, get_models_datasets_service, get_datasets_service, get_constants
+from constans import Constants
 from PIL import Image
 import matplotlib.pyplot as plt
 
 
 router = APIRouter()
 
+
 @router.post('/activations', response_model=ActivationsResponse)
 async def activations(request: ActivationsRequest,
                       container: ServiceContainer = Depends(get_container),
-                      models_service: ModelsService = Depends(get_models_service),
-                      heatmaps_service: HeatmapsService = Depends(get_heatmaps_service),
-                      utilities_service: UtilitiesService = Depends(get_utilities_service),
-                      models_datasets_service: ModelsDatasetsService = Depends(get_models_datasets_service),
-                      datasets_service: DatasetsService = Depends(get_datasets_service)
+                      models_service: ModelsService = Depends(
+                          get_models_service),
+                      heatmaps_service: HeatmapsService = Depends(
+                          get_heatmaps_service),
+                      utilities_service: UtilitiesService = Depends(
+                          get_utilities_service),
+                      models_datasets_service: ModelsDatasetsService = Depends(
+                          get_models_datasets_service),
+                      datasets_service: DatasetsService = Depends(
+                          get_datasets_service),
                       ):
     model_info = models_service.load_model(request.model)
-
 
     filepath = os.path.join(
         container.datasets_path,
@@ -34,17 +40,16 @@ async def activations(request: ActivationsRequest,
     )
 
     image_np = datasets_service.load_image(filepath, model_info.input_shape)
+    image_tensor = utilities_service.convert_image_to_tensor(image_np)
 
     activations = None
+
     def hook(module, input, output):
         nonlocal activations
         activations = output.detach().cpu().numpy()
 
-    image_np = image_np.astype(np.float32) / 255.0
-
     ref = model_info.last_conv_layer.register_forward_hook(hook)
     model_info.model.eval()
-    image_tensor = torch.from_numpy(image_np).unsqueeze(0).float()
     output = model_info.model(image_tensor)
     ref.remove()
 
@@ -54,6 +59,7 @@ async def activations(request: ActivationsRequest,
         container.models_datasets_path,
         utilities_service.models_datasets_path(request.model, request.dataset),
         'activations',
+        
         request.label,
         request.filename.split('.')[0]
     )
@@ -66,21 +72,24 @@ async def activations(request: ActivationsRequest,
         )
         cv2.imwrite(activation_path, activation * 255)
 
-
-
     return ActivationsResponse(
         success=True,
         count=len(activations)
     )
 
+
 @router.post('/gradient', response_model=GradientResponse)
 async def gradient(request: GradientRequest,
-                      container: ServiceContainer = Depends(get_container),
-                      models_service: ModelsService = Depends(get_models_service),
-                      heatmaps_service: HeatmapsService = Depends(get_heatmaps_service),
-                      utilities_service: UtilitiesService = Depends(get_utilities_service),
-                      models_datasets_service: ModelsDatasetsService = Depends(get_models_datasets_service),
-                        datasets_service: DatasetsService = Depends(get_datasets_service)
+                   container: ServiceContainer = Depends(get_container),
+                   models_service: ModelsService = Depends(get_models_service),
+                   heatmaps_service: HeatmapsService = Depends(
+                       get_heatmaps_service),
+                   utilities_service: UtilitiesService = Depends(
+                       get_utilities_service),
+                   models_datasets_service: ModelsDatasetsService = Depends(
+                       get_models_datasets_service),
+                   datasets_service: DatasetsService = Depends(
+                       get_datasets_service)
                    ):
     model_info = models_service.load_model(request.model)
 
@@ -110,12 +119,11 @@ async def gradient(request: GradientRequest,
             filename
         )
 
-        image_np = datasets_service.load_image(image_path, model_info.input_shape)
+        image_np = datasets_service.load_image(
+            image_path, model_info.input_shape)
+        image_tensor = utilities_service.convert_image_to_tensor(
+            image_np, grad=True)
 
-
-        image_np = image_np.astype(np.float32) / 255.0
-        image_tensor = torch.from_numpy(image_np).unsqueeze(0).float()
-        image_tensor.requires_grad = True
         model_info.model.eval()
 
         output = model_info.model(image_tensor)
@@ -125,7 +133,7 @@ async def gradient(request: GradientRequest,
 
         if len(result.shape) == 3 and result.shape[0] == 3:
             result = np.max(result, axis=0)
-        
+
         result = np.maximum(result, 0)
 
         result *= 255.0 / result.max()
@@ -138,21 +146,25 @@ async def gradient(request: GradientRequest,
 
         cv2.imwrite(save_path, result)
 
-
-
-
     return GradientResponse(
         success=True,
     )
 
+
 @router.post('/integrated-gradient', response_model=GradientResponse)
 async def integrated_gradient(request: GradientRequest,
-                              container: ServiceContainer = Depends(get_container),
-                              models_service: ModelsService = Depends(get_models_service),
-                              heatmaps_service: HeatmapsService = Depends(get_heatmaps_service),
-                              utilities_service: UtilitiesService = Depends(get_utilities_service),
-                              models_datasets_service: ModelsDatasetsService = Depends(get_models_datasets_service),
-                                datasets_service: DatasetsService = Depends(get_datasets_service)
+                              container: ServiceContainer = Depends(
+                                  get_container),
+                              models_service: ModelsService = Depends(
+                                  get_models_service),
+                              heatmaps_service: HeatmapsService = Depends(
+                                  get_heatmaps_service),
+                              utilities_service: UtilitiesService = Depends(
+                                  get_utilities_service),
+                              models_datasets_service: ModelsDatasetsService = Depends(
+                                  get_models_datasets_service),
+                              datasets_service: DatasetsService = Depends(
+                                  get_datasets_service)
                               ):
     BASELINE = 0
     STEPS = 100
@@ -184,11 +196,10 @@ async def integrated_gradient(request: GradientRequest,
             filename
         )
 
-        image_np = datasets_service.load_image(image_path, model_info.input_shape)
-
-        image_np = image_np.astype(np.float32) / 255.0
-        image_tensor = torch.from_numpy(image_np).unsqueeze(0).float()
-        image_tensor.requires_grad = True
+        image_np = datasets_service.load_image(
+            image_path, model_info.input_shape)
+        image_tensor = utilities_service.convert_image_to_tensor(
+            image_np, grad=True)
         model_info.model.eval()
 
         baseline = torch.ones_like(image_tensor) * BASELINE
@@ -208,10 +219,10 @@ async def integrated_gradient(request: GradientRequest,
         result /= STEPS
         result = result.squeeze().cpu().detach().numpy()
         result = np.maximum(result, 0)
-        
+
         if len(result.shape) == 3 and result.shape[0] == 3:
             result = np.max(result, axis=0)
-        
+
         result = (result - result.min()) / (result.max() - result.min() + 1e-8)
         result *= 255.0
         result = result.astype(np.uint8)
@@ -221,23 +232,26 @@ async def integrated_gradient(request: GradientRequest,
             filename.split('.')[0] + '.png'
         )
 
-
         cv2.imwrite(save_path, result)
-
 
     return GradientResponse(
         success=True,
     )
-        
+
 
 @router.post('/smooth-gradient', response_model=GradientResponse)
 async def smooth_grad(request: GradientRequest,
                       container: ServiceContainer = Depends(get_container),
-                      models_service: ModelsService = Depends(get_models_service),
-                      heatmaps_service: HeatmapsService = Depends(get_heatmaps_service),
-                      utilities_service: UtilitiesService = Depends(get_utilities_service),
-                      models_datasets_service: ModelsDatasetsService = Depends(get_models_datasets_service),
-                        datasets_service: DatasetsService = Depends(get_datasets_service)
+                      models_service: ModelsService = Depends(
+                          get_models_service),
+                      heatmaps_service: HeatmapsService = Depends(
+                          get_heatmaps_service),
+                      utilities_service: UtilitiesService = Depends(
+                          get_utilities_service),
+                      models_datasets_service: ModelsDatasetsService = Depends(
+                          get_models_datasets_service),
+                      datasets_service: DatasetsService = Depends(
+                          get_datasets_service)
                       ):
     model_info = models_service.load_model(request.model)
     NOISE_LEVEL = 0.1
@@ -267,12 +281,10 @@ async def smooth_grad(request: GradientRequest,
             filename
         )
 
-        image_np = datasets_service.load_image(image_path, model_info.input_shape)
-
-
-        image_np = image_np.astype(np.float32) / 255.0
-        image_tensor = torch.from_numpy(image_np).unsqueeze(0).float()
-        image_tensor.requires_grad = True
+        image_np = datasets_service.load_image(
+            image_path, model_info.input_shape)
+        image_tensor = utilities_service.convert_image_to_tensor(
+            image_np, grad=True)
         model_info.model.eval()
 
         result = torch.zeros_like(image_tensor)
@@ -289,10 +301,10 @@ async def smooth_grad(request: GradientRequest,
         result /= NUM_SAMPLES
         result = result.squeeze().cpu().detach().numpy()
         result = np.maximum(result, 0)
-        
+
         if len(result.shape) == 3 and result.shape[0] == 3:
             result = np.max(result, axis=0)
-        
+
         result = (result - result.min()) / (result.max() - result.min() + 1e-8)
         result *= 255.0
         result = result.astype(np.uint8)
@@ -305,17 +317,21 @@ async def smooth_grad(request: GradientRequest,
     return GradientResponse(
         success=True,
     )
-    
+
 
 @router.post('/var-gradient', response_model=GradientResponse)
 async def var_grad(request: GradientRequest,
-                        container: ServiceContainer = Depends(get_container),
-                        models_service: ModelsService = Depends(get_models_service),
-                        heatmaps_service: HeatmapsService = Depends(get_heatmaps_service),
-                        utilities_service: UtilitiesService = Depends(get_utilities_service),
-                        models_datasets_service: ModelsDatasetsService = Depends(get_models_datasets_service),
-                        datasets_service: DatasetsService = Depends(get_datasets_service)
-                        ):
+                   container: ServiceContainer = Depends(get_container),
+                   models_service: ModelsService = Depends(get_models_service),
+                   heatmaps_service: HeatmapsService = Depends(
+                       get_heatmaps_service),
+                   utilities_service: UtilitiesService = Depends(
+                       get_utilities_service),
+                   models_datasets_service: ModelsDatasetsService = Depends(
+                       get_models_datasets_service),
+                   datasets_service: DatasetsService = Depends(
+                       get_datasets_service)
+                   ):
     model_info = models_service.load_model(request.model)
     NOISE_LEVEL = 0.1
     NUM_SAMPLES = 50
@@ -344,12 +360,11 @@ async def var_grad(request: GradientRequest,
             filename
         )
 
-        image_np = datasets_service.load_image(image_path, model_info.input_shape)
+        image_np = datasets_service.load_image(
+            image_path, model_info.input_shape)
+        image_tensor = utilities_service.convert_image_to_tensor(
+            image_np, grad=True)
 
-
-        image_np = image_np.astype(np.float32) / 255.0
-        image_tensor = torch.from_numpy(image_np).unsqueeze(0).float()
-        image_tensor.requires_grad = True
         model_info.model.eval()
 
         results_list = []
@@ -368,10 +383,10 @@ async def var_grad(request: GradientRequest,
         result = torch.var(all_grads, dim=0)
         result = result.squeeze().cpu().detach().numpy()
         result = np.maximum(result, 0)
-        
+
         if len(result.shape) == 3 and result.shape[0] == 3:
             result = np.max(result, axis=0)
-        
+
         result = (result - result.min()) / (result.max() - result.min() + 1e-8)
         result *= 255.0
         result = result.astype(np.uint8)
@@ -384,16 +399,21 @@ async def var_grad(request: GradientRequest,
     return GradientResponse(
         success=True,
     )
-    
+
+
 @router.post('/grad-cam', response_model=GradientResponse)
 async def grad_cam(request: GradientRequest,
-                        container: ServiceContainer = Depends(get_container),
-                        models_service: ModelsService = Depends(get_models_service),
-                        heatmaps_service: HeatmapsService = Depends(get_heatmaps_service),
-                        utilities_service: UtilitiesService = Depends(get_utilities_service),
-                        models_datasets_service: ModelsDatasetsService = Depends(get_models_datasets_service),
-                        datasets_service: DatasetsService = Depends(get_datasets_service)
-):
+                   container: ServiceContainer = Depends(get_container),
+                   models_service: ModelsService = Depends(get_models_service),
+                   heatmaps_service: HeatmapsService = Depends(
+                       get_heatmaps_service),
+                   utilities_service: UtilitiesService = Depends(
+                       get_utilities_service),
+                   models_datasets_service: ModelsDatasetsService = Depends(
+                       get_models_datasets_service),
+                   datasets_service: DatasetsService = Depends(
+                       get_datasets_service)
+                   ):
     model_info = models_service.load_model(request.model)
     path = os.path.join(
         container.models_datasets_path,
@@ -420,12 +440,10 @@ async def grad_cam(request: GradientRequest,
             filename
         )
 
-        image_np = datasets_service.load_image(image_path, model_info.input_shape)
-
-
-        image_tensor = torch.from_numpy(image_np.astype(np.float32) / 255.0).float()
-
-        image_tensor.requires_grad = True
+        image_np = datasets_service.load_image(
+            image_path, model_info.input_shape)
+        image_tensor = utilities_service.convert_image_to_tensor(
+            image_np, grad=True)
         model_info.model.eval()
 
         activations = None
@@ -468,12 +486,17 @@ async def grad_cam(request: GradientRequest,
 @router.post('/grad-cam-plus-plus', response_model=GradientResponse)
 async def grad_cam_plus(request: GradientRequest,
                         container: ServiceContainer = Depends(get_container),
-                        models_service: ModelsService = Depends(get_models_service),
-                        heatmaps_service: HeatmapsService = Depends(get_heatmaps_service),
-                        utilities_service: UtilitiesService = Depends(get_utilities_service),
-                        models_datasets_service: ModelsDatasetsService = Depends(get_models_datasets_service),
-                        datasets_service: DatasetsService = Depends(get_datasets_service)
-):
+                        models_service: ModelsService = Depends(
+                            get_models_service),
+                        heatmaps_service: HeatmapsService = Depends(
+                            get_heatmaps_service),
+                        utilities_service: UtilitiesService = Depends(
+                            get_utilities_service),
+                        models_datasets_service: ModelsDatasetsService = Depends(
+                            get_models_datasets_service),
+                        datasets_service: DatasetsService = Depends(
+                            get_datasets_service)
+                        ):
     model_info = models_service.load_model(request.model)
     path = os.path.join(
         container.models_datasets_path,
@@ -500,11 +523,12 @@ async def grad_cam_plus(request: GradientRequest,
             filename
         )
 
-        image_np = datasets_service.load_image(image_path, model_info.input_shape)
+        image_np = datasets_service.load_image(
+            image_path, model_info.input_shape)
 
-        image_tensor = torch.from_numpy(image_np.astype(np.float32) / 255.0).float()
+        image_tensor = utilities_service.convert_image_to_tensor(
+            image_np, grad=True)
 
-        image_tensor.requires_grad = True
         model_info.model.eval()
 
         activations = None
@@ -526,21 +550,26 @@ async def grad_cam_plus(request: GradientRequest,
         h1.remove()
         h2.remove()
 
-        
 
 @router.post('/group-cam', response_model=GradientResponse)
 async def group_cam(request: GradientRequest):
     pass
 
+
 @router.post('/hires-cam', response_model=GradientResponse)
 async def hires_cam(request: GradientRequest,
-                        container: ServiceContainer = Depends(get_container),
-                        models_service: ModelsService = Depends(get_models_service),
-                        heatmaps_service: HeatmapsService = Depends(get_heatmaps_service),
-                        utilities_service: UtilitiesService = Depends(get_utilities_service),
-                        models_datasets_service: ModelsDatasetsService = Depends(get_models_datasets_service),
-                        datasets_service: DatasetsService = Depends(get_datasets_service)
-):
+                    container: ServiceContainer = Depends(get_container),
+                    models_service: ModelsService = Depends(
+                        get_models_service),
+                    heatmaps_service: HeatmapsService = Depends(
+                        get_heatmaps_service),
+                    utilities_service: UtilitiesService = Depends(
+                        get_utilities_service),
+                    models_datasets_service: ModelsDatasetsService = Depends(
+                        get_models_datasets_service),
+                    datasets_service: DatasetsService = Depends(
+                        get_datasets_service)
+                    ):
     model_info = models_service.load_model(request.model)
     path = os.path.join(
         container.models_datasets_path,
@@ -567,11 +596,11 @@ async def hires_cam(request: GradientRequest,
             filename
         )
 
-        image_np = datasets_service.load_image(image_path, model_info.input_shape)
+        image_np = datasets_service.load_image(
+            image_path, model_info.input_shape)
+        image_tensor = utilities_service.convert_image_to_tensor(
+            image_np, grad=True)
 
-        image_tensor = torch.from_numpy(image_np.astype(np.float32) / 255.0).float()
-
-        image_tensor.requires_grad = True
         model_info.model.eval()
 
         activations = None
@@ -617,25 +646,31 @@ async def hires_cam(request: GradientRequest,
 async def wgrad_cam(request: GradientRequest):
     pass
 
+
 @router.post('/ablation-cam', response_model=GradientResponse)
 async def ablation_cam(request: GradientRequest):
     pass
+
 
 @router.post('/xrai', response_model=GradientResponse)
 async def xrai(request: GradientRequest):
     pass
 
+
 @router.post('/rise', response_model=GradientResponse)
 async def rise(request: GradientRequest):
     pass
+
 
 @router.post('/exact-shap', response_model=GradientResponse)
 async def exact_shap(request: GradientRequest):
     pass
 
+
 @router.post('/kernel-shap', response_model=GradientResponse)
 async def kernel_shap(request: GradientRequest):
     pass
+
 
 @router.post('/lime', response_model=GradientResponse)
 async def lime(request: GradientRequest):

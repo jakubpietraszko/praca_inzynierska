@@ -85,6 +85,7 @@ class DatasetsService:
             image = np.transpose(image, (2, 0, 1))
 
         assert image.shape == shape
+        assert image.dtype == np.uint8
 
         return image
         

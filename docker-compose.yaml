@@ -7,9 +7,9 @@ networks:
 
 services:
   backend:
-    container_name: backend
+    container_name: backend2
     build:
-      context: ./backend
+      context: ./backend2
       dockerfile: Dockerfile
     networks:
       my_network:
@@ -31,16 +31,3 @@ services:
         ipv4_address: 172.28.0.2
     ports:
       - "8000:80"
-
-  # dir-handler:
-  #   container_name: dir-handler
-  #   build:
-  #     context: ./dir-handler
-  #     dockerfile: Dockerfile
-  #   networks:
-  #     my_network:
-  #       ipv4_address: 172.28.0.4
-  #   ports:
-  #     - "8002:8000"
-  #   volumes:
-  #     - ./DIR:/app/DIR

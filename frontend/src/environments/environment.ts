@@ -1,7 +1,7 @@
 export const environment = {
     title: 'production',
     production: true,
-    apiUrl: 'http://172.28.0.3:8000',
+    apiUrl: 'http://localhost:8001',
     imagesPerPage: 25,
     imagesPerRow: 5,
 };
