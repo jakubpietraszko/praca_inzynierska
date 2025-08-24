@@ -8,7 +8,7 @@
             <h3>Layers for {{ model }}</h3>
             @if(modelLayers[model]) {
                 <ul>
-                    @for(layer of modelLayers[model]; track layer) {
+                    @for(layer of modelLayers[model]; track $index) {
                         <li>{{ layer }}</li>
                     }
                 </ul>

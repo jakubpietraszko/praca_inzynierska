@@ -39,7 +39,7 @@ class fashionMnistModel(nn.Module):
         x = self.conv2(x)
         x = self.relu(x)
         x = self.pool(x)
-        x = x.view(-1, 64 * 7 * 7)
+        x = x.reshape(-1, 64 * 7 * 7)
         x = self.fc1(x)
         x = self.relu(x)
         x = self.dropout(x)

@@ -67,6 +67,7 @@ class ModelsService:
         result = list()
 
         for name, layer in layers:
-            result.append(str(layer))
+            if ':' not in str(layer):
+                result.append(str(layer))
 
         return result

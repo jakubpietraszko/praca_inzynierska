@@ -35,7 +35,7 @@ class dogsVsCatsModel(nn.Module):
         x = self.conv3(x)
         x = self.relu(x)
         x = self.pool(x)
-        x = x.view(-1, 64 * 28 * 28)
+        x = x.reshape(-1, 64 * 28 * 28)
         x = self.fc1(x)
         x = self.relu(x)
         x = self.dropout(x)

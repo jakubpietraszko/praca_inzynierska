@@ -40,6 +40,12 @@ class MasksService:
              ) -> Tuple[np.ndarray, int]:
         LEVELS = 2
         ITERATIONS = 5
+        
+        if len(image_np.shape) == 3:
+            resized_image = cv2.resize(image_np, (width, height))
+        else:
+            resized_image = cv2.resize(image_np, (width, height))
+        
         seeds = cv2.ximgproc.createSuperpixelSEEDS(
             image_width=width,
             image_height=height,
@@ -48,9 +54,7 @@ class MasksService:
             num_levels=LEVELS
         )
 
-
-
-        seeds.iterate(image_np, ITERATIONS)
+        seeds.iterate(resized_image, ITERATIONS)
         labels = seeds.getLabels()
         return labels, np.unique(labels).shape[0]
     
@@ -64,8 +68,14 @@ class MasksService:
         region_size = np.sqrt((height * width) / super_pixels)
         region_size = int(region_size)
         ITERATIONS = 5
+        
+        if len(image_np.shape) == 3:
+            resized_image = cv2.resize(image_np, (width, height))
+        else:
+            resized_image = cv2.resize(image_np, (width, height))
+        
         slic = cv2.ximgproc.createSuperpixelSLIC(
-            image_np,
+            resized_image,
             region_size=region_size,
 
         )
