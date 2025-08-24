@@ -1,0 +1,40 @@
+meta {
+  name: fashion-pullover
+  type: http
+  seq: 3
+}
+
+post {
+  url: http://localhost:8000/heatmap/hires-cam
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "model": "fashion",
+    "dataset": "fashion-dataset",
+    "images": [
+      {
+        "label": "pullover",
+        "filename": "1.png",
+        "target": 2
+      },
+      {
+        "label": "pullover",
+        "filename": "16.png",
+        "target": 2
+      },
+      {
+        "label": "pullover",
+        "filename": "20.png",
+        "target": 2
+      }
+    ],
+    "overwrite": false
+  }
+}
+
+settings {
+  encodeUrl: true
+}

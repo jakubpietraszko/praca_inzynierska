@@ -1,0 +1,38 @@
+meta {
+  name: fashion-pullover
+  type: http
+  seq: 3
+}
+
+post {
+  url: http://localhost:8000/mask/slic
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "model": "fashion",
+    "dataset": "fashion-dataset",
+    "images": [
+      {
+        "label": "pullover",
+        "filename": "1.png"
+      },
+      {
+        "label": "pullover",
+        "filename": "16.png"
+      },
+      {
+        "label": "pullover",
+        "filename": "20.png"
+      }
+    ],
+    "superPixels": 10,
+    "overwrite": false
+  }
+}
+
+settings {
+  encodeUrl: true
+}

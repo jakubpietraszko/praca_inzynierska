@@ -1,0 +1,21 @@
+meta {
+  name: fashion
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:8000/all-labels
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "dataset": "fashion-dataset"
+  }
+}
+
+settings {
+  encodeUrl: true
+}

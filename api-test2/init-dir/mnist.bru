@@ -1,0 +1,22 @@
+meta {
+  name: mnist
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:8000/init-dir
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "model": "mnist",
+    "dataset": "mnist-dataset"
+  }
+}
+
+settings {
+  encodeUrl: true
+}

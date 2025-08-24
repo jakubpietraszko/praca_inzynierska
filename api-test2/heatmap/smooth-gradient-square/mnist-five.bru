@@ -1,0 +1,35 @@
+meta {
+  name: mnist-five
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:8000/heatmap/smooth-gradient-square
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "model": "mnist",
+    "dataset": "mnist-dataset",
+    "images": [
+      {
+        "label": "five",
+        "filename": "8.png",
+        "target": 4
+      },
+      {
+        "label": "five",
+        "filename": "15.png",
+        "target": 4
+      }
+    ],
+    "overwrite": false
+  }
+}
+
+settings {
+  encodeUrl: true
+}

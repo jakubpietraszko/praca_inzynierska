@@ -1,0 +1,22 @@
+meta {
+  name: dogs-vs-cats
+  type: http
+  seq: 4
+}
+
+post {
+  url: http://localhost:8000/init-dir
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "model": "dogs-vs-cats",
+    "dataset": "dogs-vs-cats-dataset"
+  }
+}
+
+settings {
+  encodeUrl: true
+}

@@ -1,0 +1,23 @@
+meta {
+  name: fetch-image
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:8000/fetch-image
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "dataset": "mnist-dataset",
+    "label": "five",
+    "filename": "8.png"
+  }
+}
+
+settings {
+  encodeUrl: true
+}

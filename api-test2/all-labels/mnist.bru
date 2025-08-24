@@ -1,0 +1,21 @@
+meta {
+  name: mnist
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://localhost:8000/all-labels
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "dataset": "mnist-dataset"
+  }
+}
+
+settings {
+  encodeUrl: true
+}

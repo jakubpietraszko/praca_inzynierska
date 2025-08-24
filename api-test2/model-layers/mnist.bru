@@ -1,0 +1,21 @@
+meta {
+  name: mnist
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://localhost:8000/model-layers
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "model": "mnist"
+  }
+}
+
+settings {
+  encodeUrl: true
+}
