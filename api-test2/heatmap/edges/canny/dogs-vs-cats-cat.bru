@@ -1,0 +1,29 @@
+meta {
+  name: dogs-vs-cats-cat
+  type: http
+  seq: 4
+}
+
+post {
+  url: http://localhost:8000/heatmap/edge-canny
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "model": "dogs-vs-cats",
+    "dataset": "dogs-vs-cats-dataset",
+    "images": [
+      {
+        "label": "cat",
+        "filename": "10000.jpg"
+      }
+    ],
+    "overwrite": false
+  }
+}
+
+settings {
+  encodeUrl: true
+}

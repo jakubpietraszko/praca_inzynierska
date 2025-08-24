@@ -1,0 +1,30 @@
+meta {
+  name: dogs-vs-cats-cat
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://localhost:8000/heatmap/integrated-gradient
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "model": "dogs-vs-cats",
+    "dataset": "dogs-vs-cats-dataset",
+    "images": [
+      {
+        "label": "cat",
+        "filename": "10000.jpg",
+        "target": 0
+      }
+    ],
+    "overwrite": false
+  }
+}
+
+settings {
+  encodeUrl: true
+}

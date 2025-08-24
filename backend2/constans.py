@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 
 @dataclass
 class Constants:
-    DATASETS: str = 'datasets' 
+    DATASETS: str = 'datasets'
     MODELS: str = 'models'
     MODELS_DATASETS: str = 'models-datasets'
 
@@ -11,15 +11,18 @@ class Constants:
     MASK_SLIC: str = 'mask_slic'
     MASK_SEED: str = 'mask_seed'
 
+    EDGE_CANNY: str = 'edge_canny'
+
     ACTIVATIONS: str = 'activations'
 
     GRADIENT: str = 'gradient'
     DECONVOLUTION: str = 'deconvolution'
     GUIDED_BACKPROPAGATION: str = 'guided_backpropagation'
-    INTEGRATED_GRADIENT: str = 'integrated_gradient'
-    BLUR_INTEGRATED_GRADIENT: str = 'blur_integrated_gradient'
-    EXPECTED_GRADIENT: str = 'expected_gradient'
     INPUT_GRADIENT: str = 'input_gradient'
+
+    INTEGRATED_GRADIENT: str = 'integrated_gradient'
+    SMOOTH_INTEGRATED_GRADIENT: str = 'smooth_integrated_gradient'
+    EXPECTED_GRADIENT: str = 'expected_gradient'
 
     SMOOTH_GRADIENT: str = 'smooth_gradient'
     SMOOTH_GRADIENT_SQUARE: str = 'smooth_gradient_square'
@@ -50,26 +53,31 @@ class Constants:
 
     DEEP_TAYLOR: str = 'deep_taylor'
 
+    LIFT: str = 'lift'
+    DEEP_LIFT: str = 'deep_lift'
+
     ALL_DIRS: list[str] = field(default_factory=lambda: [
         Constants.MASK_RISE,
         Constants.MASK_SLIC,
         Constants.MASK_SEED,
+
+        Constants.EDGE_CANNY,
 
         Constants.ACTIVATIONS,
 
         Constants.GRADIENT,
         Constants.DECONVOLUTION,
         Constants.GUIDED_BACKPROPAGATION,
-        Constants.INTEGRATED_GRADIENT,
-        Constants.BLUR_INTEGRATED_GRADIENT,
-        Constants.EXPECTED_GRADIENT,
-
         Constants.INPUT_GRADIENT,
+
+        Constants.INTEGRATED_GRADIENT,
+        Constants.SMOOTH_INTEGRATED_GRADIENT,
+        Constants.EXPECTED_GRADIENT,
 
         Constants.SMOOTH_GRADIENT,
         Constants.SMOOTH_GRADIENT_SQUARE,
         Constants.VAR_GRADIENT,
-        
+
         Constants.GRAD_CAM,
         Constants.GRAD_CAM_PLUS_PLUS,
         Constants.HIRES_CAM,
@@ -88,5 +96,4 @@ class Constants:
     STEPS: int = 50
     NOISE_LEVEL: float = 0.1
     NUM_SAMPLES: int = 50
-
-    
+    AGGREGATION: str = 'max'  # mean, sum, max

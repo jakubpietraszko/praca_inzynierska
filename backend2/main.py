@@ -13,6 +13,8 @@ from routers.heatmaps.cam_routes import router as cam_router
 from routers.heatmaps.gradient_noise_routes import router as gradient_noise_router
 from routers.heatmaps.gradient_routers import router as gradient_router
 from routers.heatmaps.probing_image_routes import router as probing_image_router
+from routers.heatmaps.integrated_gradient_routes import router as integrated_gradient_router
+from routers.edge_routes import router as edge_router
 
 app = FastAPI()
 
@@ -29,12 +31,14 @@ app.include_router(utilities_router)
 app.include_router(models_router)
 app.include_router(models_datasets_router)
 app.include_router(masks_router, prefix="/mask")
+app.include_router(edge_router, prefix="/heatmap")
 app.include_router(heatmaps_router, prefix="/heatmap")
 app.include_router(activations_router, prefix="/heatmap")
 app.include_router(cam_router, prefix="/heatmap")
 app.include_router(gradient_noise_router, prefix="/heatmap")
 app.include_router(gradient_router, prefix="/heatmap")
 app.include_router(probing_image_router, prefix="/heatmap")
+app.include_router(integrated_gradient_router, prefix="/heatmap")
 
 @app.get("/")
 async def root():
@@ -44,7 +48,8 @@ async def root():
 
 if __name__ == "__main__":
     uvicorn.run(
-        app,
+        "main:app",
         host="0.0.0.0",
-        port=8000
+        port=8000,
+        reload=True
     )

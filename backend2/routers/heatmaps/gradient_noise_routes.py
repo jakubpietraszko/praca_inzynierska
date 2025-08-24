@@ -78,7 +78,7 @@ async def smooth_grad(request: GradientRequest,
         result = result.squeeze().cpu().detach().numpy()
 
         if len(result.shape) == 3 and result.shape[0] == 3:
-            result = utilities_service.aggregate_channels(result, 'sum')
+            result = utilities_service.aggregate_channels(result, constants.AGGREGATION)
         result = utilities_service.relu_normalize(
             result, model_info.input_shape, epsilon=constants.EPSILON
         )
@@ -154,7 +154,7 @@ async def smooth_grad_square(request: GradientRequest,
         result = result.squeeze().cpu().detach().numpy()
 
         if len(result.shape) == 3 and result.shape[0] == 3:
-            result = utilities_service.aggregate_channels(result, 'sum')
+            result = utilities_service.aggregate_channels(result, constants.AGGREGATION)
         result = utilities_service.relu_normalize(
             result, model_info.input_shape, epsilon=constants.EPSILON
         )
@@ -232,8 +232,8 @@ async def var_grad(request: GradientRequest,
         result = result.squeeze().cpu().detach().numpy()
 
         if len(result.shape) == 3 and result.shape[0] == 3:
-            result = utilities_service.aggregate_channels(result, 'sum')
-        
+            result = utilities_service.aggregate_channels(result, constants.AGGREGATION)
+
         result = utilities_service.relu_normalize(
             result, model_info.input_shape, epsilon=constants.EPSILON
         )
