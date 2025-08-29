@@ -89,6 +89,80 @@ async def gradient(request: GradientRequest,
         success=True,
     )
 
+@router.post('/gradient-squared', response_model=GradientResponse)
+async def gradient_squared(request: GradientRequest,
+                   container: ServiceContainer = Depends(get_container),
+                   models_service: ModelsService = Depends(get_models_service),
+                   heatmaps_service: HeatmapsService = Depends(
+                       get_heatmaps_service),
+                   utilities_service: UtilitiesService = Depends(
+                       get_utilities_service),
+                   models_datasets_service: ModelsDatasetsService = Depends(
+                       get_models_datasets_service),
+                   datasets_service: DatasetsService = Depends(
+                       get_datasets_service),
+                   constants: Constants = Depends(get_constants)
+                   ):
+    model_info = models_service.load_model(request.model)
+
+    path = os.path.join(
+        container.models_datasets_path,
+        utilities_service.models_datasets_path(request.model, request.dataset),
+        constants.GRADIENT_SQUARED,
+    )
+    os.makedirs(path, exist_ok=True)
+
+    for image in request.images:
+        label = image.label
+        filename = image.filename
+        target = image.target
+
+        label_path = os.path.join(
+            path,
+            label,
+        )
+
+        os.makedirs(label_path, exist_ok=True)
+
+        image_path = os.path.join(
+            container.datasets_path,
+            request.dataset,
+            label,
+            filename
+        )
+
+        image_np = datasets_service.load_image(
+            image_path, model_info.input_shape)
+        image_tensor = utilities_service.convert_image_to_tensor(
+            image_np, grad=True)
+
+        model_info.model.eval()
+
+        output = model_info.model(image_tensor)
+        y_c = output[0, target]
+        grad = torch.autograd.grad(y_c, image_tensor)[0]
+        result = grad.squeeze().cpu().detach().numpy()
+
+        if len(result.shape) == 3 and result.shape[0] == 3:
+            result = utilities_service.aggregate_channels(
+                result, constants.AGGREGATION)
+            
+        result = np.square(result)
+
+        result = utilities_service.relu_normalize(
+            result, model_info.input_shape, epsilon=constants.EPSILON
+        )
+
+        save_path = os.path.join(
+            label_path,
+            utilities_service.add_png_extension(filename)
+        )
+
+        cv2.imwrite(save_path, result)
+
+    return GradientResponse(
+        success=True,
+    )
 
 @router.post('/deconvolution', response_model=GradientResponse)
 async def deconvolution(request: GradientRequest,
@@ -189,7 +263,6 @@ async def deconvolution(request: GradientRequest,
     return GradientResponse(
         success=True,
     )
-
 
 @router.post('/guided-backpropagation', response_model=GradientResponse)
 async def guided_backpropagation(request: GradientRequest,
@@ -343,7 +416,6 @@ async def guided_backpropagation(request: GradientRequest,
     return GradientResponse(
         success=True,
     )
-
 
 @router.post('/input-gradient', response_model=GradientResponse)
 async def input_gradient(request: GradientRequest,

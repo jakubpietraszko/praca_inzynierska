@@ -61,6 +61,7 @@ class DatasetsService:
             image = base64.b64encode(f.read()).decode('utf-8')
 
         return image
+
     
     def load_image(self, path: str, shape: tuple) -> np.ndarray:
         assert len(shape) == 3 # (1, H, W) or (3, H, W)

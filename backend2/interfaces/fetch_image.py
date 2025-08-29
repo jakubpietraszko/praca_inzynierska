@@ -7,3 +7,7 @@ class FetchImageRequest(BaseModel):
 
 class FetchImageResponse(BaseModel):
     image: str
+
+class FetchActivationImageRequest(FetchImageRequest):
+    model: str
+    image: str

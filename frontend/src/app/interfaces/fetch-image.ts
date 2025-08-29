@@ -7,3 +7,8 @@ export interface FetchImageRequest {
 export interface FetchImageResponse {
     image: string;
 }
+
+export interface FetchActivationRequest extends FetchImageRequest {
+    model: string;
+    image: string;
+}

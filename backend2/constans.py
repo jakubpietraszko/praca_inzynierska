@@ -16,11 +16,14 @@ class Constants:
     ACTIVATIONS: str = 'activations'
 
     GRADIENT: str = 'gradient'
+    GRADIENT_SQUARED: str = 'gradient_squared'
     DECONVOLUTION: str = 'deconvolution'
     GUIDED_BACKPROPAGATION: str = 'guided_backpropagation'
     INPUT_GRADIENT: str = 'input_gradient'
 
     INTEGRATED_GRADIENT: str = 'integrated_gradient'
+    INTEGRATED_GRADIENT_NOISE: str = 'integrated_gradient_noise'
+    SMOOTH_TAYLOR: str = 'smooth_taylor'
     SMOOTH_INTEGRATED_GRADIENT: str = 'smooth_integrated_gradient'
     EXPECTED_GRADIENT: str = 'expected_gradient'
 
@@ -66,12 +69,13 @@ class Constants:
         Constants.ACTIVATIONS,
 
         Constants.GRADIENT,
+        Constants.GRADIENT_SQUARED,
         Constants.DECONVOLUTION,
         Constants.GUIDED_BACKPROPAGATION,
         Constants.INPUT_GRADIENT,
 
         Constants.INTEGRATED_GRADIENT,
-        Constants.SMOOTH_INTEGRATED_GRADIENT,
+        Constants.INTEGRATED_GRADIENT_NOISE,
         Constants.EXPECTED_GRADIENT,
 
         Constants.SMOOTH_GRADIENT,
@@ -81,6 +85,12 @@ class Constants:
         Constants.GRAD_CAM,
         Constants.GRAD_CAM_PLUS_PLUS,
         Constants.HIRES_CAM,
+        Constants.WGRAD_CAM,
+        Constants.ABLATION_CAM,
+        Constants.GROUP_CAM,
+        Constants.SCORE_CAM,
+        Constants.XGRAD_CAM,
+        Constants.EIGEN_CAM,
 
         Constants.LRP,
         Constants.LRP_EPSILON,

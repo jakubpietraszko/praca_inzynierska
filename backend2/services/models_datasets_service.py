@@ -1,4 +1,5 @@
 import os
+import base64
 
 class ModelsDatasetsService:
     def __init__(self, models_datasets_path: str, utilities_service, constants):
@@ -21,3 +22,23 @@ class ModelsDatasetsService:
         except:
             return False
         return True
+    
+    def fetch_activations_image(self,
+                                models_dataset: str,
+                                activations: str,
+                                label: str,
+                                filename: str,
+                                image: str) -> bytes:
+        path = os.path.join(
+            self.models_datasets_path,
+            models_dataset,
+            activations,
+            label,
+            filename,
+            image
+        )
+
+        with open(path, 'rb') as f:
+            image = base64.b64encode(f.read()).decode('utf-8')
+
+        return image

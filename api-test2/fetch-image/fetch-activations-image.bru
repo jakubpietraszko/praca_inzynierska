@@ -1,0 +1,25 @@
+meta {
+  name: fetch-activations-image
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:8000/fetch-activations-image
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "dataset": "mnist-dataset",
+    "model": "mnist",
+    "label": "five",
+    "filename": "8.png",
+    "image": "1.png"
+  }
+}
+
+settings {
+  encodeUrl: true
+}
