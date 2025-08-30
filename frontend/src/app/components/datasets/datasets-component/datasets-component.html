@@ -21,6 +21,9 @@
                             <img appLoadImageDirective [dataset]="selectedDataset!" [label]="selectedLabel!"
                                 [filename]="getImageFileName(path)" [alt]="getImageFileName(path)" class="grid-image">
                             <div class="image-filename">{{ getImageFileName(path) }}</div>
+                            <button mat-fab color="primary" class="image-button" (click)="openImageDialog(selectedDataset!, selectedLabel!, getImageFileName(path))">
+                                <mat-icon>A</mat-icon>
+                            </button>
                         </div>
                     </mat-grid-tile>
                     }

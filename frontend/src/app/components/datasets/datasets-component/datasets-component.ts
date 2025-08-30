@@ -20,6 +20,10 @@ import {
 } from '../../../interfaces/all-images';
 import { LoadImageDirective } from '../../../directives/load-image/load-image-directive';
 import { environment } from '../../../../environments/environment';
+import { MatIconModule } from '@angular/material/icon';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { DialogUnsupervisedActivations } from '../../dialog-unsupervised-activations/dialog-unsupervised-activations';
+import { DialogUnsupervisedActivationsData } from '../../../interfaces/dialog-unsupervised-activations-data';
 
 @Component({
   selector: 'app-datasets-component',
@@ -30,6 +34,8 @@ import { environment } from '../../../../environments/environment';
     MatPaginatorModule,
     MatGridListModule,
     LoadImageDirective,
+    MatIconModule,
+    MatDialogModule,
   ],
   templateUrl: './datasets-component.html',
   styleUrl: './datasets-component.css',
@@ -38,6 +44,7 @@ export class DatasetsComponent implements OnInit, OnDestroy {
   datasetsService = inject(DatasetsService);
   labelsService = inject(LabelsService);
   imagesService = inject(ImagesService);
+  dialog = inject(MatDialog);
 
   subscription: Subscription = new Subscription();
   labelsSubscription: Subscription = new Subscription();
@@ -111,7 +118,6 @@ export class DatasetsComponent implements OnInit, OnDestroy {
       .subscribe((response: AllLabelsResponse) => {
         console.log(response.labels);
         this.labels = response.labels;
-        // Automatically select the first label when labels are loaded
         if (this.labels && this.labels.length > 0) {
           this.selectLabel(this.labels[0]);
         }
@@ -173,5 +179,24 @@ export class DatasetsComponent implements OnInit, OnDestroy {
 
   getImageFileName(path: string): string {
     return path.split('/').pop() || path;
+  }
+
+  openImageDialog(dataset: string, label: string, filename: string): void {
+    const dialogData: DialogUnsupervisedActivationsData = {
+      dataset: dataset,
+      label: label,
+      filename: filename,
+    }
+
+    const dialogRef = this.dialog.open(DialogUnsupervisedActivations, {
+      width: '90vw',
+      height: '90vh',
+      maxWidth: '90vw',
+      maxHeight: '90vh',
+      panelClass: 'large-dialog',
+      hasBackdrop: true,
+      disableClose: false,
+      data: dialogData
+    });
   }
 }
