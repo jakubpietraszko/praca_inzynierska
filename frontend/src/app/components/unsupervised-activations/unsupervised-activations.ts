@@ -53,9 +53,9 @@ export class UnsupervisedActivations implements OnInit, OnDestroy {
         filename: this.filename,
         type: this.type,
       };
-      console.log(request);
-      const result = await firstValueFrom(this.unsupervisedActivationsService.generateActivations(request));
 
+      const result = await firstValueFrom(this.unsupervisedActivationsService.generateActivations(request));
+      console.log('Generation result:', result);
 
       const ref = this.unsupervisedActivationsService
         .getActivations(request)

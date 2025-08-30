@@ -7,6 +7,8 @@
         [color]="rlaDatasets.isActive ? 'accent' : undefined">Zbiory danych</button>
     <button mat-button routerLink="/mask-generation" #rlaMasks="routerLinkActive" routerLinkActive [routerLinkActiveOptions]="{exact:true}"
         [color]="rlaMasks.isActive ? 'accent' : undefined">Generacja masek</button>
+    <button mat-button routerLink="/unsupervised-activations" #rlaUnsupervised="routerLinkActive" routerLinkActive [routerLinkActiveOptions]="{exact:true}"
+        [color]="rlaUnsupervised.isActive ? 'accent' : undefined">Nienadzorowane mapy aktywacji</button>
     <button mat-button routerLink="/heatmap-generation" #rlaHeatmaps="routerLinkActive" routerLinkActive [routerLinkActiveOptions]="{exact:true}"
         [color]="rlaHeatmaps.isActive ? 'accent' : undefined">Generacja map ciepła</button>
     <button mat-button routerLink="/settings" #rlaSettings="routerLinkActive" routerLinkActive [routerLinkActiveOptions]="{exact:true}"

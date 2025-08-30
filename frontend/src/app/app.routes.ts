@@ -6,6 +6,7 @@ import { ModelsComponent } from './components/models/models-component/models-com
 import { MaskGenerationComponent } from './components/mask-generation/mask-generation-component/mask-generation-component';
 import { HeatmapGenerationComponent } from './components/heatmap-generation/heatmap-generation-component/heatmap-generation-component';
 import { UnsupervisedActivations } from './components/unsupervised-activations/unsupervised-activations';
+import { UnsupervisedActivationsWrapper } from './components/unsupervised-activations-wrapper/unsupervised-activations-wrapper';
 
 export const routes: Routes = [
     {
@@ -27,7 +28,7 @@ export const routes: Routes = [
         path: 'heatmap-generation', component: HeatmapGenerationComponent, pathMatch: 'full'
     },
     {
-        path: 'unsupervised-activations', component: UnsupervisedActivations, pathMatch: 'full'
+        path: 'unsupervised-activations', component: UnsupervisedActivationsWrapper, pathMatch: 'full'
     },
     {
         path: '**', redirectTo: 'home', pathMatch: 'full'
