@@ -1,4 +1,4 @@
-import { Component, inject, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, computed, effect, inject, input, Input, OnDestroy, OnInit } from '@angular/core';
 import { LoadActivationImage } from '../../directives/load-activation-image/load-activation-image';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { CommonModule } from '@angular/common';
@@ -23,11 +23,19 @@ interface ImageCoordinate {
   styleUrl: './unsupervised-activations.css',
 })
 export class UnsupervisedActivations implements OnInit, OnDestroy {
-  @Input() model!: string;
-  @Input() dataset!: string;
-  @Input() label!: string;
-  @Input() filename!: string;
-  @Input() type!: string;
+  model = input<string>();
+  dataset = input<string>();
+  label = input<string>();
+  filename = input<string>();
+  type = input<string>();
+
+  allInputsSet = computed(
+    () => !!this.model() &&
+      !!this.dataset() &&
+      !!this.label() &&
+      !!this.filename() &&
+      !!this.type()
+  );
 
   private subscription: Subscription = new Subscription();
 
@@ -38,20 +46,28 @@ export class UnsupervisedActivations implements OnInit, OnDestroy {
   public _dataset = 'mnist-dataset';
   public _model = 'mnist';
 
-  async ngOnInit(): Promise<void> {
+  constructor() {
+    effect( () => {
+      if (this.allInputsSet()) {
+        this.loadActivations();
+      }
+    });
+  }
+
+    private async loadActivations(): Promise<void> {
     if (
-      this.model &&
-      this.dataset &&
-      this.label &&
-      this.filename &&
-      this.type
+      this.model() &&
+      this.dataset() &&
+      this.label() &&
+      this.filename() &&
+      this.type()
     ) {
       const request: UnsupervisedActivationsRequest = {
-        model: this.model,
-        dataset: this.dataset,
-        label: this.label,
-        filename: this.filename,
-        type: this.type,
+        model: this.model()!,
+        dataset: this.dataset()!,
+        label: this.label()!,
+        filename: this.filename()!,
+        type: this.type()!,
       };
 
       const result = await firstValueFrom(this.unsupervisedActivationsService.generateActivations(request));
@@ -68,6 +84,10 @@ export class UnsupervisedActivations implements OnInit, OnDestroy {
         });
       this.subscription.add(ref);
     }
+  }
+
+
+  async ngOnInit(): Promise<void> {
   }
 
   ngOnDestroy(): void {
