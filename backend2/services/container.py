@@ -6,6 +6,7 @@ from .masks_service import MasksService
 from .utilities_service import UtilitiesService
 from .models_datasets_service import ModelsDatasetsService
 from .gradient_service import GradientService
+from .activations_service import ActivationsService
 from constans import Constants
 
 class ServiceContainer:
@@ -30,6 +31,7 @@ class ServiceContainer:
         self._utilities_service = None
         self._models_datasets_service = None
         self._gradient_service = None
+        self._activations_service = None
 
     @property
     def datasets_service(self) -> DatasetsService:
@@ -77,6 +79,12 @@ class ServiceContainer:
             self._gradient_service = GradientService()
         return self._gradient_service
     
+    @property
+    def activations_service(self) -> ActivationsService:
+        if self._activations_service is None:
+            self._activations_service = ActivationsService()
+        return self._activations_service
+    
 
 _container: ServiceContainer = None
 
@@ -110,3 +118,6 @@ def get_constants() -> Constants:
 
 def get_gradient_service() -> GradientService:
     return get_container().gradient_service
+
+def get_activations_service() -> ActivationsService:
+    return get_container().activations_service
