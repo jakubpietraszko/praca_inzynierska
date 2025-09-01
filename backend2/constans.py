@@ -100,6 +100,14 @@ class Constants:
         Constants.DEEP_TAYLOR,
     ])
 
+    READY_HEATMAPS: list[str] = field(default_factory=lambda: [
+        Constants.GRADIENT,
+        Constants.GUIDED_BACKPROPAGATION,
+        Constants.INTEGRATED_GRADIENT,
+        Constants.SMOOTH_GRADIENT,
+        Constants.GRAD_CAM,
+    ]),
+
     CMAP: str = 'hot',
     EPSILON: float = 1e-8
     BASELINE: int = 0

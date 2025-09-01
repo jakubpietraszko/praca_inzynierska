@@ -7,7 +7,6 @@ from routers.utilities_routes import router as utilities_router
 from routers.models_routes import router as models_router
 from routers.models_datasets_routes import router as models_datasets_router
 from routers.masks_routes import router as masks_router
-from routers.heatmaps_routes import router as heatmaps_router
 from routers.heatmaps.activations_routes import router as activations_router
 from routers.heatmaps.cam_routes import router as cam_router
 from routers.heatmaps.gradient_noise_routes import router as gradient_noise_router
@@ -16,6 +15,7 @@ from routers.heatmaps.probing_image_routes import router as probing_image_router
 from routers.heatmaps.integrated_gradient_routes import router as integrated_gradient_router
 from routers.edge_routes import router as edge_router
 from routers.unsupervised_routes import router as unsupervised_router
+from routers.heatmaps.heatmaps_routes import router as heatmaps_router
 
 app = FastAPI()
 
