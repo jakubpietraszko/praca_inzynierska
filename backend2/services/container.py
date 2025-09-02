@@ -7,6 +7,7 @@ from .utilities_service import UtilitiesService
 from .models_datasets_service import ModelsDatasetsService
 from .gradient_service import GradientService
 from .activations_service import ActivationsService
+from .integrated_gradient_service import IntegratedGradientsService
 from constans import Constants
 
 class ServiceContainer:
@@ -32,6 +33,7 @@ class ServiceContainer:
         self._models_datasets_service = None
         self._gradient_service = None
         self._activations_service = None
+        self._integrated_gradients_service = None
 
     @property
     def datasets_service(self) -> DatasetsService:
@@ -85,6 +87,12 @@ class ServiceContainer:
             self._activations_service = ActivationsService()
         return self._activations_service
     
+    @property
+    def integrated_gradient_service(self) -> IntegratedGradientsService:
+        if self._integrated_gradients_service is None:
+            self._integrated_gradients_service = IntegratedGradientsService()
+        return self._integrated_gradients_service
+    
 
 _container: ServiceContainer = None
 
@@ -121,3 +129,6 @@ def get_gradient_service() -> GradientService:
 
 def get_activations_service() -> ActivationsService:
     return get_container().activations_service
+
+def get_integrated_gradients_service() -> IntegratedGradientsService:
+    return get_container().integrated_gradient_service
