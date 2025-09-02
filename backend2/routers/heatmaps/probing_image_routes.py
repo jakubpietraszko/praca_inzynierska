@@ -6,8 +6,8 @@ from fastapi import APIRouter, Depends
 from interfaces.label_filename import LabelFilename
 from interfaces.activations import ActivationsRequest, ActivationsResponse
 from interfaces.gradient import GradientRequest, GradientResponse
-from services.container import ServiceContainer, ModelsService, HeatmapsService, UtilitiesService, ModelsDatasetsService, DatasetsService
-from services.container import get_container, get_models_service, get_heatmaps_service, get_utilities_service, get_models_datasets_service, get_datasets_service, get_constants
+from services.container import ServiceContainer, ModelsService, HeatmapsService, UtilitiesService, ModelsDatasetsService, DatasetsService, ProbingImageService
+from services.container import get_container, get_models_service, get_heatmaps_service, get_utilities_service, get_models_datasets_service, get_datasets_service, get_constants, get_probing_image_service
 from constans import Constants
 from PIL import Image
 import matplotlib.pyplot as plt

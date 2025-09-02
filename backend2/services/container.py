@@ -1,4 +1,5 @@
 import os
+
 from .datasets_service import DatasetsService
 from .heatmaps_service import HeatmapsService
 from .models_service import ModelsService
@@ -9,6 +10,9 @@ from .gradient_service import GradientService
 from .activations_service import ActivationsService
 from .integrated_gradient_service import IntegratedGradientsService
 from .cam_service import CAMService
+from .probing_image_service import ProbingImageService
+from .gradient_noise_service import GradientNoiseService
+
 from constans import Constants
 
 class ServiceContainer:
@@ -36,6 +40,8 @@ class ServiceContainer:
         self._activations_service = None
         self._integrated_gradients_service = None
         self._cam_service = None
+        self._probing_image_service = None
+        self._gradient_noise_service = None
 
     @property
     def datasets_service(self) -> DatasetsService:
@@ -102,6 +108,18 @@ class ServiceContainer:
             self._cam_service = CAMService()
         return self._cam_service
     
+    @property
+    def probing_image_service(self):
+        if self._probing_image_service is None:
+            self._probing_image_service = ProbingImageService()
+        return self._probing_image_service
+    
+    @property
+    def gradient_noise_service(self):
+        if self._gradient_noise_service is None:
+            self._gradient_noise_service = GradientNoiseService()
+        return self._gradient_noise_service
+    
 
 _container: ServiceContainer = None
 
@@ -144,3 +162,9 @@ def get_integrated_gradients_service() -> IntegratedGradientsService:
 
 def get_cam_service() -> CAMService:
     return get_container().cam_service
+
+def get_probing_image_service() -> ProbingImageService:
+    return get_container().probing_image_service
+
+def get_gradient_noise_service() -> GradientNoiseService:
+    return get_container().gradient_noise_service
