@@ -8,6 +8,7 @@ from .models_datasets_service import ModelsDatasetsService
 from .gradient_service import GradientService
 from .activations_service import ActivationsService
 from .integrated_gradient_service import IntegratedGradientsService
+from .cam_service import CAMService
 from constans import Constants
 
 class ServiceContainer:
@@ -34,6 +35,7 @@ class ServiceContainer:
         self._gradient_service = None
         self._activations_service = None
         self._integrated_gradients_service = None
+        self._cam_service = None
 
     @property
     def datasets_service(self) -> DatasetsService:
@@ -93,6 +95,13 @@ class ServiceContainer:
             self._integrated_gradients_service = IntegratedGradientsService()
         return self._integrated_gradients_service
     
+    @property
+    def cam_service(self):
+        if self._cam_service is None:
+            from .cam_service import CAMService
+            self._cam_service = CAMService()
+        return self._cam_service
+    
 
 _container: ServiceContainer = None
 
@@ -132,3 +141,6 @@ def get_activations_service() -> ActivationsService:
 
 def get_integrated_gradients_service() -> IntegratedGradientsService:
     return get_container().integrated_gradient_service
+
+def get_cam_service() -> CAMService:
+    return get_container().cam_service
