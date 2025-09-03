@@ -10,13 +10,17 @@ class IntegratedGradientsService:
 
     def integrated_gradient(self,
                             request: GradientRequest,
-                            root_path: str,
                             container,
                             datasets_service,
                             utilities_service,
                             constants,
                             models_service
                             ) -> GradientResponse:
+        root_path = os.path.join(
+            container.models_datasets_path,
+            utilities_service.models_datasets_path(request.model, request.dataset),
+            constants.INTEGRATED_GRADIENT
+        )
         os.makedirs(root_path, exist_ok=True)
 
         model_info = models_service.load_model(request.model)

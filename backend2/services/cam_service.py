@@ -11,12 +11,16 @@ class CAMService:
 
     def grad_cam(self,
                  request: GradientRequest,
-                 root_path: str,
                  container,
                  datasets_service,
                  utilities_service,
                  constants,
                  models_service) -> GradientResponse:
+        root_path = os.path.join(
+            container.models_datasets_path,
+            utilities_service.models_datasets_path(request.model, request.dataset),
+            constants.GRAD_CAM
+        )
         os.makedirs(root_path, exist_ok=True)
 
         model_info = models_service.load_model(request.model)
@@ -87,12 +91,16 @@ class CAMService:
 
     def grad_cam_plus_plus(self,
                            request: GradientRequest,
-                           root_path: str,
                            container,
                            datasets_service,
                            utilities_service,
                            constants,
                            models_service) -> GradientResponse:
+        root_path = os.path.join(
+            container.models_datasets_path,
+            utilities_service.models_datasets_path(request.model, request.dataset),
+            constants.GRAD_CAM_PLUS_PLUS
+        )
         os.makedirs(root_path, exist_ok=True)
 
         model_info = models_service.load_model(request.model)
@@ -127,7 +135,6 @@ class CAMService:
 
     def group_cam(self,
                   request: GradientRequest,
-                  root_path: str,
                   container,
                   datasets_service,
                   utilities_service,
@@ -140,12 +147,16 @@ class CAMService:
 
     def hires_cam(self,
                   request: GradientRequest,
-                  root_path: str,
                   container,
                   datasets_service,
                   utilities_service,
                   constants,
                   models_service) -> GradientResponse:
+        root_path = os.path.join(
+            container.models_datasets_path,
+            utilities_service.models_datasets_path(request.model, request.dataset),
+            constants.HIRES_CAM
+        )
         os.makedirs(root_path, exist_ok=True)
 
         model_info = models_service.load_model(request.model)
@@ -216,12 +227,16 @@ class CAMService:
 
     def wgrad_cam(self,
                   request: GradientRequest,
-                  root_path: str,
                   container,
                   datasets_service,
                   utilities_service,
                   constants,
                   models_service) -> GradientResponse:
+        root_path = os.path.join(
+            container.models_datasets_path,
+            utilities_service.models_datasets_path(request.model, request.dataset),
+            constants.WGRAD_CAM
+        )
         os.makedirs(root_path, exist_ok=True)
 
         model_info = models_service.load_model(request.model)
@@ -256,12 +271,16 @@ class CAMService:
 
     def ablation_cam(self,
                      request: GradientRequest,
-                     root_path: str,
                      container,
                      datasets_service,
                      utilities_service,
                      constants,
                      models_service) -> GradientResponse:
+        root_path = os.path.join(
+            container.models_datasets_path,
+            utilities_service.models_datasets_path(request.model, request.dataset),
+            constants.ABLATION_CAM
+        )
         os.makedirs(root_path, exist_ok=True)
 
         model_info = models_service.load_model(request.model)

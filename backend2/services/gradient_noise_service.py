@@ -11,12 +11,16 @@ class GradientNoiseService:
 
     def smooth_grad(self,
                  request: GradientRequest,
-                 root_path: str,
                  container,
                  datasets_service,
                  utilities_service,
                  constants,
                  models_service) -> GradientResponse:
+        root_path = os.path.join(
+            container.models_datasets_path,
+            utilities_service.models_datasets_path(request.model, request.dataset),
+            constants.SMOOTH_GRADIENT,
+        )
         os.makedirs(root_path, exist_ok=True)
 
         model_info = models_service.load_model(request.model)
@@ -79,12 +83,16 @@ class GradientNoiseService:
     
     def smooth_grad_squared(self,
                  request: GradientRequest,
-                 root_path: str,
                  container,
                  datasets_service,
                  utilities_service,
                  constants,
                  models_service) -> GradientResponse:
+        root_path = os.path.join(
+            container.models_datasets_path,
+            utilities_service.models_datasets_path(request.model, request.dataset),
+            constants.SMOOTH_GRADIENT_SQUARE,
+        )
         os.makedirs(root_path, exist_ok=True)
 
         model_info = models_service.load_model(request.model)
@@ -147,12 +155,16 @@ class GradientNoiseService:
     
     def var_grad(self,
                  request: GradientRequest,
-                 root_path: str,
                  container,
                  datasets_service,
                  utilities_service,
                  constants,
                  models_service) -> GradientResponse:
+        root_path = os.path.join(
+            container.models_datasets_path,
+            utilities_service.models_datasets_path(request.model, request.dataset),
+            constants.VAR_GRADIENT,
+        )
         os.makedirs(root_path, exist_ok=True)
 
         model_info = models_service.load_model(request.model)

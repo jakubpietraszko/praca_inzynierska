@@ -46,15 +46,8 @@ async def gradient(request: GradientRequest,
                        get_gradient_service
                    )
                    ):
-    root_path = os.path.join(
-        container.models_datasets_path,
-        utilities_service.models_datasets_path(request.model, request.dataset),
-        constants.GRADIENT
-    )
-
     response = gradients_service.gradient(
         request=request,
-        root_path=root_path,
         container_service=container,
         datasets_service=datasets_service,
         utilities_service=utilities_service,
@@ -84,15 +77,8 @@ async def gradient_squared(request: GradientRequest,
                                get_gradient_service
                            )
                            ):
-    root_path = os.path.join(
-        container.models_datasets_path,
-        utilities_service.models_datasets_path(request.model, request.dataset),
-        constants.GRADIENT_SQUARED
-    )
-
     response = gradients_service.gradient_squared(
         request=request,
-        root_path=root_path,
         container_service=container,
         datasets_service=datasets_service,
         utilities_service=utilities_service,
@@ -121,16 +107,8 @@ async def deconvolution(request: GradientRequest,
                             get_gradient_service
                         )
                         ):
-    
-    root_path = os.path.join(
-        container.models_datasets_path,
-        utilities_service.models_datasets_path(request.model, request.dataset),
-        constants.DECONVOLUTION
-    )
-
     response = gradients_service.deconvolution(
         request=request,
-        root_path=root_path,
         container_service=container,
         datasets_service=datasets_service,
         utilities_service=utilities_service,
@@ -139,6 +117,7 @@ async def deconvolution(request: GradientRequest,
     )
 
     return response
+
 
 @router.post('/guided-backpropagation', response_model=GradientResponse)
 async def guided_backpropagation(request: GradientRequest,
@@ -159,17 +138,8 @@ async def guided_backpropagation(request: GradientRequest,
                                      get_gradient_service
                                  )
                                  ):
-    
-
-    root_path = os.path.join(
-        container.models_datasets_path,
-        utilities_service.models_datasets_path(request.model, request.dataset),
-        constants.GUIDED_BACKPROPAGATION
-    )
-
     response = gradients_service.guided_backpropagation(
         request=request,
-        root_path=root_path,
         container_service=container,
         datasets_service=datasets_service,
         utilities_service=utilities_service,
@@ -178,6 +148,7 @@ async def guided_backpropagation(request: GradientRequest,
     )
 
     return response
+
 
 @router.post('/input-gradient', response_model=GradientResponse)
 async def input_gradient(request: GradientRequest,
@@ -197,16 +168,8 @@ async def input_gradient(request: GradientRequest,
                              get_gradient_service
                          )
                          ):
-    
-    root_path = os.path.join(
-        container.models_datasets_path,
-        utilities_service.models_datasets_path(request.model, request.dataset),
-        constants.INPUT_GRADIENT
-    )
-
     response = gradients_service.input_gradient(
         request=request,
-        root_path=root_path,
         container_service=container,
         datasets_service=datasets_service,
         utilities_service=utilities_service,

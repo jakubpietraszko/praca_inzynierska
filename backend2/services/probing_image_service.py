@@ -11,7 +11,6 @@ class ProbingImageService:
         pass
 
     def xrai(self, request: GradientRequest,
-             root_path: str,
              container,
              datasets_service,
              utilities_service,
@@ -23,7 +22,6 @@ class ProbingImageService:
         )
 
     def rise(self, request: GradientRequest,
-             root_path: str,
              container,
              datasets_service,
              utilities_service,
@@ -35,7 +33,6 @@ class ProbingImageService:
         )
 
     def exact_shap(self, request: GradientRequest,
-              root_path: str,
               container,
               datasets_service,
               utilities_service,
@@ -47,7 +44,6 @@ class ProbingImageService:
         )
 
     def exact_shap(self, request: GradientRequest,
-              root_path: str,
               container,
               datasets_service,
               utilities_service,
@@ -59,7 +55,6 @@ class ProbingImageService:
         )
 
     def kernel_shap(self, request: GradientRequest,
-              root_path: str,
               container,
               datasets_service,
               utilities_service,
@@ -71,7 +66,6 @@ class ProbingImageService:
         )
 
     def lime(self, request: GradientRequest,
-              root_path: str,
               container,
               datasets_service,
               utilities_service,

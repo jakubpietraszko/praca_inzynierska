@@ -35,14 +35,8 @@ async def integrated_gradient(request: GradientRequest,
                                     get_integrated_gradients_service
                                 )
                               ):
-    root_path = os.path.join(
-        container.models_datasets_path,
-        utilities_service.models_datasets_path(request.model, request.dataset),
-        constants.INTEGRATED_GRADIENT
-    )
     response = integrated_gradients_service.integrated_gradient(
         request=request,
-        root_path=root_path,
         container=container,
         datasets_service=datasets_service,
         utilities_service=utilities_service,

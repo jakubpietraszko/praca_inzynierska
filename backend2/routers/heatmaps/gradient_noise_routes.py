@@ -33,15 +33,8 @@ async def smooth_grad(request: GradientRequest,
                       gradient_noise_service: GradientNoiseService = Depends(
                           get_gradient_noise_service)
                       ):
-    root_path = os.path.join(
-        container.models_datasets_path,
-        utilities_service.models_datasets_path(request.model, request.dataset),
-        constants.SMOOTH_GRADIENT,
-    )
-
     response = gradient_noise_service.smooth_grad(
         request=request,
-        root_path=root_path,
         container=container,
         datasets_service=datasets_service,
         utilities_service=utilities_service,
@@ -69,15 +62,8 @@ async def smooth_grad_square(request: GradientRequest,
                              gradient_noise_service: GradientNoiseService = Depends(
         get_gradient_noise_service)
 ):
-    root_path = os.path.join(
-        container.models_datasets_path,
-        utilities_service.models_datasets_path(request.model, request.dataset),
-        constants.SMOOTH_GRADIENT_SQUARE,
-    )
-
     response = gradient_noise_service.smooth_grad_squared(
         request=request,
-        root_path=root_path,
         container=container,
         datasets_service=datasets_service,
         utilities_service=utilities_service,
@@ -103,14 +89,8 @@ async def var_grad(request: GradientRequest,
                    gradient_noise_service: GradientNoiseService = Depends(
                        get_gradient_noise_service)
                    ):
-    root_path = os.path.join(
-        container.models_datasets_path,
-        utilities_service.models_datasets_path(request.model, request.dataset),
-        constants.VAR_GRADIENT,
-    )
     response = gradient_noise_service.var_grad(
         request=request,
-        root_path=root_path,
         container=container,
         datasets_service=datasets_service,
         utilities_service=utilities_service,

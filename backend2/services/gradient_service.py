@@ -11,13 +11,17 @@ class GradientService:
         pass
 
     def gradient(self, request: GradientRequest,
-                 root_path: str,
                  container_service,
                  datasets_service,
                  utilities_service,
                  models_service,
                  constants
                  ):
+        root_path = os.path.join(
+            container_service.models_datasets_path,
+            utilities_service.models_datasets_path(request.model, request.dataset),
+            constants.GRADIENT
+        )
         os.makedirs(root_path, exist_ok=True)
 
         model_info = models_service.load_model(request.model)
@@ -75,13 +79,17 @@ class GradientService:
         )
 
     def gradient_squared(self, request: GradientRequest,
-                         root_path: str,
                          container_service,
                          datasets_service,
                          utilities_service,
                          models_service,
                          constants
                          ):
+        root_path = os.path.join(
+            container_service.models_datasets_path,
+            utilities_service.models_datasets_path(request.model, request.dataset),
+            constants.GRADIENT_SQUARED
+        )
         os.makedirs(root_path, exist_ok=True)
 
         model_info = models_service.load_model(request.model)
@@ -141,13 +149,17 @@ class GradientService:
         )
 
     def deconvolution(self, request: GradientRequest,
-                      root_path: str,
                       container_service,
                       datasets_service,
                       utilities_service,
                       models_service,
                       constants
                       ):
+        root_path = os.path.join(
+            container_service.models_datasets_path,
+            utilities_service.models_datasets_path(request.model, request.dataset),
+            constants.DECONVOLUTION
+        )
         os.makedirs(root_path, exist_ok=True)
 
         model_info = models_service.load_model(request.model)
@@ -228,13 +240,17 @@ class GradientService:
         )
 
     def guided_backpropagation(self, request: GradientRequest,
-                               root_path: str,
                                container_service,
                                datasets_service,
                                utilities_service,
                                models_service,
                                constants
                                ):
+        root_path = os.path.join(
+            container_service.models_datasets_path,
+            utilities_service.models_datasets_path(request.model, request.dataset),
+            constants.GUIDED_BACKPROPAGATION
+        )
         os.makedirs(root_path, exist_ok=True)
 
         model_info = models_service.load_model(request.model)
@@ -337,13 +353,17 @@ class GradientService:
         )
 
     def input_gradient(self, request: GradientRequest,
-                       root_path: str,
                        container_service,
                        datasets_service,
                        utilities_service,
                        models_service,
                        constants
                        ):
+        root_path = os.path.join(
+            container_service.models_datasets_path,
+            utilities_service.models_datasets_path(request.model, request.dataset),
+            constants.INPUT_GRADIENT
+        )
         os.makedirs(root_path, exist_ok=True)
 
         model_info = models_service.load_model(request.model)

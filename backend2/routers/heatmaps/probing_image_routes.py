@@ -35,14 +35,8 @@ async def xrai(request: GradientRequest,
                    get_probing_image_service
                )
                ):
-    root_path = os.path.join(
-        container.models_datasets_path,
-        utilities_service.models_datasets_path(request.model, request.dataset),
-        constants.XRAI
-    )
     response = probing_image_service.xrai(
         request=request,
-        root_path=root_path,
         container=container,
         datasets_service=datasets_service,
         utilities_service=utilities_service,
@@ -71,14 +65,8 @@ async def rise(request: GradientRequest,
                    get_probing_image_service
                )
                ):
-    root_path = os.path.join(
-        container.models_datasets_path,
-        utilities_service.models_datasets_path(request.model, request.dataset),
-        constants.RISE
-    )
     response = probing_image_service.rise(
         request=request,
-        root_path=root_path,
         container=container,
         datasets_service=datasets_service,
         utilities_service=utilities_service,
@@ -105,14 +93,8 @@ async def exact_shap(request: GradientRequest,
                          get_probing_image_service
                      )
                      ):
-    root_path = os.path.join(
-        container.models_datasets_path,
-        utilities_service.models_datasets_path(request.model, request.dataset),
-        constants.EXACT_SHAP
-    )
     response = probing_image_service.exact_shap(
         request=request,
-        root_path=root_path,
         container=container,
         datasets_service=datasets_service,
         utilities_service=utilities_service,
@@ -139,14 +121,8 @@ async def kernel_shap(request: GradientRequest,
                           get_probing_image_service
                       )
                       ):
-    root_path = os.path.join(
-        container.models_datasets_path,
-        utilities_service.models_datasets_path(request.model, request.dataset),
-        constants.KERNEL_SHAP
-    )
     response = probing_image_service.kernel_shap(
         request=request,
-        root_path=root_path,
         container=container,
         datasets_service=datasets_service,
         utilities_service=utilities_service,
@@ -173,14 +149,8 @@ async def lime(request: GradientRequest,
                    get_probing_image_service
                )
                ):
-    root_path = os.path.join(
-        container.models_datasets_path,
-        utilities_service.models_datasets_path(request.model, request.dataset),
-        constants.LIME
-    )
     response = probing_image_service.lime(
         request=request,
-        root_path=root_path,
         container=container,
         datasets_service=datasets_service,
         utilities_service=utilities_service,

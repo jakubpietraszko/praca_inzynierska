@@ -32,15 +32,8 @@ async def grad_cam(request: GradientRequest,
                    constants: Constants = Depends(get_constants),
                    cam_service: CAMService = Depends(get_cam_service)
                    ):
-    root_path = os.path.join(
-        container.models_datasets_path,
-        utilities_service.models_datasets_path(request.model, request.dataset),
-        constants.GRAD_CAM
-    )
-
     response = cam_service.grad_cam(
         request=request,
-        root_path=root_path,
         container=container,
         datasets_service=datasets_service,
         utilities_service=utilities_service,
@@ -66,15 +59,8 @@ async def grad_cam_plus(request: GradientRequest,
                         constants: Constants = Depends(get_constants),
                         cam_service: CAMService = Depends(get_cam_service)
                         ):
-    root_path = os.path.join(
-        container.models_datasets_path,
-        utilities_service.models_datasets_path(request.model, request.dataset),
-        constants.GRAD_CAM_PLUS_PLUS
-    )
-
     response = cam_service.grad_cam_plus_plus(
         request=request,
-        root_path=root_path,
         container=container,
         datasets_service=datasets_service,
         utilities_service=utilities_service,
@@ -100,15 +86,8 @@ async def group_cam(request: GradientRequest,
                     constants: Constants = Depends(get_constants),
                     cam_service: CAMService = Depends(get_cam_service)
                     ):
-    root_path = os.path.join(
-        container.models_datasets_path,
-        utilities_service.models_datasets_path(request.model, request.dataset),
-        constants.GROUP_CAM
-    )
-
     response = cam_service.group_cam(
         request=request,
-        root_path=root_path,
         container=container,
         datasets_service=datasets_service,
         utilities_service=utilities_service,
@@ -134,16 +113,8 @@ async def hires_cam(request: GradientRequest,
                     constants: Constants = Depends(get_constants),
                     cam_service: CAMService = Depends(get_cam_service)
                     ):
-
-    root_path = os.path.join(
-        container.models_datasets_path,
-        utilities_service.models_datasets_path(request.model, request.dataset),
-        constants.HIRES_CAM
-    )
-
     response = cam_service.hires_cam(
         request=request,
-        root_path=root_path,
         container=container,
         datasets_service=datasets_service,
         utilities_service=utilities_service,
@@ -169,14 +140,8 @@ async def wgrad_cam(request: GradientRequest,
                     constants: Constants = Depends(get_constants),
                     cam_service: CAMService = Depends(get_cam_service)
                     ):
-    root_path = os.path.join(
-        container.models_datasets_path,
-        utilities_service.models_datasets_path(request.model, request.dataset),
-        constants.WGRAD_CAM
-    )
     response = cam_service.wgrad_cam(
         request=request,
-        root_path=root_path,
         container=container,
         datasets_service=datasets_service,
         utilities_service=utilities_service,
@@ -202,15 +167,8 @@ async def ablation_cam(request: GradientRequest,
                        constants: Constants = Depends(get_constants),
                        cam_service: CAMService = Depends(get_cam_service)
                        ):
-    root_path = os.path.join(
-        container.models_datasets_path,
-        utilities_service.models_datasets_path(request.model, request.dataset),
-        constants.ABLATION_CAM
-    )
-
     response = cam_service.ablation_cam(
         request=request,
-        root_path=root_path,
         container=container,
         datasets_service=datasets_service,
         utilities_service=utilities_service,
