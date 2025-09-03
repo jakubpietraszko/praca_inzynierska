@@ -5,6 +5,80 @@ import torch
 
 from interfaces.gradient import GradientRequest, GradientResponse
 
+
 class ProbingImageService:
     def __init__(self):
         pass
+
+    def xrai(self, request: GradientRequest,
+             root_path: str,
+             container,
+             datasets_service,
+             utilities_service,
+             constants,
+             models_service) -> GradientResponse:
+
+        return GradientResponse(
+            success=True
+        )
+
+    def rise(self, request: GradientRequest,
+             root_path: str,
+             container,
+             datasets_service,
+             utilities_service,
+             constants,
+             models_service) -> GradientResponse:
+
+        return GradientResponse(
+            success=True
+        )
+
+    def exact_shap(self, request: GradientRequest,
+              root_path: str,
+              container,
+              datasets_service,
+              utilities_service,
+              constants,
+              models_service) -> GradientResponse:
+
+        return GradientResponse(
+            success=True
+        )
+
+    def exact_shap(self, request: GradientRequest,
+              root_path: str,
+              container,
+              datasets_service,
+              utilities_service,
+              constants,
+              models_service) -> GradientResponse:
+
+        return GradientResponse(
+            success=True
+        )
+
+    def kernel_shap(self, request: GradientRequest,
+              root_path: str,
+              container,
+              datasets_service,
+              utilities_service,
+              constants,
+              models_service) -> GradientResponse:
+
+        return GradientResponse(
+            success=True
+        )
+
+    def lime(self, request: GradientRequest,
+              root_path: str,
+              container,
+              datasets_service,
+              utilities_service,
+              constants,
+              models_service) -> GradientResponse:
+
+       return GradientResponse(
+           success=True
+       )
+
