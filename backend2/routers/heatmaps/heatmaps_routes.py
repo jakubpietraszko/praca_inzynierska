@@ -21,7 +21,7 @@ from services.container import GradientNoiseService, get_gradient_noise_service
 router = APIRouter()
 
 
-@router.get('/all-heatmaps', response_model=GradientResponse)
+@router.post('/all-heatmaps', response_model=GradientResponse)
 async def get_all_heatmaps(request: GradientRequest,
                            container: ServiceContainer = Depends(
                                get_container),
@@ -48,6 +48,39 @@ async def get_all_heatmaps(request: GradientRequest,
                                get_gradient_noise_service),
 
                            ):
-    
+    responses = list()
 
-    return {"message": "List of all heatmaps"}
+    responses.append(gradient_service.gradient(request=request,
+                                               container_service=container,
+                                               models_service=models_service,
+                                               datasets_service=datasets_service,
+                                               utilities_service=utilities_service,
+                                               constants=constants))
+    responses.append(gradient_service.gradient_squared(request=request,
+                                                       container_service=container,
+                                                       models_service=models_service,
+                                                       datasets_service=datasets_service,
+                                                       utilities_service=utilities_service,
+                                                       constants=constants))
+    responses.append(gradient_service.deconvolution(request=request,
+                                                    container_service=container,
+                                                    models_service=models_service,
+                                                    datasets_service=datasets_service,
+                                                    utilities_service=utilities_service,
+                                                    constants=constants))
+    responses.append(gradient_service.guided_backpropagation(request=request,
+                                                             container_service=container,
+                                                             models_service=models_service,
+                                                             datasets_service=datasets_service,
+                                                             utilities_service=utilities_service,
+                                                             constants=constants))
+    responses.append(gradient_service.input_gradient(request=request,
+                                                     container_service=container,
+                                                     models_service=models_service,
+                                                     datasets_service=datasets_service,
+                                                     utilities_service=utilities_service,
+                                                     constants=constants))
+
+    return GradientResponse(
+        success=True,
+    )
