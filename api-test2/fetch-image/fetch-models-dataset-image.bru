@@ -1,0 +1,25 @@
+meta {
+  name: fetch-models-dataset-image
+  type: http
+  seq: 3
+}
+
+post {
+  url: http://localhost:8000/fetch-models-datasets-image
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "dataset": "mnist-dataset",
+    "label": "five",
+    "filename": "8.png",
+    "model": "mnist",
+    "type": "deconvolution"
+  }
+}
+
+settings {
+  encodeUrl: true
+}

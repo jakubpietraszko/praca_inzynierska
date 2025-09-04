@@ -42,3 +42,21 @@ class ModelsDatasetsService:
             image = base64.b64encode(f.read()).decode('utf-8')
 
         return image
+    
+    def fetch_image(self,
+                    models_dataset: str,
+                    type: str,
+                    label: str,
+                    filename: str) -> bytes:
+        path = os.path.join(
+            self.models_datasets_path,
+            models_dataset,
+            type,
+            label,
+            filename
+        )
+
+        with open(path, 'rb') as f:
+            image = base64.b64encode(f.read()).decode('utf-8')
+
+        return image

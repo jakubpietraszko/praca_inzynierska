@@ -3,7 +3,7 @@ from services.container import get_datasets_service, get_models_datasets_service
 from interfaces.all_datasets import AllDatasetsResponse
 from interfaces.all_labels import AllLabelsRequest, AllLabelsResponse
 from interfaces.all_images import AllsImagesRequest, AllImagesResponse
-from interfaces.fetch_image import FetchImageRequest, FetchImageResponse, FetchActivationImageRequest
+from interfaces.fetch_image import FetchImageRequest, FetchImageResponse, FetchActivationImageRequest, FetchModelsDatasetsRequest
 from services.datasets_service import DatasetsService
 from services.models_datasets_service import ModelsDatasetsService
 from services.container import get_container, ServiceContainer
@@ -71,4 +71,22 @@ async def fetch_activations_image(
     )
 
     return FetchImageResponse(image=image)
+
+@router.post('/fetch-models-datasets-image', response_model=FetchImageResponse)
+async def fetch_models_datasets_image(
+    request: FetchModelsDatasetsRequest,
+    models_data_service: ModelsDatasetsService = Depends(get_models_datasets_service),
+    utilities_service: UtilitiesService = Depends(get_utilities_service)
+):
+    
+    image = models_data_service.fetch_image(
+        utilities_service.models_datasets_path(request.model, request.dataset),
+        request.type,
+        request.label,
+        request.filename
+    )
+
+    return FetchImageResponse(image=image)
+
+
     

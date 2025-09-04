@@ -11,3 +11,7 @@ class FetchImageResponse(BaseModel):
 class FetchActivationImageRequest(FetchImageRequest):
     model: str
     image: str
+
+class FetchModelsDatasetsRequest(FetchImageRequest):
+    model: str
+    type: str

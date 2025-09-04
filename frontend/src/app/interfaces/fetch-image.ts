@@ -12,3 +12,8 @@ export interface FetchActivationRequest extends FetchImageRequest {
     model: string;
     image: string;
 }
+
+export interface FetchModelsDatasetsRequest extends FetchImageRequest {
+    model: string;
+    type: string;
+}
