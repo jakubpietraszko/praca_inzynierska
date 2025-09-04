@@ -59,54 +59,68 @@ class Constants:
     LIFT: str = 'lift'
     DEEP_LIFT: str = 'deep_lift'
 
-    ALL_DIRS: list[str] = field(default_factory=lambda: [
-        Constants.MASK_RISE,
-        Constants.MASK_SLIC,
-        Constants.MASK_SEED,
-
-        Constants.EDGE_CANNY,
-
-        Constants.ACTIVATIONS,
-
-        Constants.GRADIENT,
-        Constants.GRADIENT_SQUARED,
-        Constants.DECONVOLUTION,
-        Constants.GUIDED_BACKPROPAGATION,
-        Constants.INPUT_GRADIENT,
-
-        Constants.INTEGRATED_GRADIENT,
-        Constants.INTEGRATED_GRADIENT_NOISE,
-        Constants.EXPECTED_GRADIENT,
-
-        Constants.SMOOTH_GRADIENT,
-        Constants.SMOOTH_GRADIENT_SQUARE,
-        Constants.VAR_GRADIENT,
-
-        Constants.GRAD_CAM,
-        Constants.GRAD_CAM_PLUS_PLUS,
-        Constants.HIRES_CAM,
-        Constants.WGRAD_CAM,
-        Constants.ABLATION_CAM,
-        Constants.GROUP_CAM,
-        Constants.SCORE_CAM,
-        Constants.XGRAD_CAM,
-        Constants.EIGEN_CAM,
-
-        Constants.LRP,
-        Constants.LRP_EPSILON,
-        Constants.LRP_GAMMA,
-        Constants.LRP_ALPHA_BETA,
-        Constants.LRP_FLAT,
-        Constants.DEEP_TAYLOR,
+    AVAILABLE_HEATMAPS: list[str] = field(default_factory=lambda: [
     ])
 
-    READY_HEATMAPS: list[str] = field(default_factory=lambda: [
-        Constants.GRADIENT,
-        Constants.GUIDED_BACKPROPAGATION,
-        Constants.INTEGRATED_GRADIENT,
-        Constants.SMOOTH_GRADIENT,
-        Constants.GRAD_CAM,
-    ]),
+    ALL_DIRS: list[str] = field(default_factory=lambda: [])
+
+    def __post_init__(self):
+        self.AVAILABLE_HEATMAPS = [
+            self.GRADIENT,
+            self.GRADIENT_SQUARED,
+            self.DECONVOLUTION,
+            self.GUIDED_BACKPROPAGATION,
+            self.INPUT_GRADIENT,
+
+            self.INTEGRATED_GRADIENT,
+            self.INTEGRATED_GRADIENT_NOISE,
+            self.EXPECTED_GRADIENT,
+
+            self.SMOOTH_GRADIENT,
+            self.SMOOTH_GRADIENT_SQUARE,
+            self.VAR_GRADIENT,
+        ]
+
+        self.ALL_DIRS = [
+            self.MASK_RISE,
+            self.MASK_SLIC,
+            self.MASK_SEED,
+
+            self.EDGE_CANNY,
+
+            self.ACTIVATIONS,
+
+            self.GRADIENT,
+            self.GRADIENT_SQUARED,
+            self.DECONVOLUTION,
+            self.GUIDED_BACKPROPAGATION,
+            self.INPUT_GRADIENT,
+
+            self.INTEGRATED_GRADIENT,
+            self.INTEGRATED_GRADIENT_NOISE,
+            self.EXPECTED_GRADIENT,
+
+            self.SMOOTH_GRADIENT,
+            self.SMOOTH_GRADIENT_SQUARE,
+            self.VAR_GRADIENT,
+
+            self.GRAD_CAM,
+            self.GRAD_CAM_PLUS_PLUS,
+            self.HIRES_CAM,
+            self.WGRAD_CAM,
+            self.ABLATION_CAM,
+            self.GROUP_CAM,
+            self.SCORE_CAM,
+            self.XGRAD_CAM,
+            self.EIGEN_CAM,
+
+            self.LRP,
+            self.LRP_EPSILON,
+            self.LRP_GAMMA,
+            self.LRP_ALPHA_BETA,
+            self.LRP_FLAT,
+            self.DEEP_TAYLOR,
+        ]
 
     CMAP: str = 'hot',
     EPSILON: float = 1e-8

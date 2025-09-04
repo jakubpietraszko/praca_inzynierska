@@ -1,6 +1,7 @@
 import numpy as np
 import cv2
 from typing import Tuple
+from interfaces.all_heatmaps import AllHeatmapsResponse
 
 class HeatmapsService:
     def __init__(self,
@@ -11,3 +12,9 @@ class HeatmapsService:
 
     def activations(self) -> Tuple[np.ndarray, int]:
         pass
+
+    def all_available_heatmaps(self, constants):
+        heatmaps = constants.AVAILABLE_HEATMAPS
+        return AllHeatmapsResponse(
+            heatmaps=heatmaps
+        )

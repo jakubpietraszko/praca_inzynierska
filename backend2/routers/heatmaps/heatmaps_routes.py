@@ -2,6 +2,7 @@ import os
 
 from fastapi import APIRouter, Depends
 from interfaces.gradient import GradientRequest, GradientResponse
+from interfaces.all_heatmaps import AllHeatmapsResponse
 from constans import Constants
 from services.container import get_constants
 
@@ -18,7 +19,23 @@ from services.container import ProbingImageService, get_probing_image_service
 from services.container import GradientNoiseService, get_gradient_noise_service
 
 
+
 router = APIRouter()
+
+@router.get('/all-heatmaps', response_model=AllHeatmapsResponse)
+async def all_available_heatmaps(
+    constants: Constants = Depends(
+        get_constants
+    ),
+    heatmaps_service: HeatmapsService = Depends(
+        get_heatmaps_service
+    )
+):
+    response = heatmaps_service.all_available_heatmaps(
+        constants=constants
+    )
+
+    return response
 
 
 @router.post('/all-heatmaps', response_model=GradientResponse)
