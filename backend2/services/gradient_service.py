@@ -11,14 +11,14 @@ class GradientService:
         pass
 
     def gradient(self, request: GradientRequest,
-                 container_service,
+                 container,
                  datasets_service,
                  utilities_service,
                  models_service,
                  constants
                  ):
         root_path = os.path.join(
-            container_service.models_datasets_path,
+            container.models_datasets_path,
             utilities_service.models_datasets_path(request.model, request.dataset),
             constants.GRADIENT
         )
@@ -36,9 +36,15 @@ class GradientService:
             )
 
             os.makedirs(label_path, exist_ok=True)
+            save_path = os.path.join(
+                label_path,
+                utilities_service.add_png_extension(filename)
+            )
 
+            if utilities_service.skip_forward(save_path):
+                continue
             image_path = os.path.join(
-                container_service.datasets_path,
+                container.datasets_path,
                 request.dataset,
                 label,
                 filename
@@ -67,11 +73,6 @@ class GradientService:
                 result, model_info.input_shape, epsilon=constants.EPSILON
             )
 
-            save_path = os.path.join(
-                label_path,
-                utilities_service.add_png_extension(filename)
-            )
-
             cv2.imwrite(save_path, result)
 
         return GradientResponse(
@@ -79,14 +80,14 @@ class GradientService:
         )
 
     def gradient_squared(self, request: GradientRequest,
-                         container_service,
+                         container,
                          datasets_service,
                          utilities_service,
                          models_service,
                          constants
                          ):
         root_path = os.path.join(
-            container_service.models_datasets_path,
+            container.models_datasets_path,
             utilities_service.models_datasets_path(request.model, request.dataset),
             constants.GRADIENT_SQUARED
         )
@@ -104,9 +105,15 @@ class GradientService:
             )
 
             os.makedirs(label_path, exist_ok=True)
+            save_path = os.path.join(
+                label_path,
+                utilities_service.add_png_extension(filename)
+            )
 
+            if utilities_service.skip_forward(save_path):
+                continue
             image_path = os.path.join(
-                container_service.datasets_path,
+                container.datasets_path,
                 request.dataset,
                 label,
                 filename
@@ -137,11 +144,6 @@ class GradientService:
                 result, model_info.input_shape, epsilon=constants.EPSILON
             )
 
-            save_path = os.path.join(
-                label_path,
-                utilities_service.add_png_extension(filename)
-            )
-
             cv2.imwrite(save_path, result)
 
         return GradientResponse(
@@ -149,14 +151,14 @@ class GradientService:
         )
 
     def deconvolution(self, request: GradientRequest,
-                      container_service,
+                      container,
                       datasets_service,
                       utilities_service,
                       models_service,
                       constants
                       ):
         root_path = os.path.join(
-            container_service.models_datasets_path,
+            container.models_datasets_path,
             utilities_service.models_datasets_path(request.model, request.dataset),
             constants.DECONVOLUTION
         )
@@ -191,9 +193,16 @@ class GradientService:
             )
 
             os.makedirs(label_path, exist_ok=True)
+            save_path = os.path.join(
+                label_path,
+                utilities_service.add_png_extension(filename)
+            )
+
+            if utilities_service.skip_forward(save_path):
+                continue
 
             image_path = os.path.join(
-                container_service.datasets_path,
+                container.datasets_path,
                 request.dataset,
                 label,
                 filename
@@ -217,15 +226,6 @@ class GradientService:
                 result = utilities_service.aggregate_channels(
                     result, constants.AGGREGATION)
 
-            result = utilities_service.relu_normalize(
-                result, model_info.input_shape, epsilon=constants.EPSILON
-            )
-
-            save_path = os.path.join(
-                label_path,
-                utilities_service.add_png_extension(filename)
-            )
-
             cv2.imwrite(save_path, result)
 
         for hook in hooks:
@@ -240,14 +240,14 @@ class GradientService:
         )
 
     def guided_backpropagation(self, request: GradientRequest,
-                               container_service,
+                               container,
                                datasets_service,
                                utilities_service,
                                models_service,
                                constants
                                ):
         root_path = os.path.join(
-            container_service.models_datasets_path,
+            container.models_datasets_path,
             utilities_service.models_datasets_path(request.model, request.dataset),
             constants.GUIDED_BACKPROPAGATION
         )
@@ -303,9 +303,15 @@ class GradientService:
             )
 
             os.makedirs(label_path, exist_ok=True)
+            save_path = os.path.join(
+                label_path,
+                utilities_service.add_png_extension(filename)
+            )
 
+            if utilities_service.skip_forward(save_path):
+                continue
             image_path = os.path.join(
-                container_service.datasets_path,
+                container.datasets_path,
                 request.dataset,
                 label,
                 filename
@@ -334,11 +340,6 @@ class GradientService:
                 result, model_info.input_shape, epsilon=constants.EPSILON
             )
 
-            save_path = os.path.join(
-                label_path,
-                utilities_service.add_png_extension(filename)
-            )
-
             cv2.imwrite(save_path, result)
 
         for hook in hooks:
@@ -353,14 +354,14 @@ class GradientService:
         )
 
     def input_gradient(self, request: GradientRequest,
-                       container_service,
+                       container,
                        datasets_service,
                        utilities_service,
                        models_service,
                        constants
                        ):
         root_path = os.path.join(
-            container_service.models_datasets_path,
+            container.models_datasets_path,
             utilities_service.models_datasets_path(request.model, request.dataset),
             constants.INPUT_GRADIENT
         )
@@ -378,9 +379,15 @@ class GradientService:
             )
 
             os.makedirs(label_path, exist_ok=True)
+            save_path = os.path.join(
+                label_path,
+                utilities_service.add_png_extension(filename)
+            )
 
+            if utilities_service.skip_forward(save_path):
+                continue
             image_path = os.path.join(
-                container_service.datasets_path,
+                container.datasets_path,
                 request.dataset,
                 label,
                 filename
@@ -417,11 +424,6 @@ class GradientService:
             result = (result.astype(np.float32) / 255.0) * \
                 (input_np.astype(np.float32) / 255.0)
             result = (result * 255.0).astype(np.uint8)
-
-            save_path = os.path.join(
-                label_path,
-                utilities_service.add_png_extension(filename)
-            )
 
             cv2.imwrite(save_path, result)
 

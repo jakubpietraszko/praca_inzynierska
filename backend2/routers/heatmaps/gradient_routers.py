@@ -48,7 +48,7 @@ async def gradient(request: GradientRequest,
                    ):
     response = gradients_service.gradient(
         request=request,
-        container_service=container,
+        container=container,
         datasets_service=datasets_service,
         utilities_service=utilities_service,
         models_service=models_service,
@@ -79,7 +79,7 @@ async def gradient_squared(request: GradientRequest,
                            ):
     response = gradients_service.gradient_squared(
         request=request,
-        container_service=container,
+        container=container,
         datasets_service=datasets_service,
         utilities_service=utilities_service,
         models_service=models_service,
@@ -109,7 +109,7 @@ async def deconvolution(request: GradientRequest,
                         ):
     response = gradients_service.deconvolution(
         request=request,
-        container_service=container,
+        container=container,
         datasets_service=datasets_service,
         utilities_service=utilities_service,
         models_service=models_service,
@@ -140,7 +140,7 @@ async def guided_backpropagation(request: GradientRequest,
                                  ):
     response = gradients_service.guided_backpropagation(
         request=request,
-        container_service=container,
+        container=container,
         datasets_service=datasets_service,
         utilities_service=utilities_service,
         models_service=models_service,
@@ -170,7 +170,7 @@ async def input_gradient(request: GradientRequest,
                          ):
     response = gradients_service.input_gradient(
         request=request,
-        container_service=container,
+        container=container,
         datasets_service=datasets_service,
         utilities_service=utilities_service,
         models_service=models_service,

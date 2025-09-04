@@ -51,35 +51,169 @@ async def get_all_heatmaps(request: GradientRequest,
     responses = list()
 
     responses.append(gradient_service.gradient(request=request,
-                                               container_service=container,
+                                               container=container,
                                                models_service=models_service,
                                                datasets_service=datasets_service,
                                                utilities_service=utilities_service,
                                                constants=constants))
     responses.append(gradient_service.gradient_squared(request=request,
-                                                       container_service=container,
+                                                       container=container,
                                                        models_service=models_service,
                                                        datasets_service=datasets_service,
                                                        utilities_service=utilities_service,
                                                        constants=constants))
     responses.append(gradient_service.deconvolution(request=request,
-                                                    container_service=container,
+                                                    container=container,
                                                     models_service=models_service,
                                                     datasets_service=datasets_service,
                                                     utilities_service=utilities_service,
                                                     constants=constants))
     responses.append(gradient_service.guided_backpropagation(request=request,
-                                                             container_service=container,
+                                                             container=container,
                                                              models_service=models_service,
                                                              datasets_service=datasets_service,
                                                              utilities_service=utilities_service,
                                                              constants=constants))
     responses.append(gradient_service.input_gradient(request=request,
-                                                     container_service=container,
+                                                     container=container,
                                                      models_service=models_service,
                                                      datasets_service=datasets_service,
                                                      utilities_service=utilities_service,
                                                      constants=constants))
+    responses.append(gradient_noise_service.smooth_grad(
+        request=request,
+        container=container,
+        models_service=models_service,
+        datasets_service=datasets_service,
+        utilities_service=utilities_service,
+        constants=constants
+    ))
+    responses.append(gradient_noise_service.smooth_grad_squared(
+        request=request,
+        container=container,
+        models_service=models_service,
+        datasets_service=datasets_service,
+        utilities_service=utilities_service,
+        constants=constants
+    ))
+
+    responses.append(gradient_noise_service.var_grad(
+        request=request,
+        container=container,
+        models_service=models_service,
+        datasets_service=datasets_service,
+        utilities_service=utilities_service,
+        constants=constants
+    ))
+
+    responses.append(integrated_gradients_service.integrated_gradient(
+        request=request,
+        container=container,
+        datasets_service=datasets_service,
+        utilities_service=utilities_service,
+        constants=constants,
+        models_service=models_service,
+    ))
+
+    responses.append(cam_service.grad_cam(
+        request=request,
+        container=container,
+        models_service=models_service,
+        datasets_service=datasets_service,
+        utilities_service=utilities_service,
+        constants=constants
+    ))
+
+    responses.append(cam_service.grad_cam_plus_plus(
+        request=request,
+        container=container,
+        models_service=models_service,
+        datasets_service=datasets_service,
+        utilities_service=utilities_service,
+        constants=constants
+    ))
+
+    responses.append(cam_service.group_cam(
+        request=request,
+        container=container,
+        models_service=models_service,
+        datasets_service=datasets_service,
+        utilities_service=utilities_service,
+        constants=constants
+    ))
+
+    responses.append(cam_service.hires_cam(
+        request=request,
+        container=container,
+        models_service=models_service,
+        datasets_service=datasets_service,
+        utilities_service=utilities_service,
+        constants=constants
+    ))
+
+    responses.append(cam_service.wgrad_cam(
+        request=request,
+        container=container,
+        models_service=models_service,
+        datasets_service=datasets_service,
+        utilities_service=utilities_service,
+        constants=constants
+    ))
+
+    responses.append(cam_service.ablation_cam(
+        request=request,
+        container=container,
+        models_service=models_service,
+        datasets_service=datasets_service,
+        utilities_service=utilities_service,
+        constants=constants
+    ))
+
+    responses.append(probing_image_service.xrai(
+        request=request,
+        container=container,
+        datasets_service=datasets_service,
+        utilities_service=utilities_service,
+        constants=constants,
+        models_service=models_service,
+    ))
+
+    responses.append(probing_image_service.rise(
+        request=request,
+        container=container,
+        datasets_service=datasets_service,
+        utilities_service=utilities_service,
+        constants=constants,
+        models_service=models_service,
+    )
+    )
+
+    responses.append(probing_image_service.exact_shap(
+        request=request,
+        container=container,
+        datasets_service=datasets_service,
+        utilities_service=utilities_service,
+        constants=constants,
+        models_service=models_service,
+    ))
+
+    responses.append(probing_image_service.kernel_shap(
+        request=request,
+        container=container,
+        datasets_service=datasets_service,
+        utilities_service=utilities_service,
+        constants=constants,
+        models_service=models_service,
+    ))
+
+    responses.append(probing_image_service.lime(
+        request=request,
+        container=container,
+        datasets_service=datasets_service,
+        utilities_service=utilities_service,
+        constants=constants,
+        models_service=models_service,
+    ))
 
     return GradientResponse(
         success=True,

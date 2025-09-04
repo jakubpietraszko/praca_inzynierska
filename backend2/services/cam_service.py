@@ -18,7 +18,8 @@ class CAMService:
                  models_service) -> GradientResponse:
         root_path = os.path.join(
             container.models_datasets_path,
-            utilities_service.models_datasets_path(request.model, request.dataset),
+            utilities_service.models_datasets_path(
+                request.model, request.dataset),
             constants.GRAD_CAM
         )
         os.makedirs(root_path, exist_ok=True)
@@ -35,6 +36,14 @@ class CAMService:
                 label,
             )
             os.makedirs(label_path, exist_ok=True)
+
+            save_path = os.path.join(
+                label_path,
+                utilities_service.add_png_extension(filename)
+            )
+
+            if utilities_service.skip_forward(save_path):
+                continue
 
             image_path = os.path.join(
                 container.datasets_path,
@@ -79,10 +88,6 @@ class CAMService:
                 cam, model_info.input_shape, constants.EPSILON
             )
 
-            save_path = os.path.join(
-                label_path,
-                utilities_service.add_png_extension(filename)
-            )
             cv2.imwrite(save_path, cam)
 
         return GradientResponse(
@@ -98,7 +103,8 @@ class CAMService:
                            models_service) -> GradientResponse:
         root_path = os.path.join(
             container.models_datasets_path,
-            utilities_service.models_datasets_path(request.model, request.dataset),
+            utilities_service.models_datasets_path(
+                request.model, request.dataset),
             constants.GRAD_CAM_PLUS_PLUS
         )
         os.makedirs(root_path, exist_ok=True)
@@ -115,7 +121,13 @@ class CAMService:
                 label,
             )
             os.makedirs(label_path, exist_ok=True)
+            save_path = os.path.join(
+                label_path,
+                utilities_service.add_png_extension(filename)
+            )
 
+            if utilities_service.skip_forward(save_path):
+                continue
             image_path = os.path.join(
                 container.datasets_path,
                 request.dataset,
@@ -154,7 +166,8 @@ class CAMService:
                   models_service) -> GradientResponse:
         root_path = os.path.join(
             container.models_datasets_path,
-            utilities_service.models_datasets_path(request.model, request.dataset),
+            utilities_service.models_datasets_path(
+                request.model, request.dataset),
             constants.HIRES_CAM
         )
         os.makedirs(root_path, exist_ok=True)
@@ -171,7 +184,13 @@ class CAMService:
                 label,
             )
             os.makedirs(label_path, exist_ok=True)
+            save_path = os.path.join(
+                label_path,
+                utilities_service.add_png_extension(filename)
+            )
 
+            if utilities_service.skip_forward(save_path):
+                continue
             image_path = os.path.join(
                 container.datasets_path,
                 request.dataset,
@@ -215,10 +234,6 @@ class CAMService:
                 cam, model_info.input_shape, constants.EPSILON
             )
 
-            save_path = os.path.join(
-                label_path,
-                utilities_service.add_png_extension(filename)
-            )
 
             cv2.imwrite(save_path, cam)
         return GradientResponse(
@@ -234,7 +249,8 @@ class CAMService:
                   models_service) -> GradientResponse:
         root_path = os.path.join(
             container.models_datasets_path,
-            utilities_service.models_datasets_path(request.model, request.dataset),
+            utilities_service.models_datasets_path(
+                request.model, request.dataset),
             constants.WGRAD_CAM
         )
         os.makedirs(root_path, exist_ok=True)
@@ -251,7 +267,13 @@ class CAMService:
                 label,
             )
             os.makedirs(label_path, exist_ok=True)
+            save_path = os.path.join(
+                label_path,
+                utilities_service.add_png_extension(filename)
+            )
 
+            if utilities_service.skip_forward(save_path):
+                continue
             image_path = os.path.join(
                 container.datasets_path,
                 request.dataset,
@@ -278,7 +300,8 @@ class CAMService:
                      models_service) -> GradientResponse:
         root_path = os.path.join(
             container.models_datasets_path,
-            utilities_service.models_datasets_path(request.model, request.dataset),
+            utilities_service.models_datasets_path(
+                request.model, request.dataset),
             constants.ABLATION_CAM
         )
         os.makedirs(root_path, exist_ok=True)
@@ -295,7 +318,13 @@ class CAMService:
                 label,
             )
             os.makedirs(label_path, exist_ok=True)
+            save_path = os.path.join(
+                label_path,
+                utilities_service.add_png_extension(filename)
+            )
 
+            if utilities_service.skip_forward(save_path):
+                continue
             image_path = os.path.join(
                 container.datasets_path,
                 request.dataset,
@@ -355,10 +384,6 @@ class CAMService:
             ablationcam = cv2.resize(
                 ablationcam, (model_info.input_shape[2], model_info.input_shape[1]))
 
-            save_path = os.path.join(
-                label_path,
-                utilities_service.add_png_extension(filename)
-            )
             cv2.imwrite(save_path, ablationcam)
         return GradientResponse(
             success=True,

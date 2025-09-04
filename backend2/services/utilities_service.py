@@ -70,4 +70,9 @@ class UtilitiesService:
         assert len(image.shape) == 2
 
         return image
+    
+    def skip_forward(self, path) -> bool:
+        if os.path.exists(path):
+            return True
+        return False
 

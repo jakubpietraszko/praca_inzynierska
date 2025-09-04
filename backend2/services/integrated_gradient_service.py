@@ -35,7 +35,13 @@ class IntegratedGradientsService:
                 label,
             )
             os.makedirs(label_path, exist_ok=True)
+            save_path = os.path.join(
+                label_path,
+                utilities_service.add_png_extension(filename)
+            )
 
+            if utilities_service.skip_forward(save_path):
+                continue
             image_path = os.path.join(
                 container.datasets_path,
                 request.dataset,
@@ -72,11 +78,6 @@ class IntegratedGradientsService:
 
             result = utilities_service.relu_normalize(
                 result, model_info.input_shape, epsilon=constants.EPSILON
-            )
-
-            save_path = os.path.join(
-                label_path,
-                utilities_service.add_png_extension(filename)
             )
 
             cv2.imwrite(save_path, result)
