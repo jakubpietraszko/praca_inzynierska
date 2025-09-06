@@ -24,6 +24,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { DialogUnsupervisedActivations } from '../../dialog-unsupervised-activations/dialog-unsupervised-activations';
 import { DialogUnsupervisedActivationsData } from '../../../interfaces/dialog-unsupervised-activations-data';
+import { DialogAllHeatmaps } from '../../dialog-all-heatmaps/dialog-all-heatmaps/dialog-all-heatmaps';
 
 @Component({
   selector: 'app-datasets-component',
@@ -186,9 +187,9 @@ export class DatasetsComponent implements OnInit, OnDestroy {
       dataset: dataset,
       label: label,
       filename: filename,
-    }
+    };
 
-    const dialogRef = this.dialog.open(DialogUnsupervisedActivations, {
+    this.dialog.open(DialogUnsupervisedActivations, {
       width: '90vw',
       height: '90vh',
       maxWidth: '90vw',
@@ -196,7 +197,30 @@ export class DatasetsComponent implements OnInit, OnDestroy {
       panelClass: 'large-dialog',
       hasBackdrop: true,
       disableClose: false,
-      data: dialogData
+      data: dialogData,
+    });
+  }
+
+  openAllHeatmapsDialog(
+    dataset: string,
+    label: string,
+    filename: string
+  ): void {
+    const dialogData: DialogUnsupervisedActivationsData = {
+      dataset: dataset,
+      label: label,
+      filename: filename,
+    };
+
+    this.dialog.open(DialogAllHeatmaps, {
+      width: '90vw',
+      height: '90vh',
+      maxWidth: '90vw',
+      maxHeight: '90vh',
+      panelClass: 'large-dialog',
+      hasBackdrop: true,
+      disableClose: false,
+      data: dialogData,
     });
   }
 }

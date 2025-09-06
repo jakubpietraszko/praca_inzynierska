@@ -21,9 +21,20 @@
                             <img appLoadImageDirective [dataset]="selectedDataset!" [label]="selectedLabel!"
                                 [filename]="getImageFileName(path)" [alt]="getImageFileName(path)" class="grid-image">
                             <div class="image-filename">{{ getImageFileName(path) }}</div>
+                            <div [ngStyle]="
+                            {
+                                'display': 'flex',
+                                'align-items': 'center',
+                                'gap': '8px'
+                            }
+                            ">
                             <button mat-fab color="primary" class="image-button" (click)="openImageDialog(selectedDataset!, selectedLabel!, getImageFileName(path))">
-                                <mat-icon>A</mat-icon>
+                                Mapy Aktywacji
                             </button>
+                            <button mat-fab color="primary" class="image-button" (click)="openAllHeatmapsDialog(selectedDataset!, selectedLabel!, getImageFileName(path))">
+                                Mapy ciepła
+                            </button>
+                            </div>
                         </div>
                     </mat-grid-tile>
                     }

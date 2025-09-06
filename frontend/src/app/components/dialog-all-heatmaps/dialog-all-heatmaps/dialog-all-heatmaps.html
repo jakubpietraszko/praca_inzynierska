@@ -1,0 +1,12 @@
+<app-model-selector
+    [(selectedModel)]="selectedModel"
+></app-model-selector>
+
+@if(selectedModel()) {
+    <app-compare-heatmaps
+        [model]="selectedModel()!"
+        [dataset]="data.dataset"
+        [label]="data.label"
+        [filename]="data.filename"
+    ></app-compare-heatmaps>
+}

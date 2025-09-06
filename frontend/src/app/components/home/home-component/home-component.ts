@@ -5,6 +5,7 @@ import { AllAvailableMethods } from '../../all-available-methods/all-available-m
 import { ImageTitleTransparent } from '../../image-title-transparent/image-title-transparent';
 import { CdkDrag } from '@angular/cdk/drag-drop';
 import { CompareHeatmaps } from '../../compare-heatmaps/compare-heatmaps/compare-heatmaps';
+import { ModelSelector } from '../../model-selector/model-selector/model-selector';
 
 @Component({
   selector: 'app-home-component',
@@ -12,9 +13,13 @@ import { CompareHeatmaps } from '../../compare-heatmaps/compare-heatmaps/compare
     UnsupervisedActivations,
     AllAvailableMethods,
     ImageTitleTransparent,
-    CompareHeatmaps
+    CompareHeatmaps,
+    ModelSelector
   ],
   templateUrl: './home-component.html',
   styleUrl: './home-component.css',
 })
-export class HomeComponent {}
+export class HomeComponent {
+
+  selectedModel: string | null = null;
+}

@@ -1,15 +1,10 @@
-<mat-form-field>
-    <mat-label>Wybierz model</mat-label>
-    <mat-select [disabled]="!isModelsLoaded()" [ngModel]="modelSelected()" (ngModelChange)="onModelSelected($event)">
-        @for(model of allModels(); track model) {
-            <mat-option [value]="model">{{model}}</mat-option>
-        }
-    </mat-select>
-</mat-form-field>
+<app-model-selector
+    [(selectedModel)]="selectedModel"
+></app-model-selector>
 
-@if(modelSelected()) {
+@if(selectedModel()) {
     <app-unsupervised-activations
-        [model]="modelSelected()!"
+        [model]="selectedModel()!"
         [dataset]="data.dataset"
         [label]="data.label"
         [filename]="data.filename"

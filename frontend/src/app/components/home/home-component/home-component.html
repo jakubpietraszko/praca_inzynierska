@@ -15,9 +15,14 @@
 >
 </app-all-available-methods> -->
 
-<app-compare-heatmaps
+<!-- <app-compare-heatmaps
     [dataset]="'mnist-dataset'"
     [label]="'five'"
     [filename]="'45.png'"
     [model]="'mnist'"
-></app-compare-heatmaps>
+></app-compare-heatmaps> -->
+
+<app-model-selector
+  [(selectedModel)]="selectedModel"
+></app-model-selector>
+<p>{{selectedModel}}</p>
