@@ -1,0 +1,14 @@
+<div class="heatmaps-container">
+    @if(all_types().length > 0) {
+        @for(type of all_types(); track type) {
+            <app-image-title-transparent
+                [title]="type"
+                [dataset]="dataset()"
+                [label]="label()"
+                [filename]="filename()"
+                [model]="model()"
+                [type]="type"
+            ></app-image-title-transparent>
+        }
+    }
+</div>

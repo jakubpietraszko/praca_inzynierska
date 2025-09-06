@@ -12,6 +12,9 @@ export class Heatmaps {
   private apiUrl = environment.apiUrl;
 
   allHeatmaps(): Observable<AllHeatmapsResponse> {
-    return this.http.get<AllHeatmapsResponse>(`${this.apiUrl}/all-heatmaps`);
+    return this.http.get<AllHeatmapsResponse>(`${this.apiUrl}/heatmap/all-heatmaps`);
   }
+
+  
+
 }

@@ -73,8 +73,6 @@ class Constants:
             self.INPUT_GRADIENT,
 
             self.INTEGRATED_GRADIENT,
-            self.INTEGRATED_GRADIENT_NOISE,
-            self.EXPECTED_GRADIENT,
 
             self.SMOOTH_GRADIENT,
             self.SMOOTH_GRADIENT_SQUARE,

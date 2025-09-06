@@ -1,14 +1,15 @@
 import { Component, input, ViewEncapsulation, signal } from '@angular/core';
 import { LoadModelsDatasetsImage } from '../../directives/load-models-datasets-image/load-models-datasets-image';
 import { MatSliderModule } from '@angular/material/slider';
+import { CdkDragHandle, CdkDrag } from '@angular/cdk/drag-drop';
 
 @Component({
   selector: 'app-image-title-transparent',
-  imports: [LoadModelsDatasetsImage, MatSliderModule],
+  imports: [LoadModelsDatasetsImage, MatSliderModule, CdkDragHandle, CdkDrag],
   template: `
-    <div class="image-container" style="width: 300px; height: 300px;">
-      <div class="slider" style="width: 90%;">
-        <mat-slider style="width: 100%;" [min]="0" [max]="100">
+    <div class="image-container" cdkDrag>
+      <div class="slider">
+        <mat-slider [min]="0" [max]="100">
           <input
             matSliderThumb
             [value]="sliderValue()"
@@ -18,18 +19,18 @@ import { MatSliderModule } from '@angular/material/slider';
       </div>
 
       <img
-        cdkDrag
+        cdkDragHandle
         appLoadModelsDatasetsImage
-        [dataset]="'mnist-dataset'"
-        [label]="'five'"
-        [filename]="'8.png'"
-        [model]="'mnist'"
-        [type]="'deconvolution'"
+        [dataset]="dataset()"
+        [label]="label()"
+        [filename]="filename()"
+        [model]="model()"
+        [type]="type()"
         [style.opacity]="sliderValue() / 100"
-        style="width: 100%; height: 100%; object-fit: contain;"
+        class="draggable-image"
       />
 
-      <div class="title" style="width: 100%; text-align: center;">
+      <div class="title">
         {{ title() }}
       </div>
     </div>
@@ -38,7 +39,7 @@ import { MatSliderModule } from '@angular/material/slider';
   encapsulation: ViewEncapsulation.ShadowDom,
 })
 export class ImageTitleTransparent {
-  title = input<string>('deconvolution');
+  title = input<string>();
   dataset = input<string>();
   label = input<string>();
   filename = input<string>();

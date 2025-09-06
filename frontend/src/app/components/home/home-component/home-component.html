@@ -1,5 +1,3 @@
-<p>home-component works!</p>
-
 <!-- <app-unsupervised-activations
     [model]="'mnist'"
     [dataset]="'mnist-dataset'"
@@ -17,5 +15,9 @@
 >
 </app-all-available-methods> -->
 
-<app-image-title-transparent
-></app-image-title-transparent>
+<app-compare-heatmaps
+    [dataset]="'mnist-dataset'"
+    [label]="'five'"
+    [filename]="'45.png'"
+    [model]="'mnist'"
+></app-compare-heatmaps>
