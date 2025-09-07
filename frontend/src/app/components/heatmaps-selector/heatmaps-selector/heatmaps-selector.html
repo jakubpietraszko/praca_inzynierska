@@ -1,0 +1,8 @@
+<mat-form-field>
+    <mat-label>Mapa ciepła</mat-label>
+    <mat-select [(ngModel)]="selectedHeatmap">
+        @for(heatmap of heatmaps(); track heatmap) {
+        <mat-option [value]="heatmap">{{heatmap}}</mat-option>
+        }
+    </mat-select>
+</mat-form-field>

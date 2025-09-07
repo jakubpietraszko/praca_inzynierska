@@ -1,0 +1,8 @@
+<div>
+    <app-model-selector [(selectedModel)]="selectedModel"></app-model-selector>
+    <app-heatmaps-selector [(selectedHeatmap)]="selectedHeatmap"></app-heatmaps-selector>
+</div>
+
+@if(isAllDataSelected()) {
+    <p>All data selected!</p>
+}

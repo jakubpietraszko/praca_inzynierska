@@ -1,4 +1,11 @@
-import { Component, OnDestroy, OnInit, resolveForwardRef, signal, computed } from '@angular/core';
+import {
+  Component,
+  OnDestroy,
+  OnInit,
+  resolveForwardRef,
+  signal,
+  computed,
+} from '@angular/core';
 import { DatasetsService } from '../../../services/datasets/datasets-service';
 import { inject } from '@angular/core';
 import { Subscription } from 'rxjs';
@@ -25,6 +32,12 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { DialogUnsupervisedActivations } from '../../dialog-unsupervised-activations/dialog-unsupervised-activations';
 import { DialogUnsupervisedActivationsData } from '../../../interfaces/dialog-unsupervised-activations-data';
 import { DialogAllHeatmaps } from '../../dialog-all-heatmaps/dialog-all-heatmaps/dialog-all-heatmaps';
+import {
+  IDialogUnsupervisedHeatmaps,
+} from '../../../interfaces/dialog-unsupervised-heatmaps';
+import {
+  DialogUnsupervisedHeatmaps,
+} from '../../dialog-unsupervised-heatmaps/dialog-unsupervised-heatmaps/dialog-unsupervised-heatmaps';
 
 @Component({
   selector: 'app-datasets-component',
@@ -51,7 +64,6 @@ export class DatasetsComponent implements OnInit, OnDestroy {
   labelsSubscription: Subscription = new Subscription();
   pathsImagesSubscription: Subscription = new Subscription();
 
-  // Signal-based properties
   datasets = signal<string[] | null>(null);
   labels = signal<string[] | null>(null);
   pathsImages = signal<string[] | null>(null);
@@ -62,7 +74,6 @@ export class DatasetsComponent implements OnInit, OnDestroy {
   currentPage = signal<number>(0);
   totalImages = signal<number>(0);
 
-  // Computed properties
   paginatedImages = computed(() => {
     const images = this.pathsImages();
     const page = this.currentPage();
@@ -147,7 +158,7 @@ export class DatasetsComponent implements OnInit, OnDestroy {
 
   selectLabel(label: string): void {
     this.selectedLabel.set(label);
-    
+
     this.pathsImages.set(null);
     this.totalImages.set(0);
     this.currentPage.set(0);
@@ -219,6 +230,30 @@ export class DatasetsComponent implements OnInit, OnDestroy {
     };
 
     this.dialog.open(DialogAllHeatmaps, {
+      width: '90vw',
+      height: '90vh',
+      maxWidth: '90vw',
+      maxHeight: '90vh',
+      panelClass: 'large-dialog',
+      hasBackdrop: true,
+      disableClose: false,
+      data: dialogData,
+    });
+  }
+
+  openUnsupervisedHeatmapsDialog(dataset: string, label: string): void {
+    console.log(
+      'Opening unsupervised heatmaps dialog for dataset:',
+      dataset,
+      'label:',
+      label
+    );
+    const dialogData: IDialogUnsupervisedHeatmaps = {
+      dataset: dataset,
+      label: label,
+    };
+
+    this.dialog.open(DialogUnsupervisedHeatmaps, {
       width: '90vw',
       height: '90vh',
       maxWidth: '90vw',

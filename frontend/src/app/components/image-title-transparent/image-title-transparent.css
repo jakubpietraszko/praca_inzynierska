@@ -23,6 +23,7 @@
   width: 100%;
   height: auto;
   max-height: 200px;
+  max-width: 200px;
   object-fit: contain;
   cursor: grab;
   transition: transform 0.2s ease;
