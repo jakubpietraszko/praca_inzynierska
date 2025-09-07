@@ -5,7 +5,7 @@ export interface AllHeatmapsResponse {
 export interface LabelFilenameTarget {
     label: string;
     filename: string;
-    target: string;
+    target: string | null;
 }
 
 export interface HeatmapRequest {

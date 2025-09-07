@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, resolveForwardRef } from '@angular/core';
+import { Component, OnDestroy, OnInit, resolveForwardRef, signal, computed } from '@angular/core';
 import { DatasetsService } from '../../../services/datasets/datasets-service';
 import { inject } from '@angular/core';
 import { Subscription } from 'rxjs';
@@ -51,20 +51,31 @@ export class DatasetsComponent implements OnInit, OnDestroy {
   labelsSubscription: Subscription = new Subscription();
   pathsImagesSubscription: Subscription = new Subscription();
 
-  datasets: string[] | null = null;
-  labels: string[] | null = null;
-  pathsImages: string[] | null = null;
-  paginatedImages: string[] = [];
+  // Signal-based properties
+  datasets = signal<string[] | null>(null);
+  labels = signal<string[] | null>(null);
+  pathsImages = signal<string[] | null>(null);
+  selectedDataset = signal<string | null>(null);
+  selectedLabel = signal<string | null>(null);
+  selectedDatasetIndex = signal<number>(0);
+  selectedLabelIndex = signal<number>(0);
+  currentPage = signal<number>(0);
+  totalImages = signal<number>(0);
 
-  selectedDataset: string | null = null;
-  selectedLabel: string | null = null;
-  selectedDatasetIndex: number = 0;
-  selectedLabelIndex: number = 0;
+  // Computed properties
+  paginatedImages = computed(() => {
+    const images = this.pathsImages();
+    const page = this.currentPage();
+    if (!images) {
+      return [];
+    }
+    const startIndex = page * this.imagesPerPage;
+    const endIndex = startIndex + this.imagesPerPage;
+    return images.slice(startIndex, endIndex);
+  });
 
   imagesPerPage = environment.imagesPerPage;
   imagesPerRow = environment.imagesPerRow;
-  currentPage = 0;
-  totalImages = 0;
 
   constructor() {}
 
@@ -73,9 +84,10 @@ export class DatasetsComponent implements OnInit, OnDestroy {
       this.datasetsService
         .allDatasets()
         .subscribe((response: AllDatasetsResponse) => {
-          this.datasets = response.datasets;
-          if (this.datasets && this.datasets.length > 0) {
-            this.selectDataset(this.datasets[0]);
+          this.datasets.set(response.datasets);
+          const datasets = this.datasets();
+          if (datasets && datasets.length > 0) {
+            this.selectDataset(datasets[0]);
           }
         })
     );
@@ -94,13 +106,12 @@ export class DatasetsComponent implements OnInit, OnDestroy {
   }
 
   selectDataset(dataset: string): void {
-    this.selectedDataset = dataset;
-    this.selectedLabel = null;
-    this.pathsImages = null;
-    this.paginatedImages = [];
-    this.selectedLabelIndex = 0;
-    this.currentPage = 0;
-    this.totalImages = 0;
+    this.selectedDataset.set(dataset);
+    this.selectedLabel.set(null);
+    this.pathsImages.set(null);
+    this.selectedLabelIndex.set(0);
+    this.currentPage.set(0);
+    this.totalImages.set(0);
 
     if (this.labelsSubscription) {
       this.labelsSubscription.unsubscribe();
@@ -118,64 +129,59 @@ export class DatasetsComponent implements OnInit, OnDestroy {
       .allLabels(request)
       .subscribe((response: AllLabelsResponse) => {
         console.log(response.labels);
-        this.labels = response.labels;
-        if (this.labels && this.labels.length > 0) {
-          this.selectLabel(this.labels[0]);
+        this.labels.set(response.labels);
+        const labels = this.labels();
+        if (labels && labels.length > 0) {
+          this.selectLabel(labels[0]);
         }
       });
   }
 
   onDatasetTabChange(index: number): void {
-    if (this.datasets && this.datasets[index]) {
-      this.selectedDatasetIndex = index;
-      this.selectDataset(this.datasets[index]);
+    const datasets = this.datasets();
+    if (datasets && datasets[index]) {
+      this.selectedDatasetIndex.set(index);
+      this.selectDataset(datasets[index]);
     }
   }
 
   selectLabel(label: string): void {
-    this.selectedLabel = label;
+    this.selectedLabel.set(label);
+    
+    this.pathsImages.set(null);
+    this.totalImages.set(0);
+    this.currentPage.set(0);
 
     if (this.pathsImagesSubscription) {
       this.pathsImagesSubscription.unsubscribe();
     }
 
-    if (this.selectedDataset) {
+    const selectedDataset = this.selectedDataset();
+    if (selectedDataset) {
       const request: AllImagesRequest = {
-        dataset: this.selectedDataset,
+        dataset: selectedDataset,
         label: label,
       };
       this.pathsImagesSubscription = this.imagesService
         .allImages(request)
         .subscribe((response: AllImagesResponse) => {
-          this.pathsImages = response.images;
-          this.totalImages = response.images.length;
-          this.currentPage = 0;
-          this.updatePaginatedImages();
+          this.pathsImages.set(response.images);
+          this.totalImages.set(response.images.length);
+          this.currentPage.set(0);
         });
     }
   }
 
   onLabelTabChange(index: number): void {
-    if (this.labels && this.labels[index]) {
-      this.selectedLabelIndex = index;
-      this.selectLabel(this.labels[index]);
+    const labels = this.labels();
+    if (labels && labels[index]) {
+      this.selectedLabelIndex.set(index);
+      this.selectLabel(labels[index]);
     }
   }
 
   onPageChange(event: PageEvent): void {
-    this.currentPage = event.pageIndex;
-    this.updatePaginatedImages();
-  }
-
-  updatePaginatedImages(): void {
-    if (!this.pathsImages) {
-      this.paginatedImages = [];
-      return;
-    }
-
-    const startIndex = this.currentPage * this.imagesPerPage;
-    const endIndex = startIndex + this.imagesPerPage;
-    this.paginatedImages = this.pathsImages.slice(startIndex, endIndex);
+    this.currentPage.set(event.pageIndex);
   }
 
   getImageFileName(path: string): string {

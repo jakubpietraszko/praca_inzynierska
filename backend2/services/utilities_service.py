@@ -75,4 +75,7 @@ class UtilitiesService:
         if os.path.exists(path):
             return True
         return False
+    
+    def fill_target(self, model_info, label) -> int:
+        return model_info.label_to_idx[label]
 

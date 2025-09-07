@@ -3,9 +3,9 @@ import torch.nn as nn
 import os
 from torchvision.transforms import ToTensor, Compose, Resize
 
-IDX_TO_LABEL = {
-    0: "Cat",
-    1: "Dog"
+LABEL_TO_IDX = {
+    'cat': 0,
+    'dog': 1
 }
 
 TRANSFORM = Compose([
@@ -48,4 +48,4 @@ def loadModel():
         os.path.dirname(__file__), 'best_model.pth'
     )
     model.load_state_dict(torch.load(model_path))
-    return model, list(model.modules())[0].conv3, TRANSFORM, IDX_TO_LABEL, (3, 224, 224)
+    return model, list(model.modules())[0].conv3, TRANSFORM, LABEL_TO_IDX, (3, 224, 224)

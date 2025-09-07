@@ -4,17 +4,17 @@ import os
 from torchvision.transforms import ToTensor, Compose, Resize, Grayscale
 
 
-IDX_TO_LABEL = {
-    0: 'zero',
-    1: 'one',
-    2: 'two',
-    3: 'three',
-    4: 'four',
-    5: 'five',
-    6: 'six',
-    7: 'seven',
-    8: 'eight',
-    9: 'nine',
+LABEL_TO_IDX = {
+    'zero': 0,
+    'one': 1,
+    'two': 2,
+    'three': 3,
+    'four': 4,
+    'five': 5,
+    'six': 6,
+    'seven': 7,
+    'eight': 8,
+    'nine': 9
 }
 
 TRANSFORM = Compose([
@@ -52,4 +52,4 @@ def loadModel():
     model = mnistModel()
     model_path = os.path.join(os.path.dirname(__file__), 'best_model.pth')
     model.load_state_dict(torch.load(model_path))
-    return model, list(model.modules())[0].conv2, TRANSFORM, IDX_TO_LABEL, (1, 28, 28)
+    return model, list(model.modules())[0].conv2, TRANSFORM, LABEL_TO_IDX, (1, 28, 28)

@@ -1,24 +1,24 @@
-@if(datasets?.length) {
-    <mat-tab-group [selectedIndex]="selectedDatasetIndex" (selectedTabChange)="onDatasetTabChange($event.index)"
+@if(datasets()?.length) {
+    <mat-tab-group [selectedIndex]="selectedDatasetIndex()" (selectedTabChange)="onDatasetTabChange($event.index)"
         color="primary">
-        @for(dataset of datasets; track dataset; let i = $index) {
+        @for(dataset of datasets(); track dataset; let i = $index) {
         <mat-tab [label]="dataset"></mat-tab>
         }
     </mat-tab-group>
-    @if(datasets?.length && labels?.length) {
-        <mat-tab-group [selectedIndex]="selectedLabelIndex" (selectedTabChange)="onLabelTabChange($event.index)"
+    @if(datasets()?.length && labels()?.length) {
+        <mat-tab-group [selectedIndex]="selectedLabelIndex()" (selectedTabChange)="onLabelTabChange($event.index)"
             color="accent">
-            @for(label of labels; track label; let i = $index) {
+            @for(label of labels(); track label; let i = $index) {
             <mat-tab [label]="label"></mat-tab>
             }
         </mat-tab-group>
-        @if(pathsImages?.length) {
+        @if(pathsImages()?.length) {
             <div class="images-container">
                 <mat-grid-list [cols]="imagesPerRow" rowHeight="220px" gutterSize="10px">
-                    @for(path of paginatedImages; track path) {
+                    @for(path of paginatedImages(); track path) {
                     <mat-grid-tile>
                         <div class="image-wrapper">
-                            <img appLoadImageDirective [dataset]="selectedDataset!" [label]="selectedLabel!"
+                            <img appLoadImageDirective [dataset]="selectedDataset()!" [label]="selectedLabel()!"
                                 [filename]="getImageFileName(path)" [alt]="getImageFileName(path)" class="grid-image">
                             <div class="image-filename">{{ getImageFileName(path) }}</div>
                             <div [ngStyle]="
@@ -28,10 +28,10 @@
                                 'gap': '8px'
                             }
                             ">
-                            <button mat-fab color="primary" class="image-button" (click)="openImageDialog(selectedDataset!, selectedLabel!, getImageFileName(path))">
+                            <button mat-fab color="primary" class="image-button" (click)="openImageDialog(selectedDataset()!, selectedLabel()!, getImageFileName(path))">
                                 Mapy Aktywacji
                             </button>
-                            <button mat-fab color="primary" class="image-button" (click)="openAllHeatmapsDialog(selectedDataset!, selectedLabel!, getImageFileName(path))">
+                            <button mat-fab color="primary" class="image-button" (click)="openAllHeatmapsDialog(selectedDataset()!, selectedLabel()!, getImageFileName(path))">
                                 Mapy ciepła
                             </button>
                             </div>
@@ -40,7 +40,7 @@
                     }
                 </mat-grid-list>
                 <div class="paginator-bottom"></div>
-                <mat-paginator [length]="totalImages" [pageSize]="imagesPerPage" [pageIndex]="currentPage"
+                <mat-paginator [length]="totalImages()" [pageSize]="imagesPerPage" [pageIndex]="currentPage()"
                     (page)="onPageChange($event)" showFirstLastButtons>
                 </mat-paginator>
             </div>

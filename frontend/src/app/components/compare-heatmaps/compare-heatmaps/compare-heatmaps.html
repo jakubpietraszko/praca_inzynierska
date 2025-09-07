@@ -1,5 +1,5 @@
 <div class="heatmaps-container">
-    @if(all_types().length > 0) {
+    @if(all_types().length > 0 && imagesLoaded()) {
         @for(type of all_types(); track type) {
             <app-image-title-transparent
                 [title]="type"

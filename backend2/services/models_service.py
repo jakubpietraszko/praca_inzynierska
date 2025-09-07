@@ -11,7 +11,7 @@ class ModelInfo:
     model: nn.Module
     last_conv_layer: nn.Module
     transform: transforms.Compose
-    idx_to_label: dict
+    label_to_idx: dict
     input_shape: tuple
 
 class ModelsService:
@@ -28,13 +28,13 @@ class ModelsService:
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
 
-        model, last_conv_layer, transform, idx_to_label, input_shape = getattr(module, 'loadModel')()
+        model, last_conv_layer, transform, label_to_idx, input_shape = getattr(module, 'loadModel')()
         model_info = ModelInfo(
             name=model_name,
             model=model,
             last_conv_layer=last_conv_layer,
             transform=transform,
-            idx_to_label=idx_to_label,
+            label_to_idx=label_to_idx,
             input_shape=input_shape
         )
 

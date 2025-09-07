@@ -43,9 +43,6 @@ export class UnsupervisedActivations implements OnInit, OnDestroy {
 
   response!: UnsupervisedActivationsResponse;
 
-  public _dataset = 'mnist-dataset';
-  public _model = 'mnist';
-
   constructor() {
     effect( () => {
       if (this.allInputsSet()) {

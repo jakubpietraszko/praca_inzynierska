@@ -5,4 +5,4 @@ class LabelFilename(BaseModel):
     filename: str
 
 class LabelFilenameTarget(LabelFilename):
-    target: int
+    target: int | None = None

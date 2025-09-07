@@ -30,7 +30,8 @@ class GradientService:
             label = image.label
             filename = image.filename
             target = image.target
-
+            if target is None:
+                target = utilities_service.fill_target(model_info, label)
             label_path = os.path.join(
                 root_path, label
             )
@@ -42,6 +43,7 @@ class GradientService:
             )
 
             if utilities_service.skip_forward(save_path):
+                print(f"Skipping {save_path}")
                 continue
             image_path = os.path.join(
                 container.datasets_path,
@@ -99,7 +101,8 @@ class GradientService:
             label = image.label
             filename = image.filename
             target = image.target
-
+            if target is None:
+                target = utilities_service.fill_target(model_info, label)
             label_path = os.path.join(
                 root_path, label
             )
@@ -187,7 +190,8 @@ class GradientService:
             label = image.label
             filename = image.filename
             target = image.target
-
+            if target is None:
+                target = utilities_service.fill_target(model_info, label)
             label_path = os.path.join(
                 root_path, label
             )
@@ -297,7 +301,8 @@ class GradientService:
             label = image.label
             filename = image.filename
             target = image.target
-
+            if target is None:
+                target = utilities_service.fill_target(model_info, label)
             label_path = os.path.join(
                 root_path, label
             )
@@ -373,7 +378,8 @@ class GradientService:
             label = image.label
             filename = image.filename
             target = image.target
-
+            if target is None:
+                target = utilities_service.fill_target(model_info, label)
             label_path = os.path.join(
                 root_path, label
             )

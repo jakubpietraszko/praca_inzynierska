@@ -29,7 +29,8 @@ class IntegratedGradientsService:
             label = image.label
             filename = image.filename
             target = image.target
-
+            if target is None:
+                target = utilities_service.fill_target(model_info, label)
             label_path = os.path.join(
                 root_path,
                 label,
