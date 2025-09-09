@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 
 @Component({
   selector: 'app-unsupervised-heatmaps',
@@ -7,5 +7,11 @@ import { Component } from '@angular/core';
   styleUrl: './unsupervised-heatmaps.css'
 })
 export class UnsupervisedHeatmaps {
+  model = signal<string | null>(null);
+  heatmap = signal<string | null>(null);
+  dataset = signal<string | null>(null);
+  label = signal<string | null>(null);
 
+
+  
 }

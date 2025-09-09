@@ -2,12 +2,11 @@ import { Component, inject, signal, OnInit, computed } from '@angular/core';
 import { HeatmapsSelector } from '../../heatmaps-selector/heatmaps-selector/heatmaps-selector';
 import { ModelSelector } from '../../model-selector/model-selector/model-selector';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { JsonPipe } from '@angular/common';
 import { IDialogUnsupervisedHeatmaps } from '../../../interfaces/dialog-unsupervised-heatmaps';
 
 @Component({
   selector: 'app-dialog-unsupervised-heatmaps',
-  imports: [ModelSelector, HeatmapsSelector, JsonPipe],
+  imports: [ModelSelector, HeatmapsSelector],
   templateUrl: './dialog-unsupervised-heatmaps.html',
   styleUrl: './dialog-unsupervised-heatmaps.css'
 })

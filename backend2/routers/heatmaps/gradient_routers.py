@@ -19,6 +19,8 @@ from services.models_datasets_service import ModelsDatasetsService
 from services.datasets_service import DatasetsService
 from services.gradient_service import GradientService
 from services.container import get_constants
+from services.heatmaps_facede_service import HeatmapsFacedeService
+from services.container import get_heatmaps_facede_service
 
 from constans import Constants
 
@@ -33,29 +35,24 @@ router = APIRouter()
 async def gradient(request: GradientRequest,
                    container: ServiceContainer = Depends(get_container),
                    models_service: ModelsService = Depends(get_models_service),
-                   heatmaps_service: HeatmapsService = Depends(
-                       get_heatmaps_service),
                    utilities_service: UtilitiesService = Depends(
                        get_utilities_service),
-                   models_datasets_service: ModelsDatasetsService = Depends(
-                       get_models_datasets_service),
                    datasets_service: DatasetsService = Depends(
                        get_datasets_service),
                    constants: Constants = Depends(get_constants),
-                   gradients_service: GradientService = Depends(
-                       get_gradient_service
+                   heatmaps_facede_service: HeatmapsFacedeService = Depends(
+                       get_heatmaps_facede_service
                    )
                    ):
-    response = gradients_service.gradient(
+    return heatmaps_facede_service.generate_heatmap(
         request=request,
+        type=constants.GRADIENT,
         container=container,
         datasets_service=datasets_service,
         utilities_service=utilities_service,
-        models_service=models_service,
-        constants=constants
+        constants=constants,
+        models_service=models_service
     )
-
-    return response
 
 
 @router.post('/gradient-squared', response_model=GradientResponse)
@@ -64,29 +61,25 @@ async def gradient_squared(request: GradientRequest,
                                get_container),
                            models_service: ModelsService = Depends(
                                get_models_service),
-                           heatmaps_service: HeatmapsService = Depends(
-                               get_heatmaps_service),
                            utilities_service: UtilitiesService = Depends(
                                get_utilities_service),
-                           models_datasets_service: ModelsDatasetsService = Depends(
-                               get_models_datasets_service),
                            datasets_service: DatasetsService = Depends(
                                get_datasets_service),
                            constants: Constants = Depends(get_constants),
-                           gradients_service: GradientService = Depends(
-                               get_gradient_service
+                           heatmaps_facede_service: HeatmapsFacedeService = Depends(
+                               get_heatmaps_facede_service
                            )
+
                            ):
-    response = gradients_service.gradient_squared(
+    return heatmaps_facede_service.generate_heatmap(
         request=request,
+        type=constants.GRADIENT_SQUARED,
         container=container,
         datasets_service=datasets_service,
         utilities_service=utilities_service,
-        models_service=models_service,
-        constants=constants
+        constants=constants,
+        models_service=models_service
     )
-
-    return response
 
 
 @router.post('/deconvolution', response_model=GradientResponse)
@@ -94,29 +87,24 @@ async def deconvolution(request: GradientRequest,
                         container: ServiceContainer = Depends(get_container),
                         models_service: ModelsService = Depends(
                             get_models_service),
-                        heatmaps_service: HeatmapsService = Depends(
-                            get_heatmaps_service),
                         utilities_service: UtilitiesService = Depends(
                             get_utilities_service),
-                        models_datasets_service: ModelsDatasetsService = Depends(
-                            get_models_datasets_service),
                         datasets_service: DatasetsService = Depends(
                             get_datasets_service),
                         constants: Constants = Depends(get_constants),
-                        gradients_service: GradientService = Depends(
-                            get_gradient_service
+                        heatmaps_facede_service: HeatmapsFacedeService = Depends(
+                            get_heatmaps_facede_service
                         )
                         ):
-    response = gradients_service.deconvolution(
+    return heatmaps_facede_service.generate_heatmap(
         request=request,
+        type=constants.DECONVOLUTION,
         container=container,
         datasets_service=datasets_service,
         utilities_service=utilities_service,
         models_service=models_service,
         constants=constants
     )
-
-    return response
 
 
 @router.post('/guided-backpropagation', response_model=GradientResponse)
@@ -125,29 +113,24 @@ async def guided_backpropagation(request: GradientRequest,
                                      get_container),
                                  models_service: ModelsService = Depends(
                                      get_models_service),
-                                 heatmaps_service: HeatmapsService = Depends(
-                                     get_heatmaps_service),
                                  utilities_service: UtilitiesService = Depends(
                                      get_utilities_service),
-                                 models_datasets_service: ModelsDatasetsService = Depends(
-                                     get_models_datasets_service),
                                  datasets_service: DatasetsService = Depends(
                                      get_datasets_service),
                                  constants: Constants = Depends(get_constants),
-                                 gradients_service: GradientService = Depends(
-                                     get_gradient_service
+                                 heatmaps_facede_service: HeatmapsFacedeService = Depends(
+                                     get_heatmaps_facede_service
                                  )
                                  ):
-    response = gradients_service.guided_backpropagation(
+    return heatmaps_facede_service.generate_heatmap(
         request=request,
+        type=constants.GUIDED_BACKPROPAGATION,
         container=container,
         datasets_service=datasets_service,
         utilities_service=utilities_service,
         models_service=models_service,
         constants=constants
     )
-
-    return response
 
 
 @router.post('/input-gradient', response_model=GradientResponse)
@@ -155,26 +138,21 @@ async def input_gradient(request: GradientRequest,
                          container: ServiceContainer = Depends(get_container),
                          models_service: ModelsService = Depends(
                              get_models_service),
-                         heatmaps_service: HeatmapsService = Depends(
-                             get_heatmaps_service),
                          utilities_service: UtilitiesService = Depends(
                              get_utilities_service),
-                         models_datasets_service: ModelsDatasetsService = Depends(
-                             get_models_datasets_service),
                          datasets_service: DatasetsService = Depends(
                              get_datasets_service),
                          constants: Constants = Depends(get_constants),
-                         gradients_service: GradientService = Depends(
-                             get_gradient_service
+                         heatmaps_facede_service: HeatmapsFacedeService = Depends(
+                             get_heatmaps_facede_service
                          )
                          ):
-    response = gradients_service.input_gradient(
+    return heatmaps_facede_service.generate_heatmap(
         request=request,
+        type=constants.INPUT_GRADIENT,
         container=container,
         datasets_service=datasets_service,
         utilities_service=utilities_service,
         models_service=models_service,
         constants=constants
     )
-
-    return response

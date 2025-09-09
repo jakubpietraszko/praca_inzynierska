@@ -11,6 +11,7 @@ from services.container import get_container, get_models_service, get_heatmaps_s
 from constans import Constants
 from PIL import Image
 import matplotlib.pyplot as plt
+from services.container import get_heatmaps_facede_service, HeatmapsFacedeService
 
 
 router = APIRouter()
@@ -21,28 +22,25 @@ async def smooth_grad(request: GradientRequest,
                       container: ServiceContainer = Depends(get_container),
                       models_service: ModelsService = Depends(
                           get_models_service),
-                      heatmaps_service: HeatmapsService = Depends(
-                          get_heatmaps_service),
                       utilities_service: UtilitiesService = Depends(
                           get_utilities_service),
-                      models_datasets_service: ModelsDatasetsService = Depends(
-                          get_models_datasets_service),
                       datasets_service: DatasetsService = Depends(
                           get_datasets_service),
                       constants: Constants = Depends(get_constants),
-                      gradient_noise_service: GradientNoiseService = Depends(
-                          get_gradient_noise_service)
+                      heatmaps_facede_service: HeatmapsFacedeService = Depends(
+                          get_heatmaps_facede_service
+                      ),
                       ):
-    response = gradient_noise_service.smooth_grad(
+    return heatmaps_facede_service.generate_heatmap(
         request=request,
+        type=constants.SMOOTH_GRADIENT,
         container=container,
         datasets_service=datasets_service,
         utilities_service=utilities_service,
         constants=constants,
-        models_service=models_service,
+        models_service=models_service
     )
 
-    return response
 
 @router.post('/smooth-gradient-square', response_model=GradientResponse)
 async def smooth_grad_square(request: GradientRequest,
@@ -50,51 +48,45 @@ async def smooth_grad_square(request: GradientRequest,
                                  get_container),
                              models_service: ModelsService = Depends(
                                  get_models_service),
-                             heatmaps_service: HeatmapsService = Depends(
-                                 get_heatmaps_service),
                              utilities_service: UtilitiesService = Depends(
                                  get_utilities_service),
-                             models_datasets_service: ModelsDatasetsService = Depends(
-                                 get_models_datasets_service),
                              datasets_service: DatasetsService = Depends(
                                  get_datasets_service),
                              constants: Constants = Depends(get_constants),
-                             gradient_noise_service: GradientNoiseService = Depends(
-        get_gradient_noise_service)
-):
-    response = gradient_noise_service.smooth_grad_squared(
+                             heatmaps_facede_service: HeatmapsFacedeService = Depends(
+                                 get_heatmaps_facede_service
+                             ),
+                             ):
+    return heatmaps_facede_service.generate_heatmap(
         request=request,
+        type=constants.SMOOTH_GRADIENT_SQUARE,
         container=container,
         datasets_service=datasets_service,
         utilities_service=utilities_service,
         constants=constants,
-        models_service=models_service,
+        models_service=models_service
     )
-    return response
 
 
 @router.post('/var-gradient', response_model=GradientResponse)
 async def var_grad(request: GradientRequest,
                    container: ServiceContainer = Depends(get_container),
                    models_service: ModelsService = Depends(get_models_service),
-                   heatmaps_service: HeatmapsService = Depends(
-                       get_heatmaps_service),
                    utilities_service: UtilitiesService = Depends(
                        get_utilities_service),
-                   models_datasets_service: ModelsDatasetsService = Depends(
-                       get_models_datasets_service),
                    datasets_service: DatasetsService = Depends(
                        get_datasets_service),
                    constants: Constants = Depends(get_constants),
-                   gradient_noise_service: GradientNoiseService = Depends(
-                       get_gradient_noise_service)
+                   heatmaps_facede_service: HeatmapsFacedeService = Depends(
+                       get_heatmaps_facede_service
+                   ),
                    ):
-    response = gradient_noise_service.var_grad(
+    return heatmaps_facede_service.generate_heatmap(
         request=request,
+        type=constants.VAR_GRADIENT,
         container=container,
         datasets_service=datasets_service,
         utilities_service=utilities_service,
         constants=constants,
-        models_service=models_service,
+        models_service=models_service
     )
-    return response    

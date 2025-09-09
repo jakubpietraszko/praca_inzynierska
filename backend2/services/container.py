@@ -12,6 +12,7 @@ from .integrated_gradient_service import IntegratedGradientsService
 from .cam_service import CAMService
 from .probing_image_service import ProbingImageService
 from .gradient_noise_service import GradientNoiseService
+from .heatmaps_facede_service import HeatmapsFacedeService
 
 from constans import Constants
 
@@ -42,6 +43,7 @@ class ServiceContainer:
         self._cam_service = None
         self._probing_image_service = None
         self._gradient_noise_service = None
+        self._heatmaps_facede_service = None
 
     @property
     def datasets_service(self) -> DatasetsService:
@@ -119,7 +121,13 @@ class ServiceContainer:
         if self._gradient_noise_service is None:
             self._gradient_noise_service = GradientNoiseService()
         return self._gradient_noise_service
-    
+
+    @property
+    def heatmaps_facede_service(self):
+        if self._heatmaps_facede_service is None:
+            self._heatmaps_facede_service = HeatmapsFacedeService()
+        return self._heatmaps_facede_service
+
 
 _container: ServiceContainer = None
 
@@ -168,3 +176,6 @@ def get_probing_image_service() -> ProbingImageService:
 
 def get_gradient_noise_service() -> GradientNoiseService:
     return get_container().gradient_noise_service
+
+def get_heatmaps_facede_service() -> HeatmapsFacedeService:
+    return get_container().heatmaps_facede_service

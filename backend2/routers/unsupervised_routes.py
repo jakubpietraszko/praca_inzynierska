@@ -4,6 +4,7 @@ from constans import Constants
 from services.container import ServiceContainer, ModelsService, HeatmapsService, UtilitiesService, ModelsDatasetsService, DatasetsService
 from services.container import get_container, get_models_service, get_heatmaps_service, get_utilities_service, get_models_datasets_service, get_datasets_service, get_constants
 from interfaces.unsupervised_activations import LabelFilenameCoords, UnsupervisedActivationsRequest, UnsupervisedActivationsResponse
+from interfaces.unsupervised_heatmaps import UnsupervisedHeatmapsRequest, UnsupervisedHeatmapsResponse
 import numpy as np
 import os
 from PIL import Image
@@ -75,3 +76,18 @@ async def activations(request: UnsupervisedActivationsRequest,
 
 
 
+@router.post('/heatmaps', response_model=UnsupervisedHeatmapsResponse)
+async def heatmaps(request: UnsupervisedHeatmapsRequest,
+                   container: ServiceContainer = Depends(get_container),
+                   models_service: ModelsService = Depends(
+                       get_models_service),
+                   heatmaps_service: HeatmapsService = Depends(
+                       get_heatmaps_service),
+                   utilities_service: UtilitiesService = Depends(
+                       get_utilities_service),
+                   models_datasets_service: ModelsDatasetsService = Depends(
+                       get_models_datasets_service),
+                   datasets_service: DatasetsService = Depends(
+                       get_datasets_service),
+                   constants: Constants = Depends(get_constants)):
+    pass
