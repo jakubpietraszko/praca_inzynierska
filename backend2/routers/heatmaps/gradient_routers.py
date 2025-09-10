@@ -33,12 +33,6 @@ router = APIRouter()
 
 @router.post('/gradient', response_model=GradientResponse)
 async def gradient(request: GradientRequest,
-                   container: ServiceContainer = Depends(get_container),
-                   models_service: ModelsService = Depends(get_models_service),
-                   utilities_service: UtilitiesService = Depends(
-                       get_utilities_service),
-                   datasets_service: DatasetsService = Depends(
-                       get_datasets_service),
                    constants: Constants = Depends(get_constants),
                    heatmaps_facede_service: HeatmapsFacedeService = Depends(
                        get_heatmaps_facede_service
@@ -47,24 +41,11 @@ async def gradient(request: GradientRequest,
     return heatmaps_facede_service.generate_heatmap(
         request=request,
         type=constants.GRADIENT,
-        container=container,
-        datasets_service=datasets_service,
-        utilities_service=utilities_service,
-        constants=constants,
-        models_service=models_service
     )
 
 
 @router.post('/gradient-squared', response_model=GradientResponse)
 async def gradient_squared(request: GradientRequest,
-                           container: ServiceContainer = Depends(
-                               get_container),
-                           models_service: ModelsService = Depends(
-                               get_models_service),
-                           utilities_service: UtilitiesService = Depends(
-                               get_utilities_service),
-                           datasets_service: DatasetsService = Depends(
-                               get_datasets_service),
                            constants: Constants = Depends(get_constants),
                            heatmaps_facede_service: HeatmapsFacedeService = Depends(
                                get_heatmaps_facede_service
@@ -74,23 +55,11 @@ async def gradient_squared(request: GradientRequest,
     return heatmaps_facede_service.generate_heatmap(
         request=request,
         type=constants.GRADIENT_SQUARED,
-        container=container,
-        datasets_service=datasets_service,
-        utilities_service=utilities_service,
-        constants=constants,
-        models_service=models_service
     )
 
 
 @router.post('/deconvolution', response_model=GradientResponse)
 async def deconvolution(request: GradientRequest,
-                        container: ServiceContainer = Depends(get_container),
-                        models_service: ModelsService = Depends(
-                            get_models_service),
-                        utilities_service: UtilitiesService = Depends(
-                            get_utilities_service),
-                        datasets_service: DatasetsService = Depends(
-                            get_datasets_service),
                         constants: Constants = Depends(get_constants),
                         heatmaps_facede_service: HeatmapsFacedeService = Depends(
                             get_heatmaps_facede_service
@@ -99,24 +68,11 @@ async def deconvolution(request: GradientRequest,
     return heatmaps_facede_service.generate_heatmap(
         request=request,
         type=constants.DECONVOLUTION,
-        container=container,
-        datasets_service=datasets_service,
-        utilities_service=utilities_service,
-        models_service=models_service,
-        constants=constants
     )
 
 
 @router.post('/guided-backpropagation', response_model=GradientResponse)
 async def guided_backpropagation(request: GradientRequest,
-                                 container: ServiceContainer = Depends(
-                                     get_container),
-                                 models_service: ModelsService = Depends(
-                                     get_models_service),
-                                 utilities_service: UtilitiesService = Depends(
-                                     get_utilities_service),
-                                 datasets_service: DatasetsService = Depends(
-                                     get_datasets_service),
                                  constants: Constants = Depends(get_constants),
                                  heatmaps_facede_service: HeatmapsFacedeService = Depends(
                                      get_heatmaps_facede_service
@@ -125,23 +81,11 @@ async def guided_backpropagation(request: GradientRequest,
     return heatmaps_facede_service.generate_heatmap(
         request=request,
         type=constants.GUIDED_BACKPROPAGATION,
-        container=container,
-        datasets_service=datasets_service,
-        utilities_service=utilities_service,
-        models_service=models_service,
-        constants=constants
     )
 
 
 @router.post('/input-gradient', response_model=GradientResponse)
 async def input_gradient(request: GradientRequest,
-                         container: ServiceContainer = Depends(get_container),
-                         models_service: ModelsService = Depends(
-                             get_models_service),
-                         utilities_service: UtilitiesService = Depends(
-                             get_utilities_service),
-                         datasets_service: DatasetsService = Depends(
-                             get_datasets_service),
                          constants: Constants = Depends(get_constants),
                          heatmaps_facede_service: HeatmapsFacedeService = Depends(
                              get_heatmaps_facede_service
@@ -150,9 +94,4 @@ async def input_gradient(request: GradientRequest,
     return heatmaps_facede_service.generate_heatmap(
         request=request,
         type=constants.INPUT_GRADIENT,
-        container=container,
-        datasets_service=datasets_service,
-        utilities_service=utilities_service,
-        models_service=models_service,
-        constants=constants
     )
