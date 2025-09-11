@@ -3,6 +3,7 @@ import { inject, Injectable } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { UnsupervisedActivationsRequest, UnsupervisedActivationsResponse, GeneratingActivationsRequest, GeneratingActivationsResponse, LabelFilenamesCoordinates} from '../../interfaces/unsupervised-activations';
 import { Observable } from 'rxjs';
+import { UnsupervisedHeatmapsRequest, UnsupervisedHeatmapsResponse, FilenameCoords } from '../../interfaces/unsupervised-heatmaps';
 
 @Injectable({
   providedIn: 'root'
@@ -20,4 +21,7 @@ export class UnsupervisedActivationsService {
     return this.http.post<GeneratingActivationsResponse>(`${this.apiUrl}/heatmap/activations`, request);
   }
 
+  getHeatmaps(request: UnsupervisedHeatmapsRequest): Observable<UnsupervisedHeatmapsResponse> {
+    return this.http.post<UnsupervisedHeatmapsResponse>(`${this.apiUrl}/unsupervised/heatmaps`, request);
+  }
 }

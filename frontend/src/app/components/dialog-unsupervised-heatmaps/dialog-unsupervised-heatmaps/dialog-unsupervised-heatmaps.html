@@ -4,5 +4,10 @@
 </div>
 
 @if(isAllDataSelected()) {
-    <p>All data selected!</p>
+    <app-unsupervised-heatmaps
+        [model]="selectedModel()"
+        [heatmap]="selectedHeatmap()"
+        [dataset]="dataset()"
+        [label]="label()"
+    ></app-unsupervised-heatmaps>
 }

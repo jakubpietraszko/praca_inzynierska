@@ -3,10 +3,11 @@ import { HeatmapsSelector } from '../../heatmaps-selector/heatmaps-selector/heat
 import { ModelSelector } from '../../model-selector/model-selector/model-selector';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { IDialogUnsupervisedHeatmaps } from '../../../interfaces/dialog-unsupervised-heatmaps';
+import { UnsupervisedHeatmaps } from '../../unsupervised-heatmaps/unsupervised-heatmaps/unsupervised-heatmaps';
 
 @Component({
   selector: 'app-dialog-unsupervised-heatmaps',
-  imports: [ModelSelector, HeatmapsSelector],
+  imports: [ModelSelector, HeatmapsSelector, UnsupervisedHeatmaps],
   templateUrl: './dialog-unsupervised-heatmaps.html',
   styleUrl: './dialog-unsupervised-heatmaps.css'
 })
