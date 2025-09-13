@@ -15,20 +15,20 @@ class HeatmapsFacedeService:
         from services.container import Constants, get_constants
         from services.container import ModelsService, get_models_service
         from services.container import LRPService, get_lrp_service
+        from services.probing_image_service import ProbingImageService, get_probing_image_service
 
         self.get_gradient_service = get_gradient_service
         self.get_integrated_gradients_service = get_integrated_gradients_service
         self.get_gradient_noise_service = get_gradient_noise_service
         self.get_cam_service = get_cam_service
         self.get_lrp_service = get_lrp_service
+        self.get_probing_image_service = get_probing_image_service
 
         self.get_container = get_container
         self.get_datasets_service = get_datasets_service
         self.get_utilities_service = get_utilities_service
         self.get_constants = get_constants
         self.get_models_service = get_models_service
-
-
 
     def generate_heatmap(
             self,
@@ -63,7 +63,7 @@ class HeatmapsFacedeService:
             return self.get_gradient_noise_service().smooth_grad_squared(**args)
         elif type == self.get_constants().VAR_GRADIENT:
             return self.get_gradient_noise_service().var_grad(**args)
-        
+
         elif type == self.get_constants().GRAD_CAM:
             return self.get_cam_service().grad_cam(**args)
         elif type == self.get_constants().GRAD_CAM_PLUS_PLUS:
@@ -78,7 +78,10 @@ class HeatmapsFacedeService:
             return self.get_cam_service().ablation_cam(**args)
         elif type == self.get_constants().XGRAD_CAM:
             return self.get_cam_service().xgrad_cam(**args)
-        
+
+        elif type == self.get_constants().LIME:
+            return self.get_probing_image_service().lime(**args)
+
         elif type == self.get_constants().LRP_FLAT:
             return self.get_lrp_service().lrp_flat(**args)
 

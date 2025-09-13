@@ -1,14 +1,29 @@
 import numpy as np
 import cv2
 from typing import Tuple
+import os
+from PIL import Image
+
+from services.models_service import ModelsService, ModelInfo
+from interfaces.masks import MasksResponse, MasksRequest
+from interfaces.super_pixels import SuperPixelsRequest, SuperPixelsResponse
 
 
 class MasksService:
     def __init__(self,
                  dataset_path: str,
                  models_datasets_path: str):
+        from services.container import ServiceContainer, get_container
+        from services.container import get_constants, Constants
+        from services.container import get_models_service, ModelsService
+        from services.container import get_utilities_service, UtilitiesService
+
         self.dataset_path = dataset_path
         self.models_datasets_path = models_datasets_path
+        self.container: ServiceContainer = get_container()
+        self.models_service: ModelsService = get_models_service()
+        self.utilities_service: UtilitiesService = get_utilities_service()
+        self.constants: Constants = get_constants()
 
     def rise(self,
              height: int,
@@ -17,10 +32,12 @@ class MasksService:
              number_of_random_mask: int = 25,
              threshold: float = 0.5,
              ) -> np.ndarray:
-        masks = np.random.random((number_of_random_mask, height // scale, width // scale))
+        masks = np.random.random(
+            (number_of_random_mask, height // scale, width // scale))
         masks = np.where(masks > threshold, 1, 0).astype(np.uint8)
 
-        result = np.zeros((number_of_random_mask, height, width), dtype=np.uint8)
+        result = np.zeros(
+            (number_of_random_mask, height, width), dtype=np.uint8)
 
         for i in range(len(masks)):
             result[i] = cv2.resize(
@@ -31,6 +48,43 @@ class MasksService:
 
         return result
 
+    def rise_with_save(self,
+                       request: MasksRequest
+                       ):
+        model_info: ModelInfo = self.models_service.load_model(
+            request.model
+        )
+
+        for label_filename in request.images:
+            label = label_filename.label
+            filename = label_filename.filename
+
+            models_datasets_name = self.utilities_service.models_datasets_path(
+                request.model, request.dataset
+            )
+
+            path = os.path.join(
+                self.container.models_datasets_path,
+                models_datasets_name,
+                self.constants.MASK_RISE,
+                label,
+                filename.split('.')[0]
+            )
+
+            os.makedirs(path, exist_ok=True)
+
+            masks = self.rise(
+                height=model_info.input_shape[1],
+                width=model_info.input_shape[2],
+                scale=5,
+                number_of_random_mask=request.count
+            )
+
+            for i, mask in enumerate(masks):
+                mask_path = os.path.join(path, f'{i}.png')
+                cv2.imwrite(mask_path, mask * 255)
+        return MasksResponse(success=True)
+
     def seed(self,
              image_np: np.ndarray,
              height: int,
@@ -40,12 +94,12 @@ class MasksService:
              ) -> Tuple[np.ndarray, int]:
         LEVELS = 2
         ITERATIONS = 5
-        
+
         if len(image_np.shape) == 3:
             resized_image = cv2.resize(image_np, (width, height))
         else:
             resized_image = cv2.resize(image_np, (width, height))
-        
+
         seeds = cv2.ximgproc.createSuperpixelSEEDS(
             image_width=width,
             image_height=height,
@@ -57,7 +111,66 @@ class MasksService:
         seeds.iterate(resized_image, ITERATIONS)
         labels = seeds.getLabels()
         return labels, np.unique(labels).shape[0]
-    
+
+    def seed_with_save(self,
+                       request: SuperPixelsRequest
+                       ):
+        model_info: ModelInfo = self.models_service.load_model(
+            request.model
+        )
+
+        path = os.path.join(
+            self.container.models_datasets_path,
+            self.utilities_service.models_datasets_path(
+                request.model, request.dataset
+            ),
+            self.constants.MASK_SEED,
+        )
+
+        os.makedirs(path, exist_ok=True)
+        counts = list()
+
+        for label_filename in request.images:
+            label = label_filename.label
+            filename = label_filename.filename
+
+            label_path = os.path.join(
+                path,
+                label
+            )
+
+            os.makedirs(label_path, exist_ok=True)
+
+            image_path_save = os.path.join(label_path, filename)
+
+            image_path = os.path.join(
+                self.container.datasets_path,
+                request.dataset,
+                label,
+                filename
+            )
+
+            image_np = np.array(Image.open(image_path))
+            dim = model_info.input_shape[0]
+            height = model_info.input_shape[1]
+            width = model_info.input_shape[2]
+
+            mask, count = self.seed(
+                image_np=image_np,
+                height=height,
+                width=width,
+                dim=dim,
+                super_pixels=request.superPixels
+            )
+
+            counts.append(count)
+            mask = cv2.normalize(
+                mask, None, 0, 255, cv2.NORM_MINMAX
+            )
+            mask = mask.astype(np.uint8)
+            cv2.imwrite(image_path_save, mask)
+        return SuperPixelsResponse(success=True, superPixels=counts)
+
     def slic(self,
              image_np: np.ndarray,
              height: int,
@@ -68,12 +181,12 @@ class MasksService:
         region_size = np.sqrt((height * width) / super_pixels)
         region_size = int(region_size)
         ITERATIONS = 5
-        
+
         if len(image_np.shape) == 3:
             resized_image = cv2.resize(image_np, (width, height))
         else:
             resized_image = cv2.resize(image_np, (width, height))
-        
+
         slic = cv2.ximgproc.createSuperpixelSLIC(
             resized_image,
             region_size=region_size,
@@ -82,3 +195,58 @@ class MasksService:
         slic.iterate(ITERATIONS)
         labels = slic.getLabels()
         return labels, np.unique(labels).shape[0]
+
+    def slic_with_save(self, request: SuperPixelsRequest):
+        model_info: ModelInfo = self.models_service.load_model(
+            request.model
+        )
+
+        path = os.path.join(
+            self.container.models_datasets_path,
+            self.utilities_service.models_datasets_path(
+                request.model, request.dataset
+            ),
+            self.constants.MASK_SLIC,
+        )
+
+        os.makedirs(path, exist_ok=True)
+        counts = list()
+
+        for label_filename in request.images:
+            label = label_filename.label
+            filename = label_filename.filename
+
+            label_path = os.path.join(
+                path,
+                label
+            )
+
+            os.makedirs(label_path, exist_ok=True)
+
+            image_path_save = os.path.join(label_path, filename)
+
+            image_path = os.path.join(
+                self.container.datasets_path,
+                request.dataset,
+                label,
+                filename
+            )
+
+            image_np = np.array(Image.open(image_path))
+            dim = model_info.input_shape[0]
+            height = model_info.input_shape[1]
+            width = model_info.input_shape[2]
+            mask, count = self.slic(
+                image_np=image_np,
+                height=height,
+                width=width,
+                dim=dim,
+                super_pixels=request.superPixels
+            )
+            counts.append(count)
+            mask = cv2.normalize(
+                mask, None, 0, 255, cv2.NORM_MINMAX
+            )
+            mask = mask.astype(np.uint8)
+            cv2.imwrite(image_path_save, mask)
+        return SuperPixelsResponse(success=True, superPixels=counts)
