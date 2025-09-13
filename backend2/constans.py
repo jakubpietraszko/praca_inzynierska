@@ -77,6 +77,14 @@ class Constants:
             self.SMOOTH_GRADIENT,
             self.SMOOTH_GRADIENT_SQUARE,
             self.VAR_GRADIENT,
+
+            self.GRAD_CAM,
+            self.HIRES_CAM,
+            self.ABLATION_CAM,
+            self.GRAD_CAM_PLUS_PLUS,
+            self.GROUP_CAM,
+            self.WGRAD_CAM,
+            self.XGRAD_CAM
         ]
 
         self.ALL_DIRS = [

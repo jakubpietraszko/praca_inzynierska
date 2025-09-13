@@ -94,3 +94,15 @@ async def ablation_cam(request: GradientRequest,
         request=request,
         type=constants.ABLATION_CAM,
     )
+
+@router.post('/xgrad-cam', response_model=GradientResponse)
+async def xgrad_cam(request: GradientRequest,
+                    constants: Constants = Depends(get_constants),
+                    heatmaps_facede_service: HeatmapsFacedeService = Depends(
+                        get_heatmaps_facede_service
+                    )
+                    ):
+    return heatmaps_facede_service.generate_heatmap(
+        request=request,
+        type=constants.XGRAD_CAM,
+    )

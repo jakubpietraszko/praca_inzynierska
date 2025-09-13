@@ -16,6 +16,7 @@ from routers.heatmaps.integrated_gradient_routes import router as integrated_gra
 from routers.edge_routes import router as edge_router
 from routers.unsupervised_routes import router as unsupervised_router
 from routers.heatmaps.heatmaps_routes import router as heatmaps_router
+from routers.heatmaps.lrp_routes import router as lrp_router
 
 app = FastAPI()
 
@@ -40,6 +41,7 @@ app.include_router(gradient_noise_router, prefix="/heatmap")
 app.include_router(gradient_router, prefix="/heatmap")
 app.include_router(probing_image_router, prefix="/heatmap")
 app.include_router(integrated_gradient_router, prefix="/heatmap")
+app.include_router(lrp_router, prefix="/heatmap")
 app.include_router(unsupervised_router, prefix="/unsupervised")
 
 @app.get("/")
