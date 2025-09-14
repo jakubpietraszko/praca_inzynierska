@@ -84,7 +84,11 @@ class Constants:
             self.GRAD_CAM_PLUS_PLUS,
             self.GROUP_CAM,
             self.WGRAD_CAM,
-            self.XGRAD_CAM
+            self.XGRAD_CAM,
+
+            self.LIME,
+            self.XRAI,
+            self.KERNEL_SHAP,
         ]
 
         self.ALL_DIRS = [
@@ -126,6 +130,10 @@ class Constants:
             self.LRP_ALPHA_BETA,
             self.LRP_FLAT,
             self.DEEP_TAYLOR,
+            
+            self.XRAI,
+            self.LIME,
+            self.KERNEL_SHAP,
         ]
 
     CMAP: str = 'hot',

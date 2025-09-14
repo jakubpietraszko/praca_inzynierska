@@ -86,6 +86,8 @@ class CAMService:
             # gradients (1, b, h, w)
             weights = gradients.mean(dim=(2, 3), keepdim=True)
             # weights (1, b, 1, 1)
+            # normalize weights
+            weights = weights / (torch.sum(weights) + constants.EPSILON)
             cam = (weights * activations).sum(dim=1, keepdim=True)
             # cam (1, 1, h, w)
             cam = cam.squeeze().cpu().detach().numpy()
@@ -648,6 +650,9 @@ class CAMService:
             # activations (b, h, w)
             ablationcam = np.zeros(activations.shape[1:], dtype=np.float32)
             # ablationcam (h, w)
+
+            # normalize weights
+            weights = weights / (np.sum(weights) + constants.EPSILON)
 
             for i, w in enumerate(weights):
                 ablationcam += float(w) * activations[i, :, :]

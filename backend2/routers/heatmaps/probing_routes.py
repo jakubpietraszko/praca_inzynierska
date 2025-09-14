@@ -17,8 +17,34 @@ async def lime(request: GradientRequest,
                heatmaps_facede_service: HeatmapsFacedeService = Depends(
                    get_heatmaps_facede_service
                ),):
-    
+
     return heatmaps_facede_service.generate_heatmap(
         request=request,
         type=constants.LIME,
+    )
+
+
+@router.post('/xrai', response_model=GradientResponse)
+async def xrai(request: GradientRequest,
+               constants: Constants = Depends(get_constants),
+               heatmaps_facede_service: HeatmapsFacedeService = Depends(
+                   get_heatmaps_facede_service
+               ),):
+
+    return heatmaps_facede_service.generate_heatmap(
+        request=request,
+        type=constants.XRAI,
+    )
+
+
+@router.post('/kernel-shap', response_model=GradientResponse)
+async def kernel_shap(request: GradientRequest,
+                      constants: Constants = Depends(get_constants),
+                      heatmaps_facede_service: HeatmapsFacedeService = Depends(
+                          get_heatmaps_facede_service
+                      ),):
+
+    return heatmaps_facede_service.generate_heatmap(
+        request=request,
+        type=constants.KERNEL_SHAP,
     )

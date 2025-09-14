@@ -229,6 +229,10 @@ class GradientService:
             if len(result.shape) == 3 and result.shape[0] == 3:
                 result = utilities_service.aggregate_channels(
                     result, constants.AGGREGATION)
+                
+            result = utilities_service.relu_normalize(
+                result, model_info.input_shape, epsilon=constants.EPSILON
+            )
 
             cv2.imwrite(save_path, result)
 

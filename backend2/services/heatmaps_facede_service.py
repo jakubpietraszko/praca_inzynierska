@@ -15,7 +15,7 @@ class HeatmapsFacedeService:
         from services.container import Constants, get_constants
         from services.container import ModelsService, get_models_service
         from services.container import LRPService, get_lrp_service
-        from services.probing_image_service import ProbingImageService, get_probing_image_service
+        from services.container import ProbingImageService, get_probing_image_service
 
         self.get_gradient_service = get_gradient_service
         self.get_integrated_gradients_service = get_integrated_gradients_service
@@ -81,9 +81,10 @@ class HeatmapsFacedeService:
 
         elif type == self.get_constants().LIME:
             return self.get_probing_image_service().lime(**args)
-
-        elif type == self.get_constants().LRP_FLAT:
-            return self.get_lrp_service().lrp_flat(**args)
+        elif type == self.get_constants().XRAI:
+            return self.get_probing_image_service().xrai(**args)
+        elif type == self.get_constants().KERNEL_SHAP:
+            return self.get_probing_image_service().kernel_shap(**args)
 
         return GradientResponse(
             success=True
