@@ -1,3 +1,95 @@
 {
-    "methods": {}
+    "methods": {
+        "grad_cam": {
+            "epsilon": 1e-06
+        },
+        "grad_cam_plus_plus": {
+            "epsilon": 1e-06
+        },
+        "group_cam": {
+            "epsilon": 1e-06,
+            "group_size": 16,
+            "k_size": 5,
+            "sigma": 0.5
+        },
+        "hires_cam": {
+            "epsilon": 1e-06
+        },
+        "wgrad_cam": {
+            "epsilon": 1e-06
+        },
+        "ablation_cam": {
+            "epsilon": 1e-06
+        },
+        "xgrad_cam": {
+            "epsilon": 1e-06
+        },
+        "smooth_grad": {
+            "epsilon": 1e-06,
+            "aggregation": "max",
+            "n_samples": 50,
+            "noise_level": 0.1
+        },
+        "smooth_grad_squared": {
+            "epsilon": 1e-06,
+            "aggregation": "max",
+            "n_samples": 50,
+            "noise_level": 0.1
+        },
+        "var_grad": {
+            "epsilon": 1e-06,
+            "aggregation": "max",
+            "n_samples": 50,
+            "noise_level": 0.1
+        },
+        "gradient": {
+            "epsilon": 1e-06,
+            "aggregation": "max"
+        },
+        "gradient_squared": {
+            "epsilon": 1e-06,
+            "aggregation": "max"
+        },
+        "deconvolution": {
+            "epsilon": 1e-06,
+            "aggregation": "max"
+        },
+        "guided_backpropagation": {
+            "epsilon": 1e-06,
+            "aggregation": "max"
+        },
+        "input_gradient": {
+            "epsilon": 1e-06,
+            "aggregation": "max"
+        },
+        "integrated_gradient": {
+            "epsilon": 1e-06,
+            "aggregation": "max",
+            "baseline": 0.0,
+            "steps": 50
+        },
+        "xrai": {
+            "epsilon": 1e-06,
+            "aggregation": "max",
+            "baseline": 0.0,
+            "super_pixels": 30,
+            "segmentation": "seed"
+        },
+        "kernel_shap": {
+            "epsilon": 1e-06,
+            "aggregation": "max",
+            "n_samples": 50,
+            "baseline": 0.0,
+            "super_pixels": 30,
+            "segmentation": "seed"
+        },
+        "lime": {
+            "epsilon": 1e-06,
+            "aggregation": "max",
+            "n_samples": 50,
+            "baseline": 0.0,
+            "super_pixels": 30,
+            "segmentation": "seed"
+        }
+    }
 }
