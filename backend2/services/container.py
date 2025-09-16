@@ -14,6 +14,7 @@ from .probing_image_service import ProbingImageService
 from .gradient_noise_service import GradientNoiseService
 from .heatmaps_facede_service import HeatmapsFacedeService
 from .lrp_service import LRPService
+from .config_service import ConfigService
 
 from constans import Constants
 
@@ -46,6 +47,7 @@ class ServiceContainer:
         self._gradient_noise_service = None
         self._heatmaps_facede_service = None
         self._lrp_service = None
+        self._config_service = None
 
     @property
     def datasets_service(self) -> DatasetsService:
@@ -135,6 +137,12 @@ class ServiceContainer:
         if self._lrp_service is None:
             self._lrp_service = LRPService()
         return self._lrp_service
+    
+    @property
+    def config_service(self):
+        if self._config_service is None:
+            self._config_service = ConfigService(self.base_dir)
+        return self._config_service
 
 
 _container: ServiceContainer = None
@@ -190,3 +198,6 @@ def get_heatmaps_facede_service() -> HeatmapsFacedeService:
 
 def get_lrp_service() -> LRPService:
     return get_container().lrp_service
+
+def get_config_service() -> ConfigService:
+    return get_container().config_service

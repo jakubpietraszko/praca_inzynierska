@@ -7,7 +7,8 @@ from interfaces.gradient import GradientRequest, GradientResponse
 
 class CAMService:
     def __init__(self):
-        pass
+        from services.container import get_config_service
+        self.config_service = get_config_service()
 
     def grad_cam(self,
                  request: GradientRequest,
@@ -25,6 +26,9 @@ class CAMService:
         os.makedirs(root_path, exist_ok=True)
 
         model_info = models_service.load_model(request.model)
+
+        EPSILON = self.config_service.get_method_config('grad_cam').epsilon
+        print(EPSILON)
 
         for image in request.images:
             label = image.label
@@ -87,12 +91,12 @@ class CAMService:
             weights = gradients.mean(dim=(2, 3), keepdim=True)
             # weights (1, b, 1, 1)
             # normalize weights
-            weights = weights / (torch.sum(weights) + constants.EPSILON)
+            weights = weights / (torch.sum(weights) + EPSILON)
             cam = (weights * activations).sum(dim=1, keepdim=True)
             # cam (1, 1, h, w)
             cam = cam.squeeze().cpu().detach().numpy()
             cam = utilities_service.relu_normalize(
-                cam, model_info.input_shape, constants.EPSILON
+                cam, model_info.input_shape, EPSILON
             )
             # cam (H, W)
 
@@ -118,6 +122,10 @@ class CAMService:
         os.makedirs(root_path, exist_ok=True)
 
         model_info = models_service.load_model(request.model)
+
+        EPSILON = self.config_service.get_method_config(
+            'grad_cam_plus_plus').epsilon
+        print(EPSILON)
 
         for image in request.images:
             label = image.label
@@ -185,7 +193,7 @@ class CAMService:
             spatial_sums = (
                 activations * grads_3).sum(dim=(2, 3), keepdim=True)
             # spatial_sums (1, b, 1, 1)
-            epsilon = constants.EPSILON
+            epsilon = EPSILON
             alphas = grads_2 / (2 * grads_2 + spatial_sums + epsilon)
             # alphas (1, b, h, w)
             relu_grads = torch.relu(grads)
@@ -195,7 +203,7 @@ class CAMService:
             # cam (1, 1, h, w)
             cam = cam.squeeze().cpu().detach().numpy()
             cam = utilities_service.relu_normalize(
-                cam, model_info.input_shape, constants.EPSILON
+                cam, model_info.input_shape, EPSILON
             )
             # cam (H, W)
             cv2.imwrite(save_path, cam)
@@ -221,9 +229,12 @@ class CAMService:
 
         model_info = models_service.load_model(request.model)
 
-        G = 8
-        ksize = 11
-        sigma = 1.0
+        EPSILON = self.config_service.get_method_config('group_cam').epsilon
+        G = self.config_service.get_method_config('group_cam').group_size
+        ksize = self.config_service.get_method_config('group_cam').k_size
+        sigma = self.config_service.get_method_config('group_cam').sigma
+
+        print(EPSILON, G, ksize, sigma)
 
         for image in request.images:
             label = image.label
@@ -380,6 +391,9 @@ class CAMService:
 
         model_info = models_service.load_model(request.model)
 
+        EPSILON = self.config_service.get_method_config('hires_cam').epsilon
+        print(EPSILON)
+
         for image in request.images:
             label = image.label
             filename = image.filename
@@ -445,7 +459,7 @@ class CAMService:
             # cam (h, w)
 
             cam = utilities_service.relu_normalize(
-                cam, model_info.input_shape, constants.EPSILON
+                cam, model_info.input_shape, EPSILON
             )
             # cam (H, W)
 
@@ -470,6 +484,9 @@ class CAMService:
         os.makedirs(root_path, exist_ok=True)
 
         model_info = models_service.load_model(request.model)
+
+        EPSILON = self.config_service.get_method_config('wgrad_cam').epsilon
+        print(EPSILON)
 
         for image in request.images:
             label = image.label
@@ -540,7 +557,7 @@ class CAMService:
                 G_k = gradients[0, k, :, :]
                 weights[k] = torch.mean(A_k * G_k)
 
-            weights = weights / (torch.sum(weights) + constants.EPSILON)
+            weights = weights / (torch.sum(weights) + EPSILON)
 
             weights = weights.unsqueeze(-1).unsqueeze(-1)
             # weights (b, 1, 1)
@@ -552,7 +569,7 @@ class CAMService:
             cam = cam.cpu().detach().numpy()
 
             cam = utilities_service.relu_normalize(
-                cam, model_info.input_shape, constants.EPSILON
+                cam, model_info.input_shape, EPSILON
             )
             # cam (H, W)
 
@@ -578,6 +595,9 @@ class CAMService:
         os.makedirs(root_path, exist_ok=True)
 
         model_info = models_service.load_model(request.model)
+
+        EPSILON = self.config_service.get_method_config('ablation_cam').epsilon
+        print(EPSILON)
 
         for image in request.images:
             label = image.label
@@ -652,7 +672,7 @@ class CAMService:
             # ablationcam (h, w)
 
             # normalize weights
-            weights = weights / (np.sum(weights) + constants.EPSILON)
+            weights = weights / (np.sum(weights) + EPSILON)
 
             for i, w in enumerate(weights):
                 ablationcam += float(w) * activations[i, :, :]
@@ -686,6 +706,9 @@ class CAMService:
         os.makedirs(root_path, exist_ok=True)
 
         model_info = models_service.load_model(request.model)
+
+        EPSILON = self.config_service.get_method_config('xgrad_cam').epsilon
+        print(EPSILON)
 
         for image in request.images:
             label = image.label
@@ -760,7 +783,7 @@ class CAMService:
             cam = cam.squeeze().cpu().detach().numpy()
 
             cam = utilities_service.relu_normalize(
-                cam, model_info.input_shape, constants.EPSILON
+                cam, model_info.input_shape, EPSILON
             )
             # cam (H, W)
 

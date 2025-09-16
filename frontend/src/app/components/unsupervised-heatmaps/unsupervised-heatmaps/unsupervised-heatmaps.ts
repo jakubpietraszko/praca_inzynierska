@@ -28,7 +28,7 @@ interface ImageCoordinate {
 
 @Component({
   selector: 'app-unsupervised-heatmaps',
-  imports: [DragDropModule, CommonModule, LoadActivationImage, LoadImageDirective, LoadModelsDatasetsImage],
+  imports: [DragDropModule, CommonModule, LoadModelsDatasetsImage],
   templateUrl: './unsupervised-heatmaps.html',
   styleUrl: './unsupervised-heatmaps.css',
 })

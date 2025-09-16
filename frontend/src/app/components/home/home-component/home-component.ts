@@ -10,10 +10,6 @@ import { ModelSelector } from '../../model-selector/model-selector/model-selecto
 @Component({
   selector: 'app-home-component',
   imports: [
-    UnsupervisedActivations,
-    AllAvailableMethods,
-    ImageTitleTransparent,
-    CompareHeatmaps,
     ModelSelector
   ],
   templateUrl: './home-component.html',

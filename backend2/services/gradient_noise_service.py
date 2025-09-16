@@ -7,7 +7,8 @@ from interfaces.gradient import GradientRequest, GradientResponse
 
 class GradientNoiseService:
     def __init__(self):
-        pass
+        from services.container import get_config_service
+        self.config_service = get_config_service()
 
     def smooth_grad(self,
                  request: GradientRequest,
@@ -24,6 +25,13 @@ class GradientNoiseService:
         os.makedirs(root_path, exist_ok=True)
 
         model_info = models_service.load_model(request.model)
+
+        EPSILON = self.config_service.get_method_config('smooth_grad').epsilon
+        NUM_SAMPLES = self.config_service.get_method_config('smooth_grad').n_samples
+        NOISE = self.config_service.get_method_config('smooth_grad').noise_level
+        AGGREGATION = self.config_service.get_method_config('smooth_grad').aggregation
+
+        print(EPSILON, NUM_SAMPLES, NOISE, AGGREGATION)
 
         for image in request.images:
             label = image.label
@@ -59,8 +67,8 @@ class GradientNoiseService:
 
             result = torch.zeros_like(image_tensor)
 
-            for _ in range(constants.NUM_SAMPLES):
-                noise = torch.randn_like(image_tensor) * constants.NOISE_LEVEL
+            for _ in range(NUM_SAMPLES):
+                noise = torch.randn_like(image_tensor) * NOISE
                 noisy_image = (image_tensor + noise).clone().detach().contiguous()
                 noisy_image.requires_grad_()
                 output = model_info.model(noisy_image)
@@ -68,14 +76,14 @@ class GradientNoiseService:
                 grad = torch.autograd.grad(y_c, noisy_image)[0]
                 grad = torch.clamp(grad, min=0)
                 result += grad
-            result /= constants.NUM_SAMPLES
+            result /= NUM_SAMPLES
             result = result.squeeze().cpu().detach().numpy()
 
             if len(result.shape) == 3 and result.shape[0] == 3:
                 result = utilities_service.aggregate_channels(
-                    result, constants.AGGREGATION)
+                    result, AGGREGATION)
             result = utilities_service.relu_normalize(
-                result, model_info.input_shape, epsilon=constants.EPSILON
+                result, model_info.input_shape, epsilon=EPSILON
             )
 
             cv2.imwrite(save_path, result)
@@ -100,6 +108,13 @@ class GradientNoiseService:
 
         model_info = models_service.load_model(request.model)
 
+        EPSILON = self.config_service.get_method_config('smooth_grad_squared').epsilon
+        NUM_SAMPLES = self.config_service.get_method_config('smooth_grad_squared').n_samples
+        NOISE = self.config_service.get_method_config('smooth_grad_squared').noise_level
+        AGGREGATION = self.config_service.get_method_config('smooth_grad_squared').aggregation
+
+        print(EPSILON, NUM_SAMPLES, NOISE, AGGREGATION)
+
         for image in request.images:
             label = image.label
             filename = image.filename
@@ -134,8 +149,8 @@ class GradientNoiseService:
 
             result = torch.zeros_like(image_tensor)
 
-            for _ in range(constants.NUM_SAMPLES):
-                noise = torch.randn_like(image_tensor) * constants.NOISE_LEVEL
+            for _ in range(NUM_SAMPLES):
+                noise = torch.randn_like(image_tensor) * NOISE
                 noisy_image = (image_tensor + noise).clone().detach().contiguous()
                 noisy_image.requires_grad_()
                 output = model_info.model(noisy_image)
@@ -143,14 +158,14 @@ class GradientNoiseService:
                 grad = torch.autograd.grad(y_c, noisy_image)[0]
                 grad = torch.clamp(grad, min=0)
                 result += torch.square(grad)
-            result /= constants.NUM_SAMPLES
+            result /= NUM_SAMPLES
             result = result.squeeze().cpu().detach().numpy()
 
             if len(result.shape) == 3 and result.shape[0] == 3:
                 result = utilities_service.aggregate_channels(
-                    result, constants.AGGREGATION)
+                    result, AGGREGATION)
             result = utilities_service.relu_normalize(
-                result, model_info.input_shape, epsilon=constants.EPSILON
+                result, model_info.input_shape, epsilon=EPSILON
             )
 
             cv2.imwrite(save_path, result)
@@ -174,6 +189,13 @@ class GradientNoiseService:
         os.makedirs(root_path, exist_ok=True)
 
         model_info = models_service.load_model(request.model)
+
+        EPSILON = self.config_service.get_method_config('var_grad').epsilon
+        NUM_SAMPLES = self.config_service.get_method_config('var_grad').n_samples
+        NOISE = self.config_service.get_method_config('var_grad').noise_level
+        AGGREGATION = self.config_service.get_method_config('var_grad').aggregation
+
+        print(EPSILON, NUM_SAMPLES, NOISE, AGGREGATION)
 
         for image in request.images:
             label = image.label
@@ -209,8 +231,8 @@ class GradientNoiseService:
 
             results_list = []
 
-            for _ in range(constants.NUM_SAMPLES):
-                noise = torch.randn_like(image_tensor) * constants.NOISE_LEVEL
+            for _ in range(NUM_SAMPLES):
+                noise = torch.randn_like(image_tensor) * NOISE
                 noisy_image = (image_tensor + noise).clone().detach().contiguous()
                 noisy_image.requires_grad_()
                 output = model_info.model(noisy_image)
@@ -225,10 +247,10 @@ class GradientNoiseService:
 
             if len(result.shape) == 3 and result.shape[0] == 3:
                 result = utilities_service.aggregate_channels(
-                    result, constants.AGGREGATION)
+                    result, AGGREGATION)
 
             result = utilities_service.relu_normalize(
-                result, model_info.input_shape, epsilon=constants.EPSILON
+                result, model_info.input_shape, epsilon=EPSILON
             )
 
             cv2.imwrite(save_path, result)

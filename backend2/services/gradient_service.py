@@ -8,7 +8,8 @@ import cv2
 
 class GradientService:
     def __init__(self):
-        pass
+        from services.container import get_config_service
+        self.config_service = get_config_service()
 
     def gradient(self, request: GradientRequest,
                  container,
@@ -25,6 +26,10 @@ class GradientService:
         os.makedirs(root_path, exist_ok=True)
 
         model_info = models_service.load_model(request.model)
+
+        EPSILON = self.config_service.get_method_config('gradient').epsilon
+        AGGREGATION = self.config_service.get_method_config('gradient').aggregation
+        print(EPSILON, AGGREGATION)
 
         for image in request.images:
             label = image.label
@@ -69,10 +74,10 @@ class GradientService:
 
             if len(result.shape) == 3 and result.shape[0] == 3:
                 result = utilities_service.aggregate_channels(
-                    result, constants.AGGREGATION)
+                    result, AGGREGATION)
 
             result = utilities_service.relu_normalize(
-                result, model_info.input_shape, epsilon=constants.EPSILON
+                result, model_info.input_shape, epsilon=EPSILON
             )
 
             cv2.imwrite(save_path, result)
@@ -96,6 +101,10 @@ class GradientService:
         os.makedirs(root_path, exist_ok=True)
 
         model_info = models_service.load_model(request.model)
+
+        EPSILON = self.config_service.get_method_config('gradient_squared').epsilon
+        AGGREGATION = self.config_service.get_method_config('gradient_squared').aggregation
+        print(EPSILON, AGGREGATION)
 
         for image in request.images:
             label = image.label
@@ -139,12 +148,12 @@ class GradientService:
 
             if len(result.shape) == 3 and result.shape[0] == 3:
                 result = utilities_service.aggregate_channels(
-                    result, constants.AGGREGATION)
+                    result, AGGREGATION)
 
             result = np.square(result)
 
             result = utilities_service.relu_normalize(
-                result, model_info.input_shape, epsilon=constants.EPSILON
+                result, model_info.input_shape, epsilon=EPSILON
             )
 
             cv2.imwrite(save_path, result)
@@ -168,6 +177,10 @@ class GradientService:
         os.makedirs(root_path, exist_ok=True)
 
         model_info = models_service.load_model(request.model)
+
+        EPSILON = self.config_service.get_method_config('deconvolution').epsilon
+        AGGREGATION = self.config_service.get_method_config('deconvolution').aggregation
+        print(EPSILON, AGGREGATION)
 
         hooks = list()
         original_inplace_states = dict()
@@ -228,10 +241,10 @@ class GradientService:
 
             if len(result.shape) == 3 and result.shape[0] == 3:
                 result = utilities_service.aggregate_channels(
-                    result, constants.AGGREGATION)
-                
+                    result, AGGREGATION)
+
             result = utilities_service.relu_normalize(
-                result, model_info.input_shape, epsilon=constants.EPSILON
+                result, model_info.input_shape, epsilon=EPSILON
             )
 
             cv2.imwrite(save_path, result)
@@ -262,7 +275,9 @@ class GradientService:
         os.makedirs(root_path, exist_ok=True)
 
         model_info = models_service.load_model(request.model)
-
+        EPSILON = self.config_service.get_method_config('guided_backpropagation').epsilon
+        AGGREGATION = self.config_service.get_method_config('guided_backpropagation').aggregation
+        print(EPSILON, AGGREGATION)
         forward_activations = dict()
         hooks = list()
         original_inplace_states = dict()
@@ -343,10 +358,10 @@ class GradientService:
 
             if len(result.shape) == 3 and result.shape[0] == 3:
                 result = utilities_service.aggregate_channels(
-                    result, constants.AGGREGATION)
+                    result, AGGREGATION)
 
             result = utilities_service.relu_normalize(
-                result, model_info.input_shape, epsilon=constants.EPSILON
+                result, model_info.input_shape, epsilon=EPSILON
             )
 
             cv2.imwrite(save_path, result)
@@ -377,6 +392,10 @@ class GradientService:
         os.makedirs(root_path, exist_ok=True)
 
         model_info = models_service.load_model(request.model)
+
+        EPSILON = self.config_service.get_method_config('input_gradient').epsilon
+        AGGREGATION = self.config_service.get_method_config('input_gradient').aggregation
+        print(EPSILON, AGGREGATION)
 
         for image in request.images:
             label = image.label
@@ -419,17 +438,17 @@ class GradientService:
 
             if len(result.shape) == 3 and result.shape[0] == 3:
                 result = utilities_service.aggregate_channels(
-                    result, constants.AGGREGATION)
+                    result, AGGREGATION)
 
             result = utilities_service.relu_normalize(
-                result, model_info.input_shape, epsilon=constants.EPSILON
+                result, model_info.input_shape, epsilon=EPSILON
             )
 
             input_np = (image_tensor.squeeze().cpu().detach().numpy()
                         * 255).astype(np.uint8)
             if len(input_np.shape) == 3 and input_np.shape[0] == 3:
                 input_np = utilities_service.aggregate_channels(
-                    input_np, constants.AGGREGATION)
+                    input_np, AGGREGATION)
 
             result = (result.astype(np.float32) / 255.0) * \
                 (input_np.astype(np.float32) / 255.0)

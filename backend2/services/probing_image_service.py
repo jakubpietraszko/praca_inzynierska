@@ -15,7 +15,9 @@ from interfaces.label_filename import LabelFilename
 class ProbingImageService:
     def __init__(self):
         from services.container import MasksService, get_masks_service
+        from services.container import get_config_service
 
+        self.config_service = get_config_service()
         self.get_masks_service = get_masks_service()
 
     def xrai(self, request: GradientRequest,
@@ -24,8 +26,6 @@ class ProbingImageService:
              utilities_service,
              constants,
              models_service) -> GradientResponse:
-
-        print("DEBUG XRAI: Starting XRAI method")
 
         root_path = os.path.join(
             container.models_datasets_path,
@@ -36,6 +36,14 @@ class ProbingImageService:
         os.makedirs(root_path, exist_ok=True)
 
         model_info = models_service.load_model(request.model)
+
+        EPSILON = self.config_service.get_method_config('xrai').epsilon
+        AGGREGATION = self.config_service.get_method_config('xrai').aggregation
+        SUPER_PIXELS = self.config_service.get_method_config('xrai').super_pixels
+        BASELINE = self.config_service.get_method_config('xrai').baseline
+        SEGMENTATION = self.config_service.get_method_config('xrai').segmentation
+
+        print(EPSILON, AGGREGATION, SUPER_PIXELS, BASELINE, N_SAMPLES, SEGMENTATION)
 
         for image in request.images:
             label = image.label
@@ -75,7 +83,7 @@ class ProbingImageService:
                         filename=filename
                     )
                 ],
-                superPixels=30,
+                superPixels=SUPER_PIXELS,
                 overwrite=False
             )
 
@@ -117,7 +125,7 @@ class ProbingImageService:
 
             if len(attribution_map.shape) == 3 and attribution_map.shape[0] == 3:
                 attribution_map = utilities_service.aggregate_channels(
-                    attribution_map, constants.AGGREGATION)
+                    attribution_map, AGGREGATION)
 
             attribution_map = np.abs(attribution_map)
 
@@ -180,6 +188,16 @@ class ProbingImageService:
 
         model_info = models_service.load_model(request.model)
 
+
+        EPSILON = self.config_service.get_method_config('kernel_shap').epsilon
+        AGGREGATION = self.config_service.get_method_config('kernel_shap').aggregation
+        SUPER_PIXELS = self.config_service.get_method_config('kernel_shap').super_pixels
+        BASELINE = self.config_service.get_method_config('kernel_shap').baseline
+        N_SAMPLES = self.config_service.get_method_config('kernel_shap').n_samples
+        SEGMENTATION = self.config_service.get_method_config('kernel_shap').segmentation
+
+        print(EPSILON, AGGREGATION, SUPER_PIXELS, BASELINE, N_SAMPLES, SEGMENTATION)
+
         for image in request.images:
             label = image.label
             filename = image.filename
@@ -217,7 +235,7 @@ class ProbingImageService:
                         filename=filename
                     )
                 ],
-                superPixels=30,
+                superPixels=SUPER_PIXELS,
                 overwrite=False
             )
 
@@ -253,7 +271,7 @@ class ProbingImageService:
                     model=model_info.model,
                     target=target,
                     utilities_service=utilities_service,
-                    num_samples=constants.NUM_SAMPLES
+                    num_samples=N_SAMPLES
                 )
                 print(shap_values.shape, shap_values.dtype,
                       np.min(shap_values), np.max(shap_values))
@@ -304,6 +322,15 @@ class ProbingImageService:
 
         model_info = models_service.load_model(request.model)
 
+        EPSILON = self.config_service.get_method_config('lime').epsilon
+        AGGREGATION = self.config_service.get_method_config('lime').aggregation
+        SUPER_PIXELS = self.config_service.get_method_config('lime').super_pixels
+        BASELINE = self.config_service.get_method_config('lime').baseline
+        N_SAMPLES = self.config_service.get_method_config('lime').n_samples
+        SEGMENTATION = self.config_service.get_method_config('lime').segmentation
+
+        print(EPSILON, AGGREGATION, SUPER_PIXELS, BASELINE, N_SAMPLES, SEGMENTATION)
+
         for image in request.images:
             label = image.label
             filename = image.filename
@@ -344,7 +371,7 @@ class ProbingImageService:
                         filename=filename
                     )
                 ],
-                superPixels=30,
+                superPixels=SUPER_PIXELS,
                 overwrite=False
             )
 
@@ -382,7 +409,7 @@ class ProbingImageService:
                 model=model_info.model,
                 target=target,
                 utilities_service=utilities_service,
-                num_samples=constants.NUM_SAMPLES
+                num_samples=N_SAMPLES
             )
 
             if np.max(attribution) > np.min(attribution):

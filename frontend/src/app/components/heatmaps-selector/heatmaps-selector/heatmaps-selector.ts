@@ -5,10 +5,11 @@ import { FormsModule } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { TranslateXaiMethodsPipe } from '../../../pipes/translate-xai-methods-pipe';
 
 @Component({
   selector: 'app-heatmaps-selector',
-  imports: [FormsModule, MatInputModule, MatSelectModule, MatFormFieldModule],
+  imports: [FormsModule, MatInputModule, MatSelectModule, MatFormFieldModule, TranslateXaiMethodsPipe],
   templateUrl: './heatmaps-selector.html',
   styleUrl: './heatmaps-selector.css',
 })

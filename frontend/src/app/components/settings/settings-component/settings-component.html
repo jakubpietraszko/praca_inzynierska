@@ -1,17 +1,135 @@
-<mat-form-field>
-  <mat-label>Model</mat-label>
-  <mat-select [(ngModel)]="selectedModel" (ngModelChange)="onModelChange()" canSelectNullableOptions>
-    @for (option of modelOptions; track option.value) {
-      <mat-option [value]="option.value">{{option.label}}</mat-option>
-    }
-  </mat-select>
-</mat-form-field>
+<div>
+  <div class="settings-container">
+    <mat-card class="actions-card">
+      <mat-card-content>
+        <button mat-raised-button color="primary" (click)="onSaveConfig()" [disabled]="loading()">
+          Zapisz
+        </button>
 
-<mat-form-field>
-  <mat-label>Zbiór danych</mat-label>
-  <mat-select [(ngModel)]="selectedDataset" (ngModelChange)="onDatasetChange()" canSelectNullableOptions>
-    @for (option of datasetOptions; track option.value) {
-      <mat-option [value]="option.value">{{option.label}}</mat-option>
-    }
-  </mat-select>
-</mat-form-field>
+        <button mat-button (click)="onResetConfig()" [disabled]="loading()">
+          Resetuj
+        </button>
+
+        @if(loading()) {
+        <mat-spinner diameter="20"></mat-spinner>
+        <span>Loading...</span>
+        }
+      </mat-card-content>
+    </mat-card>
+
+    <mat-accordion class="methods-accordion">
+      @for (methodName of getAllMethodNames(); track methodName) {
+      <mat-expansion-panel>
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            {{ getMethodDisplayName(methodName) }}
+          </mat-panel-title>
+          <!-- <mat-panel-description>
+            Konfiguruj {{ methodName | translateXaiMethods}}
+          </mat-panel-description> -->
+        </mat-expansion-panel-header>
+
+        <div class="method-config-form">
+          @if (hasField(methodName, 'epsilon')) {
+          <mat-form-field appearance="outline" class="config-field">
+            <mat-label>Epsilon</mat-label>
+            <input matInput type="number" step="0.000001" min="0" [(ngModel)]="getMethodConfig(methodName).epsilon"
+              (ngModelChange)="onMethodConfigChange(methodName, 'epsilon', $event)" placeholder="1e-6" />
+          </mat-form-field>
+          }
+
+          @if (hasField(methodName, 'aggregation')) {
+          <mat-form-field appearance="outline" class="config-field">
+            <mat-label>Agregacja</mat-label>
+            <mat-select [(value)]="getMethodConfig(methodName).aggregation"
+              (selectionChange)="onMethodConfigChange(methodName, 'aggregation', $event.value)">
+              @for (option of aggregationOptions; track option) {
+              <mat-option [value]="option">{{ option | titlecase }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          }
+
+          @if (hasField(methodName, 'group_size')) {
+          <mat-form-field appearance="outline" class="config-field">
+            <mat-label>Wielkość grup</mat-label>
+            <input matInput type="number" min="1" [(ngModel)]="getMethodConfig(methodName).group_size"
+              (ngModelChange)="onMethodConfigChange(methodName, 'group_size', $event)" placeholder="16" />
+          </mat-form-field>
+          }
+
+          @if (hasField(methodName, 'k_size')) {
+          <mat-form-field appearance="outline" class="config-field">
+            <mat-label>K</mat-label>
+            <input matInput type="number" min="1" [(ngModel)]="getMethodConfig(methodName).k_size"
+              (ngModelChange)="onMethodConfigChange(methodName, 'k_size', $event)" placeholder="4" />
+          </mat-form-field>
+          }
+
+          @if (hasField(methodName, 'sigma')) {
+          <mat-form-field appearance="outline" class="config-field">
+            <mat-label>Sigma</mat-label>
+            <input matInput type="number" step="0.1" min="0" [(ngModel)]="getMethodConfig(methodName).sigma"
+              (ngModelChange)="onMethodConfigChange(methodName, 'sigma', $event)" placeholder="0.5" />
+          </mat-form-field>
+          }
+
+          @if (hasField(methodName, 'n_samples')) {
+          <mat-form-field appearance="outline" class="config-field">
+            <mat-label>Liczba próbek</mat-label>
+            <input matInput type="number" min="1" [(ngModel)]="getMethodConfig(methodName).n_samples"
+              (ngModelChange)="onMethodConfigChange(methodName, 'n_samples', $event)" placeholder="50" />
+          </mat-form-field>
+          }
+
+          @if (hasField(methodName, 'noise_level')) {
+          <mat-form-field appearance="outline" class="config-field">
+            <mat-label>Wielkość szumu</mat-label>
+            <input matInput type="number" step="0.01" min="0" max="1"
+              [(ngModel)]="getMethodConfig(methodName).noise_level"
+              (ngModelChange)="onMethodConfigChange(methodName, 'noise_level', $event)" placeholder="0.1" />
+          </mat-form-field>
+          }
+
+          @if (hasField(methodName, 'baseline')) {
+          <mat-form-field appearance="outline" class="config-field">
+            <mat-label>Tło</mat-label>
+            <input matInput type="number" step="0.1" [(ngModel)]="getMethodConfig(methodName).baseline"
+              (ngModelChange)="onMethodConfigChange(methodName, 'baseline', $event)" placeholder="0" />
+            <mat-hint>-1 wartość losowa, 0 czarne, 255 białe</mat-hint>
+          </mat-form-field>
+          }
+
+          @if (hasField(methodName, 'steps')) {
+          <mat-form-field appearance="outline" class="config-field">
+            <mat-label>Kroki</mat-label>
+            <input matInput type="number" min="1" [(ngModel)]="getMethodConfig(methodName).steps"
+              (ngModelChange)="onMethodConfigChange(methodName, 'steps', $event)" placeholder="50" />
+          </mat-form-field>
+          }
+
+          @if (hasField(methodName, 'super_pixels')) {
+          <mat-form-field appearance="outline" class="config-field">
+            <mat-label>Liczba super pikseli</mat-label>
+            <input matInput type="number" min="1" [(ngModel)]="getMethodConfig(methodName).super_pixels"
+              (ngModelChange)="onMethodConfigChange(methodName, 'super_pixels', $event)" placeholder="100" />
+          </mat-form-field>
+          }
+
+          @if (hasField(methodName, 'segmentation')) {
+          <mat-form-field appearance="outline" class="config-field">
+            <mat-label>Rodzaj segmentacji</mat-label>
+            <mat-select [(value)]="getMethodConfig(methodName).segmentation"
+              (selectionChange)="onMethodConfigChange(methodName, 'segmentation', $event.value)">
+              @for (option of segmentationOptions; track option) {
+              <mat-option [value]="option">{{ option | titlecase }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          }
+        </div>
+      </mat-expansion-panel>
+      }
+    </mat-accordion>
+  </div>
+</div>
