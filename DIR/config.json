@@ -9,7 +9,7 @@
         "group_cam": {
             "epsilon": 1e-06,
             "group_size": 16,
-            "k_size": 5,
+            "k_size": 11,
             "sigma": 0.5
         },
         "hires_cam": {
