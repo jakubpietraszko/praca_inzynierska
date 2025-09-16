@@ -43,7 +43,7 @@ class ProbingImageService:
         BASELINE = self.config_service.get_method_config('xrai').baseline
         SEGMENTATION = self.config_service.get_method_config('xrai').segmentation
 
-        print(EPSILON, AGGREGATION, SUPER_PIXELS, BASELINE, N_SAMPLES, SEGMENTATION)
+        print(EPSILON, AGGREGATION, SUPER_PIXELS, BASELINE, SEGMENTATION)
 
         for image in request.images:
             label = image.label

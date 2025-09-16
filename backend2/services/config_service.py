@@ -51,7 +51,7 @@ class ConfigService:
         default_methods = {
             "grad_cam": XAIMethodConfig(epsilon=1e-6),
             "grad_cam_plus_plus": XAIMethodConfig(epsilon=1e-6),
-            "group_cam": XAIMethodConfig(epsilon=1e-6, group_size=8, k_size=4, sigma=0.5),
+            "group_cam": XAIMethodConfig(epsilon=1e-6, group_size=8, k_size=5, sigma=0.5),
             "hires_cam": XAIMethodConfig(epsilon=1e-6),
             "wgrad_cam": XAIMethodConfig(epsilon=1e-6),
             "ablation_cam": XAIMethodConfig(epsilon=1e-6),
@@ -67,11 +67,11 @@ class ConfigService:
             "guided_backpropagation": XAIMethodConfig(epsilon=1e-6, aggregation="max"),
             "input_gradient": XAIMethodConfig(epsilon=1e-6, aggregation="max"),
 
-            "intergrated_gradient": XAIMethodConfig(epsilon=1e-6, baseline=0.0, steps=50, aggregation="max"),
+            "integrated_gradient": XAIMethodConfig(epsilon=1e-6, baseline=0, steps=50, aggregation="max"),
 
-            "xrai": XAIMethodConfig(epsilon=1e-6, aggregation="max", baseline=0.0, super_pixels=30, segmentation="seed"),
-            "kernel_shap": XAIMethodConfig(epsilon=1e-6, n_samples=50, aggregation="max", baseline=0.0, super_pixels=30, segmentation="seed"),
-            "lime": XAIMethodConfig(epsilon=1e-6, n_samples=50, aggregation="max", baseline=0.0, super_pixels=30, segmentation="seed")
+            "xrai": XAIMethodConfig(epsilon=1e-6, aggregation="max", baseline=0, super_pixels=30, segmentation="seed"),
+            "kernel_shap": XAIMethodConfig(epsilon=1e-6, n_samples=50, aggregation="max", baseline=0, super_pixels=30, segmentation="seed"),
+            "lime": XAIMethodConfig(epsilon=1e-6, n_samples=50, aggregation="max", baseline=0, super_pixels=30, segmentation="seed")
 
         }
         return ConfigModel(methods=default_methods)

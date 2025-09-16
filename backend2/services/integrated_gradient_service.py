@@ -26,10 +26,10 @@ class IntegratedGradientsService:
 
         model_info = models_service.load_model(request.model)
 
-        EPSILON = self.config_service.get_method_config('intergrated_gradien').epsilon
-        AGGREGATION = self.config_service.get_method_config('intergrated_gradien').aggregation
-        BASELINE = self.config_service.get_method_config('intergrated_gradien').baseline
-        STEPS = self.config_service.get_method_config('intergrated_gradien').steps
+        EPSILON = self.config_service.get_method_config('integrated_gradient').epsilon
+        AGGREGATION = self.config_service.get_method_config('integrated_gradient').aggregation
+        BASELINE = self.config_service.get_method_config('integrated_gradient').baseline
+        STEPS = self.config_service.get_method_config('integrated_gradient').steps
         print(EPSILON, AGGREGATION, BASELINE, STEPS)
 
         for image in request.images:

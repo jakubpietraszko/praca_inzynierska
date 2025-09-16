@@ -87,7 +87,7 @@ export class SettingsComponent implements OnInit {
       'deconvolution',
       'guided_backpropagation',
       'input_gradient',
-      'intergrated_gradient',
+      'integrated_gradient',
       'xrai',
       'kernel_shap',
       'lime',
@@ -106,7 +106,7 @@ export class SettingsComponent implements OnInit {
       group_cam: {
         epsilon: 1e-6,
         group_size: 16,
-        k_size: 4,
+        k_size: 5,
         sigma: 0.5,
       },
       hires_cam: { epsilon: 1e-6 },
@@ -137,7 +137,7 @@ export class SettingsComponent implements OnInit {
       deconvolution: { epsilon: 1e-6, aggregation: 'max' },
       guided_backpropagation: { epsilon: 1e-6, aggregation: 'max' },
       input_gradient: { epsilon: 1e-6, aggregation: 'max' },
-      intergrated_gradient: {
+      integrated_gradient: {
         epsilon: 1e-6,
         baseline: 0,
         steps: 50,
@@ -200,6 +200,30 @@ export class SettingsComponent implements OnInit {
       value = numValue;
     }
 
+    if (field === 'k_size') {
+      const currentValue = this.currentConfig[methodName]?.k_size || 5;
+      const minValue = Math.max(1, currentValue - 2);
+      const maxValue = currentValue + 2;
+      
+      if (value % 2 === 0) {
+        value = value + 1;
+      }
+      
+      if (value < minValue) {
+        value = minValue % 2 === 0 ? minValue + 1 : minValue;
+      } else if (value > maxValue) {
+        value = maxValue % 2 === 0 ? maxValue - 1 : maxValue;
+      }
+      
+      if (value % 2 === 0) {
+        value = value - 1;
+      }
+      
+      if (value < 1) {
+        value = 1;
+      }
+    }
+
     this.currentConfig[methodName] = {
       ...this.currentConfig[methodName],
       [field]: value,
@@ -255,7 +279,7 @@ export class SettingsComponent implements OnInit {
       deconvolution: ['epsilon', 'aggregation'],
       guided_backpropagation: ['epsilon', 'aggregation'],
       input_gradient: ['epsilon', 'aggregation'],
-      intergrated_gradient: ['epsilon', 'baseline', 'steps', 'aggregation'],
+      integrated_gradient: ['epsilon', 'baseline', 'steps', 'aggregation'],
       xrai: [
         'epsilon',
         'aggregation',
@@ -309,7 +333,7 @@ export class SettingsComponent implements OnInit {
       'deconvolution',
       'guided_backpropagation',
       'input_gradient',
-      'intergrated_gradient',
+      'integrated_gradient',
       'xrai',
       'kernel_shap',
       'lime',
