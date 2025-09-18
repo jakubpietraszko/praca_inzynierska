@@ -7,7 +7,7 @@ import {
   OnInit,
   signal,
 } from '@angular/core';
-import { Heatmaps } from '../../../services/heatmaps/heatmaps';
+import { HeatmapsService } from '../../../services/heatmaps/heatmaps';
 import {
   AllHeatmapsResponse,
   HeatmapRequest,
@@ -63,12 +63,10 @@ export class CompareHeatmaps implements OnInit {
       );
 
       this.imagesLoaded.set(true);
-
-      
     }
   }
 
-  heatmapsService = inject(Heatmaps);
+  heatmapsService = inject(HeatmapsService);
 
   ngOnInit(): void {
     this.heatmapsService

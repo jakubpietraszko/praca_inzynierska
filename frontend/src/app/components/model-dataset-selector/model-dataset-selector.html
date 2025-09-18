@@ -1,0 +1,16 @@
+<mat-form-field>
+    <mat-label>Model</mat-label>
+    <mat-select [(ngModel)]="selectedModel">
+        @for (model of models(); track model) {
+        <mat-option [value]="model">{{model}}</mat-option>
+        }
+    </mat-select>
+</mat-form-field>
+<mat-form-field>
+    <mat-label>Zbiór danych</mat-label>
+    <mat-select [(ngModel)]="selectedDataset">
+        @for (dataset of datasets(); track dataset) {
+        <mat-option [value]="dataset">{{dataset}}</mat-option>
+        }
+    </mat-select>
+</mat-form-field>

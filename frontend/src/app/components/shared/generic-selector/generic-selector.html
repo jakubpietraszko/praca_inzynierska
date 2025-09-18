@@ -1,0 +1,32 @@
+@if(model()) {
+<mat-form-field>
+    <mat-label>Model</mat-label>
+    <mat-select [(ngModel)]="selectedModel">
+        @for (model of models.value()?.models || []; track model) {
+        <mat-option [value]="model">{{model}}</mat-option>
+        }
+    </mat-select>
+</mat-form-field>
+}
+@if(dataset()) {
+
+<mat-form-field>
+    <mat-label>Zbiór danych</mat-label>
+    <mat-select [(ngModel)]="selectedDataset">
+        @for (dataset of datasets.value()?.datasets || []; track dataset) {
+        <mat-option [value]="dataset">{{dataset}}</mat-option>
+        }
+    </mat-select>
+</mat-form-field>
+}
+@if(heatmap()) {
+<mat-form-field>
+    <mat-label>Heatmapa</mat-label>
+    <mat-select [(ngModel)]="selectedHeatmap">
+        @for (heatmap of heatmaps.value()?.heatmaps || []; track heatmap) {
+        <mat-option [value]="heatmap">{{heatmap}}</mat-option>
+        }
+    </mat-select>
+</mat-form-field>
+
+}

@@ -1,14 +1,17 @@
 import os
 import base64
 
+
 class ModelsDatasetsService:
     def __init__(self, models_datasets_path: str, utilities_service, constants):
+        from services.container import get_constants
         self.models_datasets_path = models_datasets_path
         self.utilities_service = utilities_service
-        self.constants = constants
+        self.constants = get_constants()
 
     def init_dir(self, model: str, dataset: str) -> bool:
-        name_of_dir = self.utilities_service.models_datasets_path(model, dataset)
+        name_of_dir = self.utilities_service.models_datasets_path(
+            model, dataset)
         full_path = os.path.join(self.models_datasets_path, name_of_dir)
 
         try:
@@ -18,11 +21,11 @@ class ModelsDatasetsService:
 
                 path = os.path.join(full_path, dir_name)
                 os.makedirs(path, exist_ok=True)
-        
+
         except:
             return False
         return True
-    
+
     def fetch_activations_image(self,
                                 models_dataset: str,
                                 activations: str,
@@ -42,7 +45,7 @@ class ModelsDatasetsService:
             image = base64.b64encode(f.read()).decode('utf-8')
 
         return image
-    
+
     def fetch_image(self,
                     models_dataset: str,
                     type: str,
@@ -60,3 +63,19 @@ class ModelsDatasetsService:
             image = base64.b64encode(f.read()).decode('utf-8')
 
         return image
+
+    def full_init_dir(self, model: str, dataset: str) -> bool:
+        name_of_dir = self.utilities_service.models_datasets_path(
+            model, dataset)
+        full_path = os.path.join(self.models_datasets_path, name_of_dir)
+
+        try:
+            os.makedirs(full_path, exist_ok=True)
+
+            for dir_name in self.constants.AVAILABLE_HEATMAPS:
+                path = os.path.join(full_path, dir_name)
+                os.makedirs(path, exist_ok=True)
+
+        except:
+            return False
+        return True

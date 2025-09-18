@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { AllAvailableMethods } from './all-available-methods';
+import { Statistics } from './statistics';
 
-describe('AllAvailableMethods', () => {
-  let component: AllAvailableMethods;
-  let fixture: ComponentFixture<AllAvailableMethods>;
+describe('Statistics', () => {
+  let component: Statistics;
+  let fixture: ComponentFixture<Statistics>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [AllAvailableMethods]
+      imports: [Statistics]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(AllAvailableMethods);
+    fixture = TestBed.createComponent(Statistics);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

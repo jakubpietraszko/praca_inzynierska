@@ -30,6 +30,14 @@ async def all_labels(
     labels = datasets_service.list_labels_in_dataset(request.dataset)
     return AllLabelsResponse(labels=labels)
 
+@router.get('/all-labels/{dataset}', response_model=AllLabelsResponse)
+async def all_labels_get(
+    dataset: str,
+    datasets_service: DatasetsService = Depends(get_datasets_service)
+):
+    labels = datasets_service.list_labels_in_dataset(dataset)
+    return AllLabelsResponse(labels=labels)
+
 
 @router.post('/all-images', response_model=AllImagesResponse)
 async def all_images(
