@@ -1,0 +1,22 @@
+meta {
+  name: numerator denumerator
+  type: http
+  seq: 2
+}
+
+get {
+  url: http://localhost:8000/numerator-denominator?model=mnist&dataset=mnist-dataset&heatmap=var-grad&label=five
+  body: none
+  auth: inherit
+}
+
+params:query {
+  model: mnist
+  dataset: mnist-dataset
+  heatmap: var-grad
+  label: five
+}
+
+settings {
+  encodeUrl: true
+}

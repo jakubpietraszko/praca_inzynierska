@@ -3,11 +3,12 @@ import base64
 
 
 class ModelsDatasetsService:
-    def __init__(self, models_datasets_path: str, utilities_service, constants):
+    def __init__(self, models_datasets_path: str, datasets_path: str, utilities_service, constants):
         from services.container import get_constants
         self.models_datasets_path = models_datasets_path
         self.utilities_service = utilities_service
         self.constants = get_constants()
+        self.datasets_path = datasets_path
 
     def init_dir(self, model: str, dataset: str) -> bool:
         name_of_dir = self.utilities_service.models_datasets_path(
@@ -79,3 +80,33 @@ class ModelsDatasetsService:
         except:
             return False
         return True
+
+    def numerator_denominator(self, model: str, dataset: str, heatmap: str, label: str) -> tuple[int, int]:
+        heatmap_dir_path = os.path.join(
+            self.models_datasets_path,
+            self.utilities_service.models_datasets_path(
+                model, dataset),
+            heatmap,
+            label
+        )
+        dataset_dir_path = os.path.join(
+            self.datasets_path,
+            dataset,
+            label
+        )
+
+        try:
+            heatmap_files = []
+            for root, dirs, files in os.walk(heatmap_dir_path):
+                heatmap_files.extend(files)
+        
+            dataset_files = []
+            for root, dirs, files in os.walk(dataset_dir_path):
+                dataset_files.extend(files)
+        
+            number_of_numerator = len(heatmap_files)
+            number_of_denominator = len(dataset_files)
+
+        except:
+            return 0, 0
+        return number_of_numerator, number_of_denominator

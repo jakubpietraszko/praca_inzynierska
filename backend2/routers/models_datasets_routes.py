@@ -10,13 +10,14 @@ class ModelDatasetI(BaseModel):
     dataset: str
 
 
-class ModelDatasetHeatmapI(ModelDatasetI):
+class ModelDatasetLabelHeatmapI(ModelDatasetI):
+    label: str
     heatmap: str
 
 
 class NumeratorDenominator(BaseModel):
-    numerator: str
-    denominator: str
+    numerator: int
+    denominator: int
 
 
 class Response(BaseModel):
@@ -41,3 +42,14 @@ async def models_datasets(request: ModelDatasetI,
         request.model, request.dataset
     )
     return Response(success=success)
+
+
+@router.get('/numerator-denominator', response_model=NumeratorDenominator)
+async def numerator_denominator(model: str, dataset: str, heatmap: str, label: str,
+                                models_datasets_service: ModelsDatasetsService = Depends(
+                                    get_models_datasets_service)
+                                ):
+    numerator, denominator = models_datasets_service.numerator_denominator(
+        model, dataset, heatmap, label
+    )
+    return NumeratorDenominator(numerator=numerator, denominator=denominator)

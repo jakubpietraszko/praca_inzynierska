@@ -83,7 +83,8 @@ class ServiceContainer:
     def models_datasets_service(self) -> ModelsDatasetsService:
         if self._models_datasets_service is None:
             self._models_datasets_service = ModelsDatasetsService(
-                self.models_datasets_path, 
+                self.models_datasets_path,
+                self.datasets_path,
                 self.utilities_service, 
                 self.constants
             )
