@@ -15,6 +15,7 @@ from .gradient_noise_service import GradientNoiseService
 from .heatmaps_facede_service import HeatmapsFacedeService
 from .lrp_service import LRPService
 from .config_service import ConfigService
+from .websocket_service import WebSocketService
 
 from constans import Constants
 
@@ -48,6 +49,7 @@ class ServiceContainer:
         self._heatmaps_facede_service = None
         self._lrp_service = None
         self._config_service = None
+        self._websocket_service = None
 
     @property
     def datasets_service(self) -> DatasetsService:
@@ -145,6 +147,12 @@ class ServiceContainer:
             self._config_service = ConfigService(self.base_dir)
         return self._config_service
 
+    @property
+    def websocket_service(self):
+        if self._websocket_service is None:
+            self._websocket_service = WebSocketService()
+        return self._websocket_service
+
 
 _container: ServiceContainer = None
 
@@ -202,3 +210,6 @@ def get_lrp_service() -> LRPService:
 
 def get_config_service() -> ConfigService:
     return get_container().config_service
+
+def get_websocket_service() -> WebSocketService:
+    return get_container().websocket_service

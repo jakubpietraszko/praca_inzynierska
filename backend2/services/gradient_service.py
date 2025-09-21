@@ -1,5 +1,6 @@
 import os
 import numpy as np
+import asyncio
 from interfaces.gradient import GradientRequest, GradientResponse
 from services.models_service import ModelInfo
 import torch
@@ -8,8 +9,9 @@ import cv2
 
 class GradientService:
     def __init__(self):
-        from services.container import get_config_service
+        from services.container import get_config_service, get_websocket_service
         self.config_service = get_config_service()
+        self.websocket_service = get_websocket_service()
 
     def gradient(self, request: GradientRequest,
                  container,
@@ -81,6 +83,17 @@ class GradientService:
             )
 
             cv2.imwrite(save_path, result)
+
+            try:
+                self.websocket_service.send_heatmap_notification_sync(
+                    dataset=request.dataset,
+                    model=request.model,
+                    label=label,
+                    filename=filename,
+                    heatmap_type="gradient"
+                )
+            except:
+                pass
 
         return GradientResponse(
             success=True
@@ -157,6 +170,17 @@ class GradientService:
             )
 
             cv2.imwrite(save_path, result)
+
+        try:
+            self.websocket_service.send_heatmap_notification_sync(
+                dataset=request.dataset,
+                model=request.model,
+                label=label,
+                filename=filename,
+                heatmap_type="gradient_squared"
+            )
+        except Exception as e:
+            pass
 
         return GradientResponse(
             success=True
@@ -255,6 +279,17 @@ class GradientService:
         for name, module in model_info.model.named_modules():
             if isinstance(module, torch.nn.ReLU):
                 module.inplace = original_inplace_states[name]
+
+        try:
+            self.websocket_service.send_heatmap_notification_sync(
+                dataset=request.dataset,
+                model=request.model,
+                label=label,
+                filename=filename,
+                heatmap_type="deconvolution"
+            )
+        except Exception as e:
+            pass
 
         return GradientResponse(
             success=True
@@ -373,6 +408,17 @@ class GradientService:
             if isinstance(module, torch.nn.ReLU):
                 module.inplace = original_inplace_states[name]
 
+        try:
+            self.websocket_service.send_heatmap_notification_sync(
+                dataset=request.dataset,
+                model=request.model,
+                label=label,
+                filename=filename,
+                heatmap_type="guided_backpropagation"
+            )
+        except Exception as e:
+            pass
+
         return GradientResponse(
             success=True
         )
@@ -455,6 +501,17 @@ class GradientService:
             result = (result * 255.0).astype(np.uint8)
 
             cv2.imwrite(save_path, result)
+
+        try:
+            self.websocket_service.send_heatmap_notification_sync(
+                dataset=request.dataset,
+                model=request.model,
+                label=label,
+                heatmap_type="input_gradient",
+                filename=filename
+            )
+        except Exception as e:
+            pass
 
         return GradientResponse(
             success=True
