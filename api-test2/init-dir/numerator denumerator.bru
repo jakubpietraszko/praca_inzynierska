@@ -5,16 +5,15 @@ meta {
 }
 
 get {
-  url: http://localhost:8000/numerator-denominator?model=mnist&dataset=mnist-dataset&heatmap=var-grad&label=five
+  url: http://localhost:8000/numerator-denominator?model=fashion&dataset=fashion-dataset&label=shirt
   body: none
   auth: inherit
 }
 
 params:query {
-  model: mnist
-  dataset: mnist-dataset
-  heatmap: var-grad
-  label: five
+  model: fashion
+  dataset: fashion-dataset
+  label: shirt
 }
 
 settings {

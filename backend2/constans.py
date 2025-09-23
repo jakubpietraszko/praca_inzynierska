@@ -82,13 +82,13 @@ class Constants:
             self.HIRES_CAM,
             self.ABLATION_CAM,
             self.GRAD_CAM_PLUS_PLUS,
-            self.GROUP_CAM,
-            self.WGRAD_CAM,
+            # self.GROUP_CAM,
+            # self.WGRAD_CAM,
             self.XGRAD_CAM,
 
             self.LIME,
-            self.XRAI,
-            self.KERNEL_SHAP,
+            # self.XRAI,
+            # self.KERNEL_SHAP,
         ]
 
         self.ALL_DIRS = [

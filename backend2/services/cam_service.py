@@ -7,8 +7,9 @@ from interfaces.gradient import GradientRequest, GradientResponse
 
 class CAMService:
     def __init__(self):
-        from services.container import get_config_service
+        from services.container import get_config_service, get_websocket_service
         self.config_service = get_config_service()
+        self.websocket_service = get_websocket_service()
 
     def grad_cam(self,
                  request: GradientRequest,
@@ -101,6 +102,16 @@ class CAMService:
             # cam (H, W)
 
             cv2.imwrite(save_path, cam)
+            try:
+                self.websocket_service.send_heatmap_notification_sync(
+                    dataset=request.dataset,
+                    model=request.model,
+                    label=label,
+                    filename=filename,
+                    heatmap_type="grad_cam"
+                )
+            except:
+                pass
 
         return GradientResponse(
             success=True,
@@ -207,6 +218,17 @@ class CAMService:
             )
             # cam (H, W)
             cv2.imwrite(save_path, cam)
+            cv2.imwrite(save_path, cam)
+            try:
+                self.websocket_service.send_heatmap_notification_sync(
+                    dataset=request.dataset,
+                    model=request.model,
+                    label=label,
+                    filename=filename,
+                    heatmap_type="grad_cam_plus_plus"
+                )
+            except:
+                pass
 
         return GradientResponse(
             success=True,
@@ -369,6 +391,16 @@ class CAMService:
             ).astype(np.uint8)
 
             cv2.imwrite(save_path, group_cam_final)
+            try:
+                self.websocket_service.send_heatmap_notification_sync(
+                    dataset=request.dataset,
+                    model=request.model,
+                    label=label,
+                    filename=filename,
+                    heatmap_type="group_cam"
+                )
+            except:
+                pass
 
         return GradientResponse(
             success=True,
@@ -464,6 +496,17 @@ class CAMService:
             # cam (H, W)
 
             cv2.imwrite(save_path, cam)
+
+            try:
+                self.websocket_service.send_heatmap_notification_sync(
+                    dataset=request.dataset,
+                    model=request.model,
+                    label=label,
+                    filename=filename,
+                    heatmap_type="hires_cam"
+                )
+            except:
+                pass
         return GradientResponse(
             success=True,
         )
@@ -574,6 +617,17 @@ class CAMService:
             # cam (H, W)
 
             cv2.imwrite(save_path, cam)
+
+            try:
+                self.websocket_service.send_heatmap_notification_sync(
+                    dataset=request.dataset,
+                    model=request.model,
+                    label=label,
+                    filename=filename,
+                    heatmap_type="wgrad_cam"
+                )
+            except:
+                pass
 
         return GradientResponse(
             success=True,
@@ -686,6 +740,17 @@ class CAMService:
             # ablationcam (H, W)
 
             cv2.imwrite(save_path, ablationcam)
+
+            try:
+                self.websocket_service.send_heatmap_notification_sync(
+                    dataset=request.dataset,
+                    model=request.model,
+                    label=label,
+                    filename=filename,
+                    heatmap_type="ablation_cam"
+                )
+            except:
+                pass
         return GradientResponse(
             success=True,
         )
@@ -789,6 +854,16 @@ class CAMService:
 
             cv2.imwrite(save_path, cam)
 
+            try:
+                self.websocket_service.send_heatmap_notification_sync(
+                    dataset=request.dataset,
+                    model=request.model,
+                    label=label,
+                    filename=filename,
+                    heatmap_type="xgrad_cam"
+                )
+            except:
+                pass
         return GradientResponse(
             success=True,
         )

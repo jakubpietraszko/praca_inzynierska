@@ -1,31 +1,10 @@
-import os
-import numpy as np
-import cv2
-import torch
-
 from fastapi import APIRouter, Depends
 
-from interfaces.label_filename import LabelFilename
-from interfaces.activations import ActivationsRequest, ActivationsResponse
 from interfaces.gradient import GradientRequest, GradientResponse
-
-from services.container import ServiceContainer, get_container
-from services.container import get_models_service, get_heatmaps_service, get_utilities_service, get_heatmaps_service, get_models_datasets_service, get_datasets_service, get_gradient_service
-from services.models_service import ModelsService
-from services.heatmaps_service import HeatmapsService
-from services.utilities_service import UtilitiesService
-from services.heatmaps_service import HeatmapsService
-from services.models_datasets_service import ModelsDatasetsService
-from services.datasets_service import DatasetsService
-from services.gradient_service import GradientService
 from services.container import get_constants
 from services.heatmaps_facede_service import HeatmapsFacedeService
 from services.container import get_heatmaps_facede_service
-
 from constans import Constants
-
-from PIL import Image
-import matplotlib.pyplot as plt
 
 
 router = APIRouter()

@@ -3,6 +3,7 @@ from services.container import get_models_datasets_service
 from interfaces.init_dir import InitDirRequest, InitDirResponse
 from services.models_datasets_service import ModelsDatasetsService
 from pydantic import BaseModel
+from typing import Dict
 
 
 class ModelDatasetI(BaseModel):
@@ -14,9 +15,8 @@ class ModelDatasetLabelHeatmapI(ModelDatasetI):
     label: str
     heatmap: str
 
-
 class NumeratorDenominator(BaseModel):
-    numerator: int
+    numerator: Dict[str, int]
     denominator: int
 
 
@@ -45,11 +45,11 @@ async def models_datasets(request: ModelDatasetI,
 
 
 @router.get('/numerator-denominator', response_model=NumeratorDenominator)
-async def numerator_denominator(model: str, dataset: str, heatmap: str, label: str,
+async def numerator_denominator(model: str, dataset: str, label: str,
                                 models_datasets_service: ModelsDatasetsService = Depends(
                                     get_models_datasets_service)
                                 ):
     numerator, denominator = models_datasets_service.numerator_denominator(
-        model, dataset, heatmap, label
+        model, dataset, label
     )
     return NumeratorDenominator(numerator=numerator, denominator=denominator)

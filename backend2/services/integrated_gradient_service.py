@@ -6,8 +6,9 @@ from interfaces.gradient import GradientRequest, GradientResponse
 
 class IntegratedGradientsService:
     def __init__(self):
-        from services.container import get_config_service
+        from services.container import get_config_service, get_websocket_service
         self.config_service = get_config_service()
+        self.websocket_service = get_websocket_service()
 
     def integrated_gradient(self,
                             request: GradientRequest,
@@ -89,6 +90,16 @@ class IntegratedGradientsService:
             )
 
             cv2.imwrite(save_path, result)
+            try:
+                self.websocket_service.send_heatmap_notification_sync(
+                    dataset=request.dataset,
+                    model=request.model,
+                    label=label,
+                    filename=filename,
+                    heatmap_type="integrated_gradient",
+                )
+            except:
+                pass
 
         return GradientResponse(
             success=True

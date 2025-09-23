@@ -45,4 +45,38 @@ export class HeatmapsGenerator {
       { params }
     );
   }
+
+  generateAllGradient(
+    model: string,
+    dataset: string,
+    label: string
+  ): Observable<{ success: boolean }> {
+    const params = new HttpParams()
+      .set('model', model)
+      .set('dataset', dataset)
+      .set('label', label);
+
+    return this.http.get<{ success: boolean }>(
+      `${environment.apiUrl}/heatmap/all-gradient`,
+      { params }
+    );
+  }
+
+  generateAllHeatmapsByType(
+    model: string,
+    dataset: string,
+    label: string,
+    type: string
+  ): Observable<{ success: boolean }> {
+    const params = new HttpParams()
+      .set('model', model)
+      .set('dataset', dataset)
+      .set('label', label)
+      .set('type', type);
+
+    return this.http.get<{ success: boolean }>(
+      `${environment.apiUrl}/heatmap/all-heatmaps-type`,
+      { params }
+    );
+  }
 }

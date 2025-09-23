@@ -1,0 +1,22 @@
+meta {
+  name: all-heatmaps-type
+  type: http
+  seq: 6
+}
+
+get {
+  url: http://localhost:8000/heatmap/all-heatmaps-type?model=mnist&dataset=mnist-dataset&label=eight&type=smooth_gradient
+  body: none
+  auth: inherit
+}
+
+params:query {
+  model: mnist
+  dataset: mnist-dataset
+  label: eight
+  type: smooth_gradient
+}
+
+settings {
+  encodeUrl: true
+}

@@ -1,6 +1,6 @@
 import os
 import base64
-
+from typing import Dict
 
 class ModelsDatasetsService:
     def __init__(self, models_datasets_path: str, datasets_path: str, utilities_service, constants):
@@ -81,32 +81,29 @@ class ModelsDatasetsService:
             return False
         return True
 
-    def numerator_denominator(self, model: str, dataset: str, heatmap: str, label: str) -> tuple[int, int]:
-        heatmap_dir_path = os.path.join(
-            self.models_datasets_path,
-            self.utilities_service.models_datasets_path(
-                model, dataset),
-            heatmap,
-            label
-        )
+    def numerator_denominator(self, model: str, dataset: str, label: str) -> tuple[Dict[str, int], int]:
         dataset_dir_path = os.path.join(
-            self.datasets_path,
-            dataset,
-            label
+            self.datasets_path, dataset, label
         )
 
-        try:
-            heatmap_files = []
-            for root, dirs, files in os.walk(heatmap_dir_path):
-                heatmap_files.extend(files)
-        
-            dataset_files = []
-            for root, dirs, files in os.walk(dataset_dir_path):
-                dataset_files.extend(files)
-        
-            number_of_numerator = len(heatmap_files)
-            number_of_denominator = len(dataset_files)
+        xai_base_path = os.path.join(
+            self.models_datasets_path,
+        )
 
-        except:
-            return 0, 0
-        return number_of_numerator, number_of_denominator
+        os.makedirs(xai_base_path, exist_ok=True)
+
+        denominator = len(os.listdir(dataset_dir_path))
+
+        numerator = dict()
+
+        for xai_method in self.constants.AVAILABLE_HEATMAPS:
+            xai_path = os.path.join(
+                xai_base_path, 
+                self.utilities_service.models_datasets_path(model, dataset), 
+                xai_method, label
+            )
+            os.makedirs(xai_path, exist_ok=True)
+
+            numerator[xai_method] = len(os.listdir(xai_path))
+
+        return numerator, denominator

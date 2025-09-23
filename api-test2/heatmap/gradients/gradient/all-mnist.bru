@@ -1,0 +1,21 @@
+meta {
+  name: all-mnist
+  type: http
+  seq: 5
+}
+
+get {
+  url: http://localhost:8000/heatmap/all-gradient?model=mnist&dataset=mnist-dataset&label=five
+  body: none
+  auth: inherit
+}
+
+params:query {
+  model: mnist
+  dataset: mnist-dataset
+  label: five
+}
+
+settings {
+  encodeUrl: true
+}

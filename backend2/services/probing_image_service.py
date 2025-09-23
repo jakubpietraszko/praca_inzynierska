@@ -14,11 +14,13 @@ from interfaces.label_filename import LabelFilename
 
 class ProbingImageService:
     def __init__(self):
-        from services.container import MasksService, get_masks_service
+        from services.container import MasksService, get_masks_service, get_websocket_service
         from services.container import get_config_service
+
 
         self.config_service = get_config_service()
         self.get_masks_service = get_masks_service()
+        self.websocket_service = get_websocket_service()
 
     def xrai(self, request: GradientRequest,
              container,
@@ -39,9 +41,11 @@ class ProbingImageService:
 
         EPSILON = self.config_service.get_method_config('xrai').epsilon
         AGGREGATION = self.config_service.get_method_config('xrai').aggregation
-        SUPER_PIXELS = self.config_service.get_method_config('xrai').super_pixels
+        SUPER_PIXELS = self.config_service.get_method_config(
+            'xrai').super_pixels
         BASELINE = self.config_service.get_method_config('xrai').baseline
-        SEGMENTATION = self.config_service.get_method_config('xrai').segmentation
+        SEGMENTATION = self.config_service.get_method_config(
+            'xrai').segmentation
 
         print(EPSILON, AGGREGATION, SUPER_PIXELS, BASELINE, SEGMENTATION)
 
@@ -160,6 +164,16 @@ class ProbingImageService:
                 xrai_final = xrai_final.astype(np.uint8)
 
                 cv2.imwrite(save_path, xrai_final)
+                try:
+                    self.websocket_service.send_heatmap_notification_sync(
+                        dataset=request.dataset,
+                        model=request.model,
+                        label=label,
+                        filename=filename,
+                        heatmap_type="xrai",
+                    )
+                except:
+                    pass
 
             except Exception as e:
                 import traceback
@@ -188,15 +202,20 @@ class ProbingImageService:
 
         model_info = models_service.load_model(request.model)
 
-
         EPSILON = self.config_service.get_method_config('kernel_shap').epsilon
-        AGGREGATION = self.config_service.get_method_config('kernel_shap').aggregation
-        SUPER_PIXELS = self.config_service.get_method_config('kernel_shap').super_pixels
-        BASELINE = self.config_service.get_method_config('kernel_shap').baseline
-        N_SAMPLES = self.config_service.get_method_config('kernel_shap').n_samples
-        SEGMENTATION = self.config_service.get_method_config('kernel_shap').segmentation
+        AGGREGATION = self.config_service.get_method_config(
+            'kernel_shap').aggregation
+        SUPER_PIXELS = self.config_service.get_method_config(
+            'kernel_shap').super_pixels
+        BASELINE = self.config_service.get_method_config(
+            'kernel_shap').baseline
+        N_SAMPLES = self.config_service.get_method_config(
+            'kernel_shap').n_samples
+        SEGMENTATION = self.config_service.get_method_config(
+            'kernel_shap').segmentation
 
-        print(EPSILON, AGGREGATION, SUPER_PIXELS, BASELINE, N_SAMPLES, SEGMENTATION)
+        print(EPSILON, AGGREGATION, SUPER_PIXELS,
+              BASELINE, N_SAMPLES, SEGMENTATION)
 
         for image in request.images:
             label = image.label
@@ -273,8 +292,6 @@ class ProbingImageService:
                     utilities_service=utilities_service,
                     num_samples=N_SAMPLES
                 )
-                print(shap_values.shape, shap_values.dtype,
-                      np.min(shap_values), np.max(shap_values))
 
                 if np.max(shap_values) > np.min(shap_values):
                     shap_normalized = (
@@ -293,6 +310,16 @@ class ProbingImageService:
                 shap_final = shap_final.astype(np.uint8)
 
                 cv2.imwrite(save_path, shap_final)
+                try:
+                    self.websocket_service.send_heatmap_notification_sync(
+                    dataset=request.dataset,
+                    model=request.model,
+                    label=label,
+                    filename=filename,
+                    heatmap_type="kernel_shap",
+                )
+                except:
+                    pass
 
             except Exception as e:
                 import traceback
@@ -300,6 +327,16 @@ class ProbingImageService:
                 shap_final = np.zeros(
                     (model_info.input_shape[1], model_info.input_shape[2]), dtype=np.uint8)
                 cv2.imwrite(save_path, shap_final)
+                try:
+                    self.websocket_service.send_heatmap_notification_sync(
+                    dataset=request.dataset,
+                    model=request.model,
+                    label=label,
+                    filename=filename,
+                    heatmap_type="kernel_shap",
+                )
+                except:
+                    pass
 
         return GradientResponse(
             success=True
@@ -324,12 +361,15 @@ class ProbingImageService:
 
         EPSILON = self.config_service.get_method_config('lime').epsilon
         AGGREGATION = self.config_service.get_method_config('lime').aggregation
-        SUPER_PIXELS = self.config_service.get_method_config('lime').super_pixels
+        SUPER_PIXELS = self.config_service.get_method_config(
+            'lime').super_pixels
         BASELINE = self.config_service.get_method_config('lime').baseline
         N_SAMPLES = self.config_service.get_method_config('lime').n_samples
-        SEGMENTATION = self.config_service.get_method_config('lime').segmentation
+        SEGMENTATION = self.config_service.get_method_config(
+            'lime').segmentation
 
-        print(EPSILON, AGGREGATION, SUPER_PIXELS, BASELINE, N_SAMPLES, SEGMENTATION)
+        print(EPSILON, AGGREGATION, SUPER_PIXELS,
+              BASELINE, N_SAMPLES, SEGMENTATION)
 
         for image in request.images:
             label = image.label
@@ -428,6 +468,16 @@ class ProbingImageService:
             attribution_final = attribution_final.astype(np.uint8)
 
             cv2.imwrite(save_path, attribution_final)
+            try:
+                self.websocket_service.send_heatmap_notification_sync(
+                    dataset=request.dataset,
+                    model=request.model,
+                    label=label,
+                    filename=filename,
+                    heatmap_type="lime",
+                )
+            except:
+                pass
 
         return GradientResponse(
             success=True
