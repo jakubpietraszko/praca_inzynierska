@@ -6,6 +6,13 @@ import math
 from PIL import Image
 from sklearn.linear_model import Ridge
 from sklearn.metrics import r2_score
+import asyncio
+import time
+import os
+import numpy as np
+import cv2
+import torch
+import traceback
 
 from interfaces.gradient import GradientRequest, GradientResponse
 from interfaces.super_pixels import SuperPixelsRequest, SuperPixelsResponse
@@ -17,35 +24,33 @@ class ProbingImageService:
         from services.container import MasksService, get_masks_service, get_websocket_service
         from services.container import get_config_service
 
-
         self.config_service = get_config_service()
         self.get_masks_service = get_masks_service()
         self.websocket_service = get_websocket_service()
 
-    def xrai(self, request: GradientRequest,
-             container,
-             datasets_service,
-             utilities_service,
-             constants,
-             models_service) -> GradientResponse:
+    async def xrai(self, request: GradientRequest,
+                   container,
+                   datasets_service,
+                   utilities_service,
+                   constants,
+                   models_service) -> GradientResponse:
 
         root_path = os.path.join(
             container.models_datasets_path,
-            utilities_service.models_datasets_path(
+            await utilities_service.models_datasets_path(
                 request.model, request.dataset),
             constants.XRAI
         )
         os.makedirs(root_path, exist_ok=True)
 
-        model_info = models_service.load_model(request.model)
+        model_info = await models_service.load_model(request.model)
 
-        EPSILON = self.config_service.get_method_config('xrai').epsilon
-        AGGREGATION = self.config_service.get_method_config('xrai').aggregation
-        SUPER_PIXELS = self.config_service.get_method_config(
-            'xrai').super_pixels
-        BASELINE = self.config_service.get_method_config('xrai').baseline
-        SEGMENTATION = self.config_service.get_method_config(
-            'xrai').segmentation
+        config = await self.config_service.get_method_config('xrai')
+        EPSILON = config.epsilon
+        AGGREGATION = config.aggregation
+        SUPER_PIXELS = config.super_pixels
+        BASELINE = config.baseline
+        SEGMENTATION = config.segmentation
 
         print(EPSILON, AGGREGATION, SUPER_PIXELS, BASELINE, SEGMENTATION)
 
@@ -55,7 +60,7 @@ class ProbingImageService:
             target = image.target
 
             if target is None:
-                target = utilities_service.fill_target(model_info, label)
+                target = await utilities_service.fill_target(model_info, label)
 
             label_path = os.path.join(
                 root_path,
@@ -64,9 +69,9 @@ class ProbingImageService:
             os.makedirs(label_path, exist_ok=True)
             save_path = os.path.join(
                 label_path,
-                utilities_service.add_png_extension(filename)
+                await utilities_service.add_png_extension(filename)
             )
-            if utilities_service.skip_forward(save_path):
+            if await utilities_service.skip_forward(save_path):
                 continue
 
             image_path = os.path.join(
@@ -76,7 +81,7 @@ class ProbingImageService:
                 filename
             )
 
-            image_np = datasets_service.load_image(
+            image_np = await datasets_service.load_image(
                 image_path, model_info.input_shape)
             request_superpixels: SuperPixelsRequest = SuperPixelsRequest(
                 model=request.model,
@@ -91,13 +96,13 @@ class ProbingImageService:
                 overwrite=False
             )
 
-            self.get_masks_service.seed_with_save(
+            await self.get_masks_service.seed_with_save(
                 request=request_superpixels
             )
 
             super_pixels_path = os.path.join(
                 container.models_datasets_path,
-                utilities_service.models_datasets_path(
+                await utilities_service.models_datasets_path(
                     request.model,
                     request.dataset),
                 constants.MASK_SEED,
@@ -119,7 +124,7 @@ class ProbingImageService:
             else:
                 image_np_hwc = image_np
 
-            image_tensor = utilities_service.convert_image_to_tensor(
+            image_tensor = await utilities_service.convert_image_to_tensor(
                 image_np, grad=True)
             model_info.model.eval()
             output = model_info.model(image_tensor)
@@ -128,7 +133,7 @@ class ProbingImageService:
             attribution_map = grad.squeeze().cpu().detach().numpy()
 
             if len(attribution_map.shape) == 3 and attribution_map.shape[0] == 3:
-                attribution_map = utilities_service.aggregate_channels(
+                attribution_map = await utilities_service.aggregate_channels(
                     attribution_map, AGGREGATION)
 
             attribution_map = np.abs(attribution_map)
@@ -141,7 +146,7 @@ class ProbingImageService:
                 )
 
             try:
-                xrai_result = self._xrai_algorithm(
+                xrai_result = await self._xrai_algorithm(
                     image=image_np_hwc,
                     segments=super_pixels_segments,
                     attribution_map=attribution_map
@@ -165,7 +170,7 @@ class ProbingImageService:
 
                 cv2.imwrite(save_path, xrai_final)
                 try:
-                    self.websocket_service.send_heatmap_notification_sync(
+                    await self.websocket_service.send_heatmap_notification_sync(
                         dataset=request.dataset,
                         model=request.model,
                         label=label,
@@ -176,7 +181,6 @@ class ProbingImageService:
                     pass
 
             except Exception as e:
-                import traceback
                 traceback.print_exc()
                 xrai_final = np.zeros(
                     (model_info.input_shape[1], model_info.input_shape[2]), dtype=np.uint8)
@@ -186,33 +190,29 @@ class ProbingImageService:
             success=True
         )
 
-    def kernel_shap(self, request: GradientRequest,
-                    container,
-                    datasets_service,
-                    utilities_service,
-                    constants,
-                    models_service) -> GradientResponse:
+    async def kernel_shap(self, request: GradientRequest,
+                          container,
+                          datasets_service,
+                          utilities_service,
+                          constants,
+                          models_service) -> GradientResponse:
         root_path = os.path.join(
             container.models_datasets_path,
-            utilities_service.models_datasets_path(
+            await utilities_service.models_datasets_path(
                 request.model, request.dataset),
             constants.KERNEL_SHAP
         )
         os.makedirs(root_path, exist_ok=True)
 
-        model_info = models_service.load_model(request.model)
+        model_info = await models_service.load_model(request.model)
 
-        EPSILON = self.config_service.get_method_config('kernel_shap').epsilon
-        AGGREGATION = self.config_service.get_method_config(
-            'kernel_shap').aggregation
-        SUPER_PIXELS = self.config_service.get_method_config(
-            'kernel_shap').super_pixels
-        BASELINE = self.config_service.get_method_config(
-            'kernel_shap').baseline
-        N_SAMPLES = self.config_service.get_method_config(
-            'kernel_shap').n_samples
-        SEGMENTATION = self.config_service.get_method_config(
-            'kernel_shap').segmentation
+        config = await self.config_service.get_method_config('kernel_shap')
+        EPSILON = config.epsilon
+        AGGREGATION = config.aggregation
+        SUPER_PIXELS = config.super_pixels
+        BASELINE = config.baseline
+        N_SAMPLES = config.n_samples
+        SEGMENTATION = config.segmentation
 
         print(EPSILON, AGGREGATION, SUPER_PIXELS,
               BASELINE, N_SAMPLES, SEGMENTATION)
@@ -223,16 +223,16 @@ class ProbingImageService:
             target = image.target
 
             if target is None:
-                target = utilities_service.fill_target(model_info, label)
+                target = await utilities_service.fill_target(model_info, label)
 
             label_path = os.path.join(root_path, label)
             os.makedirs(label_path, exist_ok=True)
             save_path = os.path.join(
                 label_path,
-                utilities_service.add_png_extension(filename)
+                await utilities_service.add_png_extension(filename)
             )
 
-            if utilities_service.skip_forward(save_path):
+            if await utilities_service.skip_forward(save_path):
                 continue
 
             image_path = os.path.join(
@@ -242,7 +242,7 @@ class ProbingImageService:
                 filename
             )
 
-            image_np = datasets_service.load_image(
+            image_np = await datasets_service.load_image(
                 image_path, model_info.input_shape)
 
             request_superpixels: SuperPixelsRequest = SuperPixelsRequest(
@@ -258,13 +258,13 @@ class ProbingImageService:
                 overwrite=False
             )
 
-            self.get_masks_service.seed_with_save(
+            await self.get_masks_service.seed_with_save(
                 request=request_superpixels
             )
 
             super_pixels_path = os.path.join(
                 container.models_datasets_path,
-                utilities_service.models_datasets_path(
+                await utilities_service.models_datasets_path(
                     request.model,
                     request.dataset),
                 constants.MASK_SEED,
@@ -284,7 +284,7 @@ class ProbingImageService:
                 image_np_hwc = image_np
 
             try:
-                shap_values = self._kernel_shap_explain(
+                shap_values = await self._kernel_shap_explain(
                     image_np=image_np_hwc,
                     super_pixels=super_pixels_segments,
                     model=model_info.model,
@@ -311,30 +311,29 @@ class ProbingImageService:
 
                 cv2.imwrite(save_path, shap_final)
                 try:
-                    self.websocket_service.send_heatmap_notification_sync(
-                    dataset=request.dataset,
-                    model=request.model,
-                    label=label,
-                    filename=filename,
-                    heatmap_type="kernel_shap",
-                )
+                    await self.websocket_service.send_heatmap_notification_sync(
+                        dataset=request.dataset,
+                        model=request.model,
+                        label=label,
+                        filename=filename,
+                        heatmap_type="kernel_shap",
+                    )
                 except:
                     pass
 
             except Exception as e:
-                import traceback
                 traceback.print_exc()
                 shap_final = np.zeros(
                     (model_info.input_shape[1], model_info.input_shape[2]), dtype=np.uint8)
                 cv2.imwrite(save_path, shap_final)
                 try:
-                    self.websocket_service.send_heatmap_notification_sync(
-                    dataset=request.dataset,
-                    model=request.model,
-                    label=label,
-                    filename=filename,
-                    heatmap_type="kernel_shap",
-                )
+                    await self.websocket_service.send_heatmap_notification_sync(
+                        dataset=request.dataset,
+                        model=request.model,
+                        label=label,
+                        filename=filename,
+                        heatmap_type="kernel_shap",
+                    )
                 except:
                     pass
 
@@ -342,31 +341,30 @@ class ProbingImageService:
             success=True
         )
 
-    def lime(self, request: GradientRequest,
-             container,
-             datasets_service,
-             utilities_service,
-             constants,
-             models_service) -> GradientResponse:
+    async def lime(self, request: GradientRequest,
+                   container,
+                   datasets_service,
+                   utilities_service,
+                   constants,
+                   models_service) -> GradientResponse:
 
         root_path = os.path.join(
             container.models_datasets_path,
-            utilities_service.models_datasets_path(
+            await utilities_service.models_datasets_path(
                 request.model, request.dataset),
             constants.LIME
         )
         os.makedirs(root_path, exist_ok=True)
 
-        model_info = models_service.load_model(request.model)
+        model_info = await models_service.load_model(request.model)
 
-        EPSILON = self.config_service.get_method_config('lime').epsilon
-        AGGREGATION = self.config_service.get_method_config('lime').aggregation
-        SUPER_PIXELS = self.config_service.get_method_config(
-            'lime').super_pixels
-        BASELINE = self.config_service.get_method_config('lime').baseline
-        N_SAMPLES = self.config_service.get_method_config('lime').n_samples
-        SEGMENTATION = self.config_service.get_method_config(
-            'lime').segmentation
+        config = await self.config_service.get_method_config('lime')
+        EPSILON = config.epsilon
+        AGGREGATION = config.aggregation
+        SUPER_PIXELS = config.super_pixels
+        BASELINE = config.baseline
+        N_SAMPLES = config.n_samples
+        SEGMENTATION = config.segmentation
 
         print(EPSILON, AGGREGATION, SUPER_PIXELS,
               BASELINE, N_SAMPLES, SEGMENTATION)
@@ -377,7 +375,7 @@ class ProbingImageService:
             target = image.target
 
             if target is None:
-                target = utilities_service.fill_target(model_info, label)
+                target = await utilities_service.fill_target(model_info, label)
 
             label_path = os.path.join(
                 root_path,
@@ -386,10 +384,10 @@ class ProbingImageService:
             os.makedirs(label_path, exist_ok=True)
             save_path = os.path.join(
                 label_path,
-                utilities_service.add_png_extension(filename)
+                await utilities_service.add_png_extension(filename)
             )
 
-            if utilities_service.skip_forward(save_path):
+            if await utilities_service.skip_forward(save_path):
                 continue
 
             image_path = os.path.join(
@@ -399,7 +397,7 @@ class ProbingImageService:
                 filename
             )
 
-            image_np = datasets_service.load_image(
+            image_np = await datasets_service.load_image(
                 image_path, model_info.input_shape)
 
             request: SuperPixelsRequest = SuperPixelsRequest(
@@ -415,13 +413,13 @@ class ProbingImageService:
                 overwrite=False
             )
 
-            self.get_masks_service.seed_with_save(
+            await self.get_masks_service.seed_with_save(
                 request=request
             )
 
             super_pixels_path = os.path.join(
                 container.models_datasets_path,
-                utilities_service.models_datasets_path(
+                await utilities_service.models_datasets_path(
                     request.model,
                     request.dataset),
                 constants.MASK_SEED,
@@ -443,7 +441,7 @@ class ProbingImageService:
             else:
                 image_np_hwc = image_np
 
-            attribution = self._lime_explain(
+            attribution = await self._lime_explain(
                 image_np=image_np_hwc,
                 super_pixels=super_pixels_segments,
                 model=model_info.model,
@@ -469,7 +467,7 @@ class ProbingImageService:
 
             cv2.imwrite(save_path, attribution_final)
             try:
-                self.websocket_service.send_heatmap_notification_sync(
+                await self.websocket_service.send_heatmap_notification_sync(
                     dataset=request.dataset,
                     model=request.model,
                     label=label,
@@ -483,7 +481,7 @@ class ProbingImageService:
             success=True
         )
 
-    def _lime_explain(self, image_np, super_pixels, model, target, utilities_service, num_samples=1000):
+    async def _lime_explain(self, image_np, super_pixels, model, target, utilities_service, num_samples=1000):
         unique_segments = np.unique(super_pixels)
         n_segments = len(unique_segments)
 
@@ -496,7 +494,7 @@ class ProbingImageService:
             image_model_format = np.expand_dims(image_np, axis=0) if len(
                 image_np.shape) == 2 else image_np
 
-        image_tensor = utilities_service.convert_image_to_tensor(
+        image_tensor = await utilities_service.convert_image_to_tensor(
             image_model_format)
         model.eval()
         with torch.no_grad():
@@ -508,9 +506,9 @@ class ProbingImageService:
         perturbations.append(np.ones(n_segments))
         predictions.append(original_pred)
 
-        empty_image = self._apply_perturbation(
+        empty_image = await self._apply_perturbation(
             image_np, super_pixels, unique_segments, np.zeros(n_segments).astype(np.uint8))
-        empty_tensor = utilities_service.convert_image_to_tensor(empty_image)
+        empty_tensor = await utilities_service.convert_image_to_tensor(empty_image)
         with torch.no_grad():
             empty_pred = model(empty_tensor)[0, target].item()
         perturbations.append(np.zeros(n_segments))
@@ -520,10 +518,10 @@ class ProbingImageService:
             prob = np.random.uniform(0.3, 0.7)
             mask = np.random.binomial(1, prob, n_segments).astype(np.uint8)
 
-            perturbed_image = self._apply_perturbation(
+            perturbed_image = await self._apply_perturbation(
                 image_np, super_pixels, unique_segments, mask)
 
-            perturbed_tensor = utilities_service.convert_image_to_tensor(
+            perturbed_tensor = await utilities_service.convert_image_to_tensor(
                 perturbed_image)
             with torch.no_grad():
                 pred = model(perturbed_tensor)[0, target].item()
@@ -549,7 +547,7 @@ class ProbingImageService:
 
         return explanation
 
-    def _apply_perturbation(self, image: np.ndarray, super_pixels: np.ndarray, unique_segments: np.ndarray, mask: np.ndarray):
+    async def _apply_perturbation(self, image: np.ndarray, super_pixels: np.ndarray, unique_segments: np.ndarray, mask: np.ndarray):
 
         assert len(image.shape) == 3 and image.shape[2] in [1, 3]
         assert type(image) == np.ndarray and image.dtype == np.uint8
@@ -585,7 +583,7 @@ class ProbingImageService:
 
         return result
 
-    def _xrai_algorithm(self, image, segments, attribution_map):
+    async def _xrai_algorithm(self, image, segments, attribution_map):
         H, W = segments.shape
         unique_segments = np.unique(segments)
         M = np.zeros_like(segments, dtype=bool)
@@ -653,7 +651,7 @@ class ProbingImageService:
 
         return final_attribution
 
-    def _kernel_shap_explain(self, image_np, super_pixels, model, target, utilities_service, num_samples=1000):
+    async def _kernel_shap_explain(self, image_np, super_pixels, model, target, utilities_service, num_samples=1000):
         unique_segments = np.unique(super_pixels)
         n_segments = len(unique_segments)
 
@@ -666,14 +664,14 @@ class ProbingImageService:
             image_model_format = np.expand_dims(image_np, axis=0) if len(
                 image_np.shape) == 2 else image_np
 
-        empty_image = self._apply_perturbation(
+        empty_image = await self._apply_perturbation(
             image_np, super_pixels, unique_segments, np.zeros(n_segments).astype(np.uint8))
-        empty_tensor = utilities_service.convert_image_to_tensor(empty_image)
+        empty_tensor = await utilities_service.convert_image_to_tensor(empty_image)
         model.eval()
         with torch.no_grad():
             baseline_pred = model(empty_tensor)[0, target].item()
 
-        image_tensor = utilities_service.convert_image_to_tensor(
+        image_tensor = await utilities_service.convert_image_to_tensor(
             image_model_format)
         with torch.no_grad():
             full_pred = model(image_tensor)[0, target].item()
@@ -692,16 +690,16 @@ class ProbingImageService:
 
         for _ in range(min(num_samples - 2, 2000)):
             coalition_size = np.random.choice(range(1, n_segments),
-                                              p=self._coalition_sampling_distribution(n_segments))
+                                              p=await self._coalition_sampling_distribution(n_segments))
 
             coalition = np.zeros(n_segments)
             selected_segments = np.random.choice(
                 n_segments, coalition_size, replace=False)
             coalition[selected_segments] = 1
 
-            perturbed_image = self._apply_perturbation(
+            perturbed_image = await self._apply_perturbation(
                 image_np, super_pixels, unique_segments, coalition.astype(np.uint8))
-            perturbed_tensor = utilities_service.convert_image_to_tensor(
+            perturbed_tensor = await utilities_service.convert_image_to_tensor(
                 perturbed_image)
 
             with torch.no_grad():
@@ -738,7 +736,7 @@ class ProbingImageService:
 
         return explanation
 
-    def _shapley_kernel_weight(self, coalition_size, n_segments):
+    async def _shapley_kernel_weight(self, coalition_size, n_segments):
         if coalition_size == 0 or coalition_size == n_segments:
             return 1000.0
 
@@ -746,7 +744,7 @@ class ProbingImageService:
                                      (n_segments - coalition_size))
         return weight
 
-    def _coalition_sampling_distribution(self, n_segments):
+    async def _coalition_sampling_distribution(self, n_segments):
         sizes = np.arange(1, n_segments)
         weights = np.array([1.0 / (size * (n_segments - size))
                            for size in sizes])

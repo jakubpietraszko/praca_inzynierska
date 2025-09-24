@@ -18,22 +18,22 @@ class DatasetsService:
     def __init__(self, datasets_path: str):
         self.datasets_path = datasets_path
 
-    def list_available_datasets(self) -> list[str]:
+    async def list_available_datasets(self) -> list[str]:
         datasets = os.listdir(self.datasets_path)
         return datasets
     
-    def list_labels_in_dataset(self, dataset_name: str) -> list[str]:
+    async def list_labels_in_dataset(self, dataset_name: str) -> list[str]:
         path = os.path.join(self.datasets_path, dataset_name)
         labels = os.listdir(path)
         return labels
         
 
-    def list_filenames_in_label(self, dataset_name: str, label: str) -> list[str]:
+    async def list_filenames_in_label(self, dataset_name: str, label: str) -> list[str]:
         path = os.path.join(self.datasets_path, dataset_name, label)
         filenames = os.listdir(path)
         return filenames
     
-    def load_dataset(self, dataset_name: str, transform=None) -> DatasetInfo:
+    async def load_dataset(self, dataset_name: str, transform=None) -> DatasetInfo:
         path = os.path.join(self.datasets_path, dataset_name)
 
         dataset = ImageFolder(path, transform=transform)
@@ -46,7 +46,7 @@ class DatasetsService:
 
         return dataset_info
     
-    def fetch_image(self,
+    async def fetch_image(self,
                     dataset: str,
                     label: str,
                     filename: str) -> bytes:
@@ -63,7 +63,7 @@ class DatasetsService:
         return image
 
     
-    def load_image(self, path: str, shape: tuple) -> np.ndarray:
+    async def load_image(self, path: str, shape: tuple) -> np.ndarray:
         assert len(shape) == 3 # (1, H, W) or (3, H, W)
         assert shape[0] == 1 or shape[0] == 3 # grayscale or RGB
 

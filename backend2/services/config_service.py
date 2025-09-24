@@ -27,18 +27,18 @@ class ConfigService:
         self._config = None
 
     @property
-    def config(self) -> ConfigModel:
+    async def config(self) -> ConfigModel:
         if self._config is None:
-            self._config = self.load_config()
+            self._config = await self.load_config()
         return self._config
 
-    def load_config(self) -> ConfigModel:
+    async def load_config(self) -> ConfigModel:
         import os
         import json
 
         path = os.path.join(self.base_dir, self.NAME)
         if not os.path.exists(path):
-            return self._get_default_config()
+            return await self._get_default_config()
 
         with open(path, 'r') as f:
             data = json.load(f)
@@ -47,7 +47,7 @@ class ConfigService:
                 methods[method_name] = XAIMethodConfig(**method_params)
             return ConfigModel(methods=methods)
 
-    def _get_default_config(self) -> ConfigModel:
+    async def _get_default_config(self) -> ConfigModel:
         default_methods = {
             "grad_cam": XAIMethodConfig(epsilon=1e-6),
             "grad_cam_plus_plus": XAIMethodConfig(epsilon=1e-6),
@@ -76,7 +76,7 @@ class ConfigService:
         }
         return ConfigModel(methods=default_methods)
 
-    def save_config(self, config: ConfigModel):
+    async def save_config(self, config: ConfigModel):
         import os
         import json
 
@@ -93,19 +93,21 @@ class ConfigService:
 
         self._config = config
 
-    def get_method_config(self, method_name: str) -> XAIMethodConfig:
-        if method_name not in self.config.methods:
-            default_config = self._get_default_config()
+    async def get_method_config(self, method_name: str) -> XAIMethodConfig:
+        config = await self.config
+        if method_name not in config.methods:
+            default_config = await self._get_default_config()
             if method_name in default_config.methods:
                 return default_config.methods[method_name]
             else:
                 return XAIMethodConfig(epsilon=1e-6)
-        return self.config.methods[method_name]
+        return config.methods[method_name]
 
-    def update_method_config(self, method_name: str, method_config: XAIMethodConfig):
-        current_config = self.config
+    async def update_method_config(self, method_name: str, method_config: XAIMethodConfig):
+        current_config = await self.config
         current_config.methods[method_name] = method_config
-        self.save_config(current_config)
+        await self.save_config(current_config)
 
-    def get_all_method_names(self) -> list[str]:
-        return list(self.config.methods.keys())
+    async def get_all_method_names(self) -> list[str]:
+        config = await self.config
+        return list(config.methods.keys())

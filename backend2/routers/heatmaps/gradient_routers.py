@@ -17,7 +17,7 @@ async def gradient(request: GradientRequest,
                        get_heatmaps_facede_service
                    )
                    ):
-    return heatmaps_facede_service.generate_heatmap(
+    return await heatmaps_facede_service.generate_heatmap(
         request=request,
         type=constants.GRADIENT,
     )
@@ -31,7 +31,7 @@ async def gradient_squared(request: GradientRequest,
                            )
 
                            ):
-    return heatmaps_facede_service.generate_heatmap(
+    return await heatmaps_facede_service.generate_heatmap(
         request=request,
         type=constants.GRADIENT_SQUARED,
     )
@@ -44,7 +44,7 @@ async def deconvolution(request: GradientRequest,
                             get_heatmaps_facede_service
                         )
                         ):
-    return heatmaps_facede_service.generate_heatmap(
+    return await heatmaps_facede_service.generate_heatmap(
         request=request,
         type=constants.DECONVOLUTION,
     )
@@ -57,7 +57,7 @@ async def guided_backpropagation(request: GradientRequest,
                                      get_heatmaps_facede_service
                                  )
                                  ):
-    return heatmaps_facede_service.generate_heatmap(
+    return await heatmaps_facede_service.generate_heatmap(
         request=request,
         type=constants.GUIDED_BACKPROPAGATION,
     )
@@ -70,7 +70,7 @@ async def input_gradient(request: GradientRequest,
                              get_heatmaps_facede_service
                          )
                          ):
-    return heatmaps_facede_service.generate_heatmap(
+    return await heatmaps_facede_service.generate_heatmap(
         request=request,
         type=constants.INPUT_GRADIENT,
     )

@@ -10,10 +10,10 @@ class HeatmapsService:
         self.dataset_path = dataset_path
         self.models_datasets_path = models_datasets_path
 
-    def activations(self) -> Tuple[np.ndarray, int]:
+    async def activations(self) -> Tuple[np.ndarray, int]:
         pass
 
-    def all_available_heatmaps(self, constants):
+    async def all_available_heatmaps(self, constants):
         heatmaps = constants.AVAILABLE_HEATMAPS
         return AllHeatmapsResponse(
             heatmaps=heatmaps

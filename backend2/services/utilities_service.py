@@ -8,15 +8,15 @@ class UtilitiesService:
     def __init__(self):
         pass
 
-    def env(self):
+    async def env(self):
         env = os.getenv('APP_ENV', 'development')
         return env
 
-    def models_datasets_path(self, model: str, dataset: str) -> str:
+    async def models_datasets_path(self, model: str, dataset: str) -> str:
         result = model + '_' + dataset
         return result
 
-    def convert_image_to_tensor(self, image: np.ndarray, grad: bool = False):
+    async def convert_image_to_tensor(self, image: np.ndarray, grad: bool = False):
         assert len(image.shape) == 3
         assert image.dtype == np.uint8
 
@@ -32,16 +32,16 @@ class UtilitiesService:
 
         return image
 
-    def delete_extension(self, filename: str) -> str:
+    async def delete_extension(self, filename: str) -> str:
         base = filename.split('.')[0]
         return base
     
-    def add_png_extension(self, filename: str) -> str:
-        base = self.delete_extension(filename)
+    async def add_png_extension(self, filename: str) -> str:
+        base = await self.delete_extension(filename)
         base += '.png'
         return base
 
-    def relu_normalize(self, image: np.ndarray, shape: tuple, epsilon: float) -> np.ndarray:
+    async def relu_normalize(self, image: np.ndarray, shape: tuple, epsilon: float) -> np.ndarray:
         assert len(image.shape) == 2
 
         image = np.maximum(image, 0)
@@ -57,7 +57,7 @@ class UtilitiesService:
 
         return image
     
-    def aggregate_channels(self, image: np.ndarray, type: str) -> np.ndarray:
+    async def aggregate_channels(self, image: np.ndarray, type: str) -> np.ndarray:
         assert len(image.shape) == 3
 
         if type == 'max':
@@ -71,11 +71,11 @@ class UtilitiesService:
 
         return image
     
-    def skip_forward(self, path) -> bool:
+    async def skip_forward(self, path) -> bool:
         if os.path.exists(path):
             return True
         return False
     
-    def fill_target(self, model_info, label) -> int:
+    async def fill_target(self, model_info, label) -> int:
         return model_info.label_to_idx[label]
 

@@ -24,7 +24,7 @@ async def smooth_grad(request: GradientRequest,
                           get_heatmaps_facede_service
                       ),
                       ):
-    return heatmaps_facede_service.generate_heatmap(
+    return await heatmaps_facede_service.generate_heatmap(
         request=request,
         type=constants.SMOOTH_GRADIENT,
     )
@@ -37,7 +37,7 @@ async def smooth_grad_square(request: GradientRequest,
                                  get_heatmaps_facede_service
                              ),
                              ):
-    return heatmaps_facede_service.generate_heatmap(
+    return await heatmaps_facede_service.generate_heatmap(
         request=request,
         type=constants.SMOOTH_GRADIENT_SQUARE,
     )
@@ -50,7 +50,7 @@ async def var_grad(request: GradientRequest,
                        get_heatmaps_facede_service
                    ),
                    ):
-    return heatmaps_facede_service.generate_heatmap(
+    return await heatmaps_facede_service.generate_heatmap(
         request=request,
         type=constants.VAR_GRADIENT,
     )

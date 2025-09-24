@@ -10,8 +10,8 @@ class ModelsDatasetsService:
         self.constants = get_constants()
         self.datasets_path = datasets_path
 
-    def init_dir(self, model: str, dataset: str) -> bool:
-        name_of_dir = self.utilities_service.models_datasets_path(
+    async def init_dir(self, model: str, dataset: str) -> bool:
+        name_of_dir = await self.utilities_service.models_datasets_path(
             model, dataset)
         full_path = os.path.join(self.models_datasets_path, name_of_dir)
 
@@ -27,7 +27,7 @@ class ModelsDatasetsService:
             return False
         return True
 
-    def fetch_activations_image(self,
+    async def fetch_activations_image(self,
                                 models_dataset: str,
                                 activations: str,
                                 label: str,
@@ -47,7 +47,7 @@ class ModelsDatasetsService:
 
         return image
 
-    def fetch_image(self,
+    async def fetch_image(self,
                     models_dataset: str,
                     type: str,
                     label: str,
@@ -65,8 +65,8 @@ class ModelsDatasetsService:
 
         return image
 
-    def full_init_dir(self, model: str, dataset: str) -> bool:
-        name_of_dir = self.utilities_service.models_datasets_path(
+    async def full_init_dir(self, model: str, dataset: str) -> bool:
+        name_of_dir = await self.utilities_service.models_datasets_path(
             model, dataset)
         full_path = os.path.join(self.models_datasets_path, name_of_dir)
 
@@ -81,7 +81,7 @@ class ModelsDatasetsService:
             return False
         return True
 
-    def numerator_denominator(self, model: str, dataset: str, label: str) -> tuple[Dict[str, int], int]:
+    async def numerator_denominator(self, model: str, dataset: str, label: str) -> tuple[Dict[str, int], int]:
         dataset_dir_path = os.path.join(
             self.datasets_path, dataset, label
         )
@@ -99,7 +99,7 @@ class ModelsDatasetsService:
         for xai_method in self.constants.AVAILABLE_HEATMAPS:
             xai_path = os.path.join(
                 xai_base_path, 
-                self.utilities_service.models_datasets_path(model, dataset), 
+                await self.utilities_service.models_datasets_path(model, dataset), 
                 xai_method, label
             )
             os.makedirs(xai_path, exist_ok=True)

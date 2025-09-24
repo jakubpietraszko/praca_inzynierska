@@ -33,7 +33,7 @@ async def activations(request: ActivationsRequest,
                           get_activations_service
                       )
                       ):
-    response = activations_service.activations(
+    response = await activations_service.activations(
         request=request,
         container=container,
         models_service=models_service,

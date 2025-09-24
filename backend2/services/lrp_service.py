@@ -10,7 +10,7 @@ class LRPService:
     def __init__(self):
         pass
 
-    def lrp_flat(self, request: GradientRequest,
+    async def lrp_flat(self, request: GradientRequest,
                  container,
                  datasets_service,
                  utilities_service,
@@ -19,7 +19,7 @@ class LRPService:
 
         root_path = os.path.join(
             container.models_datasets_path,
-            utilities_service.models_datasets_path(
+            await utilities_service.models_datasets_path(
                 request.model, request.dataset),
             constants.LRP_FLAT
         )

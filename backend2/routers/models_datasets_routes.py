@@ -29,7 +29,7 @@ router = APIRouter()
 
 @router.post('/init-dir', response_model=InitDirResponse)
 async def init_dir(request: InitDirRequest, models_datasets_service: ModelsDatasetsService = Depends(get_models_datasets_service)):
-    success = models_datasets_service.init_dir(request.model, request.dataset)
+    success = await models_datasets_service.init_dir(request.model, request.dataset)
     return InitDirResponse(success=success)
 
 
@@ -38,7 +38,7 @@ async def models_datasets(request: ModelDatasetI,
                           models_datasets_service: ModelsDatasetsService = Depends(
                               get_models_datasets_service)
                           ):
-    success = models_datasets_service.full_init_dir(
+    success = await models_datasets_service.full_init_dir(
         request.model, request.dataset
     )
     return Response(success=success)
@@ -49,7 +49,7 @@ async def numerator_denominator(model: str, dataset: str, label: str,
                                 models_datasets_service: ModelsDatasetsService = Depends(
                                     get_models_datasets_service)
                                 ):
-    numerator, denominator = models_datasets_service.numerator_denominator(
+    numerator, denominator = await models_datasets_service.numerator_denominator(
         model, dataset, label
     )
     return NumeratorDenominator(numerator=numerator, denominator=denominator)

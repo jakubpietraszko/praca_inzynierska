@@ -1,5 +1,7 @@
 from fastapi import FastAPI
 import uvicorn
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
 from fastapi.middleware.cors import CORSMiddleware
 
 from routers.datasets_routes import router as datasets_router
@@ -21,6 +23,9 @@ from routers.config_routes import router as config_router
 from routers.websocket_routes import router as websocket_router
 
 app = FastAPI()
+
+executor = ThreadPoolExecutor(max_workers=10)
+app.state.executor = executor
 
 app.add_middleware(
     CORSMiddleware,
@@ -53,6 +58,10 @@ async def root():
     return {
         "message": "Welcome",
     }
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    app.state.executor.shutdown(wait=True)
 
 if __name__ == "__main__":
     uvicorn.run(

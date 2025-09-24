@@ -24,7 +24,7 @@ async def integrated_gradient(request: GradientRequest,
                                   get_heatmaps_facede_service
                               ),
                               ):
-    return heatmaps_facede_service.generate_heatmap(
+    return await heatmaps_facede_service.generate_heatmap(
         request=request,
         type=constants.INTEGRATED_GRADIENT,
     )

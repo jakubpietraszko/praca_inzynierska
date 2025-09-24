@@ -24,9 +24,6 @@
           <mat-panel-title>
             {{ getMethodDisplayName(methodName) }}
           </mat-panel-title>
-          <!-- <mat-panel-description>
-            Konfiguruj {{ methodName | translateXaiMethods}}
-          </mat-panel-description> -->
         </mat-expansion-panel-header>
 
         <div class="method-config-form">
@@ -43,7 +40,7 @@
             <mat-label>Agregacja</mat-label>
             <mat-select [(value)]="getMethodConfig(methodName).aggregation"
               (selectionChange)="onMethodConfigChange(methodName, 'aggregation', $event.value)">
-              @for (option of aggregationOptions; track option) {
+              @for (option of aggregationOptions; track $index) {
               <mat-option [value]="option">{{ option | titlecase }}</mat-option>
               }
             </mat-select>
@@ -121,7 +118,7 @@
             <mat-label>Rodzaj segmentacji</mat-label>
             <mat-select [(value)]="getMethodConfig(methodName).segmentation"
               (selectionChange)="onMethodConfigChange(methodName, 'segmentation', $event.value)">
-              @for (option of segmentationOptions; track option) {
+              @for (option of segmentationOptions; track $index) {
               <mat-option [value]="option">{{ option | titlecase }}</mat-option>
               }
             </mat-select>

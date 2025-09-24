@@ -11,7 +11,7 @@ class GradientNoiseService:
         self.config_service = get_config_service()
         self.websocket_service = get_websocket_service()
 
-    def smooth_grad(self,
+    async def smooth_grad(self,
                  request: GradientRequest,
                  container,
                  datasets_service,
@@ -20,17 +20,18 @@ class GradientNoiseService:
                  models_service) -> GradientResponse:
         root_path = os.path.join(
             container.models_datasets_path,
-            utilities_service.models_datasets_path(request.model, request.dataset),
+            await utilities_service.models_datasets_path(request.model, request.dataset),
             constants.SMOOTH_GRADIENT,
         )
         os.makedirs(root_path, exist_ok=True)
 
-        model_info = models_service.load_model(request.model)
+        model_info = await models_service.load_model(request.model)
 
-        EPSILON = self.config_service.get_method_config('smooth_grad').epsilon
-        NUM_SAMPLES = self.config_service.get_method_config('smooth_grad').n_samples
-        NOISE = self.config_service.get_method_config('smooth_grad').noise_level
-        AGGREGATION = self.config_service.get_method_config('smooth_grad').aggregation
+        config = await self.config_service.get_method_config('smooth_grad')
+        EPSILON = config.epsilon
+        NUM_SAMPLES = config.n_samples
+        NOISE = config.noise_level
+        AGGREGATION = config.aggregation
 
         print(EPSILON, NUM_SAMPLES, NOISE, AGGREGATION)
 
@@ -39,7 +40,7 @@ class GradientNoiseService:
             filename = image.filename
             target = image.target
             if target is None:
-                target = utilities_service.fill_target(model_info, label)
+                target = await utilities_service.fill_target(model_info, label)
             label_path = os.path.join(
                 root_path,
                 label,
@@ -47,10 +48,10 @@ class GradientNoiseService:
             os.makedirs(label_path, exist_ok=True)
             save_path = os.path.join(
                 label_path,
-                utilities_service.add_png_extension(filename)
+                await utilities_service.add_png_extension(filename)
             )
 
-            if utilities_service.skip_forward(save_path):
+            if await utilities_service.skip_forward(save_path):
                 continue
             image_path = os.path.join(
                 container.datasets_path,
@@ -59,9 +60,9 @@ class GradientNoiseService:
                 filename
             )
 
-            image_np = datasets_service.load_image(
+            image_np = await datasets_service.load_image(
                 image_path, model_info.input_shape)
-            image_tensor = utilities_service.convert_image_to_tensor(
+            image_tensor = await utilities_service.convert_image_to_tensor(
                 image_np, grad=True)
 
             model_info.model.eval()
@@ -81,16 +82,16 @@ class GradientNoiseService:
             result = result.squeeze().cpu().detach().numpy()
 
             if len(result.shape) == 3 and result.shape[0] == 3:
-                result = utilities_service.aggregate_channels(
+                result = await utilities_service.aggregate_channels(
                     result, AGGREGATION)
-            result = utilities_service.relu_normalize(
+            result = await utilities_service.relu_normalize(
                 result, model_info.input_shape, epsilon=EPSILON
             )
 
             cv2.imwrite(save_path, result)
 
             try:
-                self.websocket_service.send_heatmap_notification_sync(
+                await self.websocket_service.send_heatmap_notification_sync(
                     dataset=request.dataset,
                     model=request.model,
                     label=label,
@@ -104,7 +105,7 @@ class GradientNoiseService:
             success=True,
         )
     
-    def smooth_grad_squared(self,
+    async def smooth_grad_squared(self,
                  request: GradientRequest,
                  container,
                  datasets_service,
@@ -113,17 +114,18 @@ class GradientNoiseService:
                  models_service) -> GradientResponse:
         root_path = os.path.join(
             container.models_datasets_path,
-            utilities_service.models_datasets_path(request.model, request.dataset),
+            await utilities_service.models_datasets_path(request.model, request.dataset),
             constants.SMOOTH_GRADIENT_SQUARE,
         )
         os.makedirs(root_path, exist_ok=True)
 
-        model_info = models_service.load_model(request.model)
+        model_info = await models_service.load_model(request.model)
 
-        EPSILON = self.config_service.get_method_config('smooth_grad_squared').epsilon
-        NUM_SAMPLES = self.config_service.get_method_config('smooth_grad_squared').n_samples
-        NOISE = self.config_service.get_method_config('smooth_grad_squared').noise_level
-        AGGREGATION = self.config_service.get_method_config('smooth_grad_squared').aggregation
+        config = await self.config_service.get_method_config('smooth_grad_squared')
+        EPSILON = config.epsilon
+        NUM_SAMPLES = config.n_samples
+        NOISE = config.noise_level
+        AGGREGATION = config.aggregation
 
         print(EPSILON, NUM_SAMPLES, NOISE, AGGREGATION)
 
@@ -132,7 +134,7 @@ class GradientNoiseService:
             filename = image.filename
             target = image.target
             if target is None:
-                target = utilities_service.fill_target(model_info, label)
+                target = await utilities_service.fill_target(model_info, label)
             label_path = os.path.join(
                 root_path,
                 label,
@@ -140,10 +142,10 @@ class GradientNoiseService:
             os.makedirs(label_path, exist_ok=True)
             save_path = os.path.join(
                 label_path,
-                utilities_service.add_png_extension(filename)
+                await utilities_service.add_png_extension(filename)
             )
 
-            if utilities_service.skip_forward(save_path):
+            if await utilities_service.skip_forward(save_path):
                 continue
             image_path = os.path.join(
                 container.datasets_path,
@@ -152,9 +154,9 @@ class GradientNoiseService:
                 filename
             )
 
-            image_np = datasets_service.load_image(
+            image_np = await datasets_service.load_image(
                 image_path, model_info.input_shape)
-            image_tensor = utilities_service.convert_image_to_tensor(
+            image_tensor = await utilities_service.convert_image_to_tensor(
                 image_np, grad=True)
 
             model_info.model.eval()
@@ -174,15 +176,15 @@ class GradientNoiseService:
             result = result.squeeze().cpu().detach().numpy()
 
             if len(result.shape) == 3 and result.shape[0] == 3:
-                result = utilities_service.aggregate_channels(
+                result = await utilities_service.aggregate_channels(
                     result, AGGREGATION)
-            result = utilities_service.relu_normalize(
+            result = await utilities_service.relu_normalize(
                 result, model_info.input_shape, epsilon=EPSILON
             )
 
             cv2.imwrite(save_path, result)
             try:
-                self.websocket_service.send_heatmap_notification_sync(
+                await self.websocket_service.send_heatmap_notification_sync(
                     dataset=request.dataset,
                     model=request.model,
                     label=label,
@@ -196,7 +198,7 @@ class GradientNoiseService:
             success=True,
         )
     
-    def var_grad(self,
+    async def var_grad(self,
                  request: GradientRequest,
                  container,
                  datasets_service,
@@ -205,17 +207,18 @@ class GradientNoiseService:
                  models_service) -> GradientResponse:
         root_path = os.path.join(
             container.models_datasets_path,
-            utilities_service.models_datasets_path(request.model, request.dataset),
+            await utilities_service.models_datasets_path(request.model, request.dataset),
             constants.VAR_GRADIENT,
         )
         os.makedirs(root_path, exist_ok=True)
 
-        model_info = models_service.load_model(request.model)
+        model_info = await models_service.load_model(request.model)
 
-        EPSILON = self.config_service.get_method_config('var_grad').epsilon
-        NUM_SAMPLES = self.config_service.get_method_config('var_grad').n_samples
-        NOISE = self.config_service.get_method_config('var_grad').noise_level
-        AGGREGATION = self.config_service.get_method_config('var_grad').aggregation
+        config = await self.config_service.get_method_config('var_grad')
+        EPSILON = config.epsilon
+        NUM_SAMPLES = config.n_samples
+        NOISE = config.noise_level
+        AGGREGATION = config.aggregation
 
         print(EPSILON, NUM_SAMPLES, NOISE, AGGREGATION)
 
@@ -224,7 +227,7 @@ class GradientNoiseService:
             filename = image.filename
             target = image.target
             if target is None:
-                target = utilities_service.fill_target(model_info, label)
+                target = await utilities_service.fill_target(model_info, label)
             label_path = os.path.join(
                 root_path,
                 label,
@@ -232,10 +235,10 @@ class GradientNoiseService:
             os.makedirs(label_path, exist_ok=True)
             save_path = os.path.join(
                 label_path,
-                utilities_service.add_png_extension(filename)
+                await utilities_service.add_png_extension(filename)
             )
 
-            if utilities_service.skip_forward(save_path):
+            if await utilities_service.skip_forward(save_path):
                 continue
             image_path = os.path.join(
                 container.datasets_path,
@@ -244,9 +247,9 @@ class GradientNoiseService:
                 filename
             )
 
-            image_np = datasets_service.load_image(
+            image_np = await datasets_service.load_image(
                 image_path, model_info.input_shape)
-            image_tensor = utilities_service.convert_image_to_tensor(
+            image_tensor = await utilities_service.convert_image_to_tensor(
                 image_np, grad=True)
 
             model_info.model.eval()
@@ -268,16 +271,16 @@ class GradientNoiseService:
             result = result.squeeze().cpu().detach().numpy()
 
             if len(result.shape) == 3 and result.shape[0] == 3:
-                result = utilities_service.aggregate_channels(
+                result = await utilities_service.aggregate_channels(
                     result, AGGREGATION)
 
-            result = utilities_service.relu_normalize(
+            result = await utilities_service.relu_normalize(
                 result, model_info.input_shape, epsilon=EPSILON
             )
 
             cv2.imwrite(save_path, result)
             try:
-                self.websocket_service.send_heatmap_notification_sync(
+                await self.websocket_service.send_heatmap_notification_sync(
                     dataset=request.dataset,
                     model=request.model,
                     label=label,

@@ -25,13 +25,13 @@ async def canny_edge(edge_request: EdgeRequest,
                         datasets_service: DatasetsService = Depends(get_datasets_service),
                         constants: Constants = Depends(get_constants)
                      ):
-    model_info = models_service.load_model(edge_request.model)
+    model_info = await models_service.load_model(edge_request.model)
 
     for label_filename in edge_request.images:
         label = label_filename.label
         filename = label_filename.filename
 
-        models_datasets_name = utilities_service.models_datasets_path(
+        models_datasets_name = await utilities_service.models_datasets_path(
             edge_request.model, edge_request.dataset
         )
 

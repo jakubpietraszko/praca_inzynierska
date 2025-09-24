@@ -25,7 +25,7 @@ class MasksService:
         self.utilities_service: UtilitiesService = get_utilities_service()
         self.constants: Constants = get_constants()
 
-    def rise(self,
+    async def rise(self,
              height: int,
              width: int,
              scale: int = 10,
@@ -48,10 +48,10 @@ class MasksService:
 
         return result
 
-    def rise_with_save(self,
+    async def rise_with_save(self,
                        request: MasksRequest
                        ):
-        model_info: ModelInfo = self.models_service.load_model(
+        model_info: ModelInfo = await self.models_service.load_model(
             request.model
         )
 
@@ -59,7 +59,7 @@ class MasksService:
             label = label_filename.label
             filename = label_filename.filename
 
-            models_datasets_name = self.utilities_service.models_datasets_path(
+            models_datasets_name = await self.utilities_service.models_datasets_path(
                 request.model, request.dataset
             )
 
@@ -73,7 +73,7 @@ class MasksService:
 
             os.makedirs(path, exist_ok=True)
 
-            masks = self.rise(
+            masks = await self.rise(
                 height=model_info.input_shape[1],
                 width=model_info.input_shape[2],
                 scale=5,
@@ -85,7 +85,7 @@ class MasksService:
                 cv2.imwrite(mask_path, mask * 255)
         return MasksResponse(success=True)
 
-    def seed(self,
+    async def seed(self,
              image_np: np.ndarray,
              height: int,
              width: int,
@@ -112,16 +112,16 @@ class MasksService:
         labels = seeds.getLabels()
         return labels, np.unique(labels).shape[0]
 
-    def seed_with_save(self,
+    async def seed_with_save(self,
                        request: SuperPixelsRequest
                        ):
-        model_info: ModelInfo = self.models_service.load_model(
+        model_info: ModelInfo = await self.models_service.load_model(
             request.model
         )
 
         path = os.path.join(
             self.container.models_datasets_path,
-            self.utilities_service.models_datasets_path(
+            await self.utilities_service.models_datasets_path(
                 request.model, request.dataset
             ),
             self.constants.MASK_SEED,
@@ -155,7 +155,7 @@ class MasksService:
             height = model_info.input_shape[1]
             width = model_info.input_shape[2]
 
-            mask, count = self.seed(
+            mask, count = await self.seed(
                 image_np=image_np,
                 height=height,
                 width=width,
@@ -171,7 +171,7 @@ class MasksService:
             cv2.imwrite(image_path_save, mask)
         return SuperPixelsResponse(success=True, superPixels=counts)
 
-    def slic(self,
+    async def slic(self,
              image_np: np.ndarray,
              height: int,
              width: int,
@@ -196,14 +196,14 @@ class MasksService:
         labels = slic.getLabels()
         return labels, np.unique(labels).shape[0]
 
-    def slic_with_save(self, request: SuperPixelsRequest):
-        model_info: ModelInfo = self.models_service.load_model(
+    async def slic_with_save(self, request: SuperPixelsRequest):
+        model_info: ModelInfo = await self.models_service.load_model(
             request.model
         )
 
         path = os.path.join(
             self.container.models_datasets_path,
-            self.utilities_service.models_datasets_path(
+            await self.utilities_service.models_datasets_path(
                 request.model, request.dataset
             ),
             self.constants.MASK_SLIC,
@@ -236,7 +236,7 @@ class MasksService:
             dim = model_info.input_shape[0]
             height = model_info.input_shape[1]
             width = model_info.input_shape[2]
-            mask, count = self.slic(
+            mask, count = await self.slic(
                 image_np=image_np,
                 height=height,
                 width=width,

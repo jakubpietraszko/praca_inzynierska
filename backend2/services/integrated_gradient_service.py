@@ -10,7 +10,7 @@ class IntegratedGradientsService:
         self.config_service = get_config_service()
         self.websocket_service = get_websocket_service()
 
-    def integrated_gradient(self,
+    async def integrated_gradient(self,
                             request: GradientRequest,
                             container,
                             datasets_service,
@@ -20,17 +20,18 @@ class IntegratedGradientsService:
                             ) -> GradientResponse:
         root_path = os.path.join(
             container.models_datasets_path,
-            utilities_service.models_datasets_path(request.model, request.dataset),
+            await utilities_service.models_datasets_path(request.model, request.dataset),
             constants.INTEGRATED_GRADIENT
         )
         os.makedirs(root_path, exist_ok=True)
 
-        model_info = models_service.load_model(request.model)
+        model_info = await models_service.load_model(request.model)
 
-        EPSILON = self.config_service.get_method_config('integrated_gradient').epsilon
-        AGGREGATION = self.config_service.get_method_config('integrated_gradient').aggregation
-        BASELINE = self.config_service.get_method_config('integrated_gradient').baseline
-        STEPS = self.config_service.get_method_config('integrated_gradient').steps
+        config = await self.config_service.get_method_config('integrated_gradient')
+        EPSILON = config.epsilon
+        AGGREGATION = config.aggregation
+        BASELINE = config.baseline
+        STEPS = config.steps
         print(EPSILON, AGGREGATION, BASELINE, STEPS)
 
         for image in request.images:
@@ -38,7 +39,7 @@ class IntegratedGradientsService:
             filename = image.filename
             target = image.target
             if target is None:
-                target = utilities_service.fill_target(model_info, label)
+                target = await utilities_service.fill_target(model_info, label)
             label_path = os.path.join(
                 root_path,
                 label,
@@ -46,10 +47,10 @@ class IntegratedGradientsService:
             os.makedirs(label_path, exist_ok=True)
             save_path = os.path.join(
                 label_path,
-                utilities_service.add_png_extension(filename)
+                await utilities_service.add_png_extension(filename)
             )
 
-            if utilities_service.skip_forward(save_path):
+            if await utilities_service.skip_forward(save_path):
                 continue
             image_path = os.path.join(
                 container.datasets_path,
@@ -58,9 +59,9 @@ class IntegratedGradientsService:
                 filename
             )
 
-            image_np = datasets_service.load_image(
+            image_np = await datasets_service.load_image(
                 image_path, model_info.input_shape)
-            image_tensor = utilities_service.convert_image_to_tensor(
+            image_tensor = await utilities_service.convert_image_to_tensor(
                 image_np, grad=True)
             model_info.model.eval()
 
@@ -82,16 +83,16 @@ class IntegratedGradientsService:
             result = result.squeeze().cpu().detach().numpy()
 
             if len(result.shape) == 3 and result.shape[0] == 3:
-                result = utilities_service.aggregate_channels(
+                result = await utilities_service.aggregate_channels(
                     result, AGGREGATION)
 
-            result = utilities_service.relu_normalize(
+            result = await utilities_service.relu_normalize(
                 result, model_info.input_shape, epsilon=EPSILON
             )
 
             cv2.imwrite(save_path, result)
             try:
-                self.websocket_service.send_heatmap_notification_sync(
+                await self.websocket_service.send_heatmap_notification_sync(
                     dataset=request.dataset,
                     model=request.model,
                     label=label,

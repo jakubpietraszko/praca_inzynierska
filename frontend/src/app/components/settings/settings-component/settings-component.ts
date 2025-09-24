@@ -17,7 +17,7 @@ import {
 } from '../../../state/config/config.model';
 import * as ConfigActions from '../../../state/config/config.actions';
 import * as ConfigSelectors from '../../../state/config/config.selectors';
-import { TranslateXaiMethodsPipe } from '../../../pipes/translate-xai-methods-pipe';
+
 
 @Component({
   selector: 'app-settings-component',
@@ -31,7 +31,6 @@ import { TranslateXaiMethodsPipe } from '../../../pipes/translate-xai-methods-pi
     MatExpansionModule,
     MatCardModule,
     FormsModule,
-    TranslateXaiMethodsPipe,
   ],
   templateUrl: './settings-component.html',
   styleUrl: './settings-component.css',
@@ -49,19 +48,26 @@ export class SettingsComponent implements OnInit {
   methodNames = toSignal(this.store.select(ConfigSelectors.selectMethodNames), {
     initialValue: [],
   });
+  error = toSignal(this.store.select(ConfigSelectors.selectConfigError));
 
   currentConfig: { [methodName: string]: XAIMethodConfig } = {};
 
-  aggregationOptions = ['max', 'sum', 'max'];
-  segmentationOptions = ['seed', 'seed'];
+  aggregationOptions = ['max', 'sum', 'mean'];
+  segmentationOptions = ['seed', 'slic'];
 
   constructor() {
     effect(() => {
       const methods = this.methods();
-      if (methods && Object.keys(methods).length > 0) {
-        this.currentConfig = { ...methods };
-      } else {
-        this.initializeDefaultConfig();
+      const loading = this.loading();
+      const config = this.config();
+      const error = this.error();
+      
+      if (!loading) {
+        if (methods && Object.keys(methods).length > 0) {
+          this.currentConfig = JSON.parse(JSON.stringify(methods));
+        } else if (config === null || error) {
+          this.initializeDefaultConfig();
+        }
       }
     });
   }
@@ -178,9 +184,8 @@ export class SettingsComponent implements OnInit {
   ) {
     console.log('Updating config:', methodName, field, value); // Debug log
 
-    if (!this.currentConfig[methodName]) {
-      this.currentConfig[methodName] = this.getDefaultMethodConfig(methodName);
-    }
+    // Get current config or default
+    const currentMethodConfig = this.currentConfig[methodName] || this.getDefaultMethodConfig(methodName);
 
     if (
       [
@@ -201,7 +206,7 @@ export class SettingsComponent implements OnInit {
     }
 
     if (field === 'k_size') {
-      const currentValue = this.currentConfig[methodName]?.k_size || 5;
+      const currentValue = currentMethodConfig?.k_size || 5;
       const minValue = Math.max(1, currentValue - 2);
       const maxValue = currentValue + 2;
       
@@ -224,9 +229,13 @@ export class SettingsComponent implements OnInit {
       }
     }
 
-    this.currentConfig[methodName] = {
-      ...this.currentConfig[methodName],
-      [field]: value,
+    // Create a completely new config object to avoid mutation issues
+    this.currentConfig = {
+      ...this.currentConfig,
+      [methodName]: {
+        ...currentMethodConfig,
+        [field]: value,
+      }
     };
 
     this.store.dispatch(
@@ -341,4 +350,6 @@ export class SettingsComponent implements OnInit {
 
     return loadedMethods.length > 0 ? loadedMethods : defaultMethods;
   }
+
+
 }

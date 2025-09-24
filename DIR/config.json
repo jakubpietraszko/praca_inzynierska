@@ -1,10 +1,10 @@
 {
     "methods": {
         "grad_cam": {
-            "epsilon": 1e-06
+            "epsilon": 7e-06
         },
         "grad_cam_plus_plus": {
-            "epsilon": 1e-06
+            "epsilon": 2e-06
         },
         "group_cam": {
             "epsilon": 1e-06,

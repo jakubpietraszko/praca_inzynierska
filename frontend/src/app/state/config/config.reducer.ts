@@ -61,7 +61,7 @@ export const configReducer = createReducer(
       methods: {
         ...state.config.methods,
         [methodName]: {
-          ...state.config.methods[methodName],
+          ...(state.config.methods[methodName] || {}),
           ...methodConfig
         }
       }

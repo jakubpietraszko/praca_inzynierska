@@ -38,27 +38,13 @@ class WebSocketService:
         for connection in disconnected:
             self.disconnect(connection)
 
-    def send_heatmap_notification_sync(self, dataset: str, model: str, label: str, heatmap_type: str, filename: str):
+    async def send_heatmap_notification_sync(self, dataset: str, model: str, label: str, heatmap_type: str, filename: str):
         if not self.active_connections:
             return
 
-        def run_async_notification():
-            try:
-                try:
-                    loop = asyncio.get_event_loop()
-                    if loop.is_closed():
-                        raise RuntimeError()
-                except RuntimeError:
-                    loop = asyncio.new_event_loop()
-                    asyncio.set_event_loop(loop)
-                
-                loop.run_until_complete(
-                    self.send_heatmap_notification(
-                        dataset, model, label, heatmap_type, filename
-                    )
-                )
-            except Exception as e:
-                pass
-
-        thread = threading.Thread(target=run_async_notification, daemon=True)
-        thread.start()
+        try:
+            await self.send_heatmap_notification(
+                dataset, model, label, heatmap_type, filename
+            )
+        except Exception as e:
+            pass

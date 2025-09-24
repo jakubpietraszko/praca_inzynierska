@@ -23,7 +23,7 @@ async def rise(request: MasksRequest,
                masks_service: MasksService = Depends(get_masks_service),
                ):
 
-    return masks_service.rise_with_save(
+    return await masks_service.rise_with_save(
         request=request
     )
 
@@ -33,7 +33,7 @@ async def seed(request: SuperPixelsRequest,
                masks_service: MasksService = Depends(get_masks_service),
                ):
 
-    return masks_service.seed_with_save(
+    return await masks_service.seed_with_save(
         request=request
     )
 
@@ -47,6 +47,6 @@ async def slic(request: SuperPixelsRequest,
                    get_utilities_service),
                constants: Constants = Depends(get_constants)):
 
-    return masks_service.slic_with_save(
+    return await masks_service.slic_with_save(
         request=request
     )

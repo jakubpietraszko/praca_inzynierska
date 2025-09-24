@@ -22,7 +22,7 @@ async def all_available_heatmaps(
         get_heatmaps_service
     )
 ):
-    response = heatmaps_service.all_available_heatmaps(
+    response = await heatmaps_service.all_available_heatmaps(
         constants=constants
     )
 
@@ -40,7 +40,7 @@ async def get_all_heatmaps(request: GradientRequest,
 
     for type in constants.AVAILABLE_HEATMAPS:
         responses.append(
-            heatmaps_facede_service.generate_heatmap(
+            await heatmaps_facede_service.generate_heatmap(
                 request=request,
                 type=type,
             )
@@ -77,7 +77,7 @@ async def get_all_heatmaps_type(model: str, dataset: str, label: str, type: str,
         ]
     )
 
-    return heatmaps_facede_service.generate_heatmap(
+    return await heatmaps_facede_service.generate_heatmap(
         request=request,
         type=type,
     )

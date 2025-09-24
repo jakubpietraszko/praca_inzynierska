@@ -25,7 +25,7 @@ async def grad_cam(request: GradientRequest,
                        get_heatmaps_facede_service
                    )
                    ):
-    return heatmaps_facede_service.generate_heatmap(
+    return await heatmaps_facede_service.generate_heatmap(
         request=request,
         type=constants.GRAD_CAM,
     )
@@ -38,7 +38,7 @@ async def grad_cam_plus(request: GradientRequest,
                             get_heatmaps_facede_service
                         )
                         ):
-    return heatmaps_facede_service.generate_heatmap(
+    return await heatmaps_facede_service.generate_heatmap(
         request=request,
         type=constants.GRAD_CAM_PLUS_PLUS,
     )
@@ -51,7 +51,7 @@ async def group_cam(request: GradientRequest,
                         get_heatmaps_facede_service
                     )
                     ):
-    return heatmaps_facede_service.generate_heatmap(
+    return await heatmaps_facede_service.generate_heatmap(
         request=request,
         type=constants.GROUP_CAM,
     )
@@ -64,7 +64,7 @@ async def hires_cam(request: GradientRequest,
                         get_heatmaps_facede_service
                     )
                     ):
-    return heatmaps_facede_service.generate_heatmap(
+    return await heatmaps_facede_service.generate_heatmap(
         request=request,
         type=constants.HIRES_CAM,
     )
@@ -77,7 +77,7 @@ async def wgrad_cam(request: GradientRequest,
                         get_heatmaps_facede_service
                     )
                     ):
-    return heatmaps_facede_service.generate_heatmap(
+    return await heatmaps_facede_service.generate_heatmap(
         request=request,
         type=constants.WGRAD_CAM,
     )
@@ -90,7 +90,7 @@ async def ablation_cam(request: GradientRequest,
                            get_heatmaps_facede_service
                        )
                        ):
-    return heatmaps_facede_service.generate_heatmap(
+    return await heatmaps_facede_service.generate_heatmap(
         request=request,
         type=constants.ABLATION_CAM,
     )
@@ -102,7 +102,7 @@ async def xgrad_cam(request: GradientRequest,
                         get_heatmaps_facede_service
                     )
                     ):
-    return heatmaps_facede_service.generate_heatmap(
+    return await heatmaps_facede_service.generate_heatmap(
         request=request,
         type=constants.XGRAD_CAM,
     )

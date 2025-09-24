@@ -7,7 +7,7 @@ class ActivationsService:
     def __init__(self):
         pass
 
-    def activations(self, request: ActivationsRequest,
+    async def activations(self, request: ActivationsRequest,
                     container,
                     models_service,
                     utilities_service,
@@ -15,7 +15,7 @@ class ActivationsService:
                     constants
                     ):
         
-        model_info = models_service.load_model(request.model)
+        model_info = await models_service.load_model(request.model)
 
         filepath = os.path.join(
             container.datasets_path,
@@ -24,8 +24,8 @@ class ActivationsService:
             request.filename
         )
 
-        image_np = datasets_service.load_image(filepath, model_info.input_shape)
-        image_tensor = utilities_service.convert_image_to_tensor(image_np)
+        image_np = await datasets_service.load_image(filepath, model_info.input_shape)
+        image_tensor = await utilities_service.convert_image_to_tensor(image_np)
 
         activations = None
 
@@ -42,15 +42,15 @@ class ActivationsService:
 
         path = os.path.join(
             container.models_datasets_path,
-            utilities_service.models_datasets_path(request.model, request.dataset),
+            await utilities_service.models_datasets_path(request.model, request.dataset),
             constants.ACTIVATIONS,
             request.label,
-            utilities_service.delete_extension(request.filename)
+            await utilities_service.delete_extension(request.filename)
         )
         os.makedirs(path, exist_ok=True)
 
         for i, activation in enumerate(activations):
-            activation = utilities_service.relu_normalize(
+            activation = await utilities_service.relu_normalize(
                 activation, model_info.input_shape, epsilon=constants.EPSILON)
 
             activation_path = os.path.join(

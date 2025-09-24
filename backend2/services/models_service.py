@@ -18,11 +18,11 @@ class ModelsService:
     def __init__(self, models_path: str):
         self.models_path = models_path
 
-    def list_available_models(self) -> list[str]:
+    async def list_available_models(self) -> list[str]:
         models = os.listdir(self.models_path)
         return models
     
-    def load_model(self, model_name: str) -> ModelInfo:
+    async def load_model(self, model_name: str) -> ModelInfo:
         path = os.path.join(self.models_path, model_name, 'model.py')
         spec = importlib.util.spec_from_file_location('loadModel', path)
         module = importlib.util.module_from_spec(spec)
@@ -40,8 +40,8 @@ class ModelsService:
 
         return model_info
 
-    def get_model_layers(self, model_name: str) -> list[str]:
-        model_info = self.load_model(model_name)
+    async def get_model_layers(self, model_name: str) -> list[str]:
+        model_info = await self.load_model(model_name)
         dummy_input = torch.randn(1, *model_info.input_shape)
         layers = list()
         hooks = list()

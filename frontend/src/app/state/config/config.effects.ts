@@ -19,13 +19,14 @@ export class ConfigEffects {
           map((config: ConfigModel) =>
             ConfigActions.loadConfigSuccess({ config })
           ),
-          catchError((error) =>
-            of(
+          catchError((error) => {
+            console.error('Failed to load config:', error);
+            return of(
               ConfigActions.loadConfigFailure({
                 error: error.message || 'Failed to load config',
               })
-            )
-          )
+            );
+          })
         )
       )
     )

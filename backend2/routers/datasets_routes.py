@@ -18,7 +18,7 @@ router = APIRouter()
 
 @router.get('/all-datasets', response_model=AllDatasetsResponse)
 async def all_datasets(datasets_service: DatasetsService = Depends(get_datasets_service)):
-    datasets = datasets_service.list_available_datasets()
+    datasets = await datasets_service.list_available_datasets()
     return AllDatasetsResponse(datasets=datasets)
 
 
@@ -27,7 +27,7 @@ async def all_labels(
     request: AllLabelsRequest,
     datasets_service: DatasetsService = Depends(get_datasets_service)
 ):
-    labels = datasets_service.list_labels_in_dataset(request.dataset)
+    labels = await datasets_service.list_labels_in_dataset(request.dataset)
     return AllLabelsResponse(labels=labels)
 
 @router.get('/all-labels/{dataset}', response_model=AllLabelsResponse)
@@ -35,7 +35,7 @@ async def all_labels_get(
     dataset: str,
     datasets_service: DatasetsService = Depends(get_datasets_service)
 ):
-    labels = datasets_service.list_labels_in_dataset(dataset)
+    labels = await datasets_service.list_labels_in_dataset(dataset)
     return AllLabelsResponse(labels=labels)
 
 
@@ -44,7 +44,7 @@ async def all_images(
     request: AllsImagesRequest,
     datasets_service: DatasetsService = Depends(get_datasets_service)
 ):
-    images = datasets_service.list_filenames_in_label(
+    images = await datasets_service.list_filenames_in_label(
         request.dataset, request.label)
     return AllImagesResponse(images=images)
 
@@ -54,7 +54,7 @@ async def fetch_image(
     request: FetchImageRequest,
     datasets_service: DatasetsService = Depends(get_datasets_service)
 ):
-    image = datasets_service.fetch_image(
+    image = await datasets_service.fetch_image(
         dataset=request.dataset,
         label=request.label,
         filename=request.filename
@@ -70,11 +70,11 @@ async def fetch_activations_image(
     constants: Constants = Depends(get_constants)
 ):
     
-    image = models_data_service.fetch_activations_image(
-        utilities_service.models_datasets_path(request.model, request.dataset),
+    image = await models_data_service.fetch_activations_image(
+        await utilities_service.models_datasets_path(request.model, request.dataset),
         constants.ACTIVATIONS,
         request.label,
-        utilities_service.delete_extension(request.filename),
+        await utilities_service.delete_extension(request.filename),
         request.image
     )
 
@@ -87,8 +87,8 @@ async def fetch_models_datasets_image(
     utilities_service: UtilitiesService = Depends(get_utilities_service)
 ):
     
-    image = models_data_service.fetch_image(
-        utilities_service.models_datasets_path(request.model, request.dataset),
+    image = await models_data_service.fetch_image(
+        await utilities_service.models_datasets_path(request.model, request.dataset),
         request.type,
         request.label,
         request.filename
