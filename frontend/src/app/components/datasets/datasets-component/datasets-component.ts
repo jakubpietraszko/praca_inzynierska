@@ -2,7 +2,6 @@ import {
   Component,
   OnDestroy,
   OnInit,
-  resolveForwardRef,
   signal,
   computed,
 } from '@angular/core';
@@ -26,18 +25,14 @@ import {
   AllImagesResponse,
 } from '../../../interfaces/all-images';
 import { LoadImageDirective } from '../../../directives/load-image/load-image-directive';
-import { environment } from '../../../../environments/environment';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { DialogUnsupervisedActivations } from '../../dialog-unsupervised-activations/dialog-unsupervised-activations';
 import { DialogUnsupervisedActivationsData } from '../../../interfaces/dialog-unsupervised-activations-data';
 import { DialogAllHeatmaps } from '../../dialog-all-heatmaps/dialog-all-heatmaps/dialog-all-heatmaps';
-import {
-  IDialogUnsupervisedHeatmaps,
-} from '../../../interfaces/dialog-unsupervised-heatmaps';
-import {
-  DialogUnsupervisedHeatmaps,
-} from '../../dialog-unsupervised-heatmaps/dialog-unsupervised-heatmaps/dialog-unsupervised-heatmaps';
+import { IDialogUnsupervisedHeatmaps } from '../../../interfaces/dialog-unsupervised-heatmaps';
+import { DialogUnsupervisedHeatmaps } from '../../dialog-unsupervised-heatmaps/dialog-unsupervised-heatmaps/dialog-unsupervised-heatmaps';
+import { constants } from '../../../../constants';
 
 @Component({
   selector: 'app-datasets-component',
@@ -85,8 +80,8 @@ export class DatasetsComponent implements OnInit, OnDestroy {
     return images.slice(startIndex, endIndex);
   });
 
-  imagesPerPage = environment.imagesPerPage;
-  imagesPerRow = environment.imagesPerRow;
+  imagesPerPage = constants.imagesPerPage;
+  imagesPerRow = constants.imagesPerRow;
 
   constructor() {}
 
