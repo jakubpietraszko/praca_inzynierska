@@ -8,15 +8,11 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatCardModule } from '@angular/material/card';
 import { FormsModule } from '@angular/forms';
-import { Store } from '@ngrx/store';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { AppState } from '../../../state/app.state';
+import { ConfigStore } from '../../../stores/config.store';
 import {
   ConfigModel,
   XAIMethodConfig,
 } from '../../../state/config/config.model';
-import * as ConfigActions from '../../../state/config/config.actions';
-import * as ConfigSelectors from '../../../state/config/config.selectors';
 
 
 @Component({
@@ -36,19 +32,14 @@ import * as ConfigSelectors from '../../../state/config/config.selectors';
   styleUrl: './settings-component.css',
 })
 export class SettingsComponent implements OnInit {
-  private store = inject(Store<AppState>);
+  private configStore = inject(ConfigStore);
 
-  config = toSignal(this.store.select(ConfigSelectors.selectConfig));
-  loading = toSignal(this.store.select(ConfigSelectors.selectConfigLoading), {
-    initialValue: false,
-  });
-  methods = toSignal(this.store.select(ConfigSelectors.selectMethods), {
-    initialValue: {},
-  });
-  methodNames = toSignal(this.store.select(ConfigSelectors.selectMethodNames), {
-    initialValue: [],
-  });
-  error = toSignal(this.store.select(ConfigSelectors.selectConfigError));
+  // Access signals directly from the store
+  config = this.configStore.config;
+  loading = this.configStore.loading;
+  methods = this.configStore.methods;
+  methodNames = this.configStore.methodNames;
+  error = this.configStore.error;
 
   currentConfig: { [methodName: string]: XAIMethodConfig } = {};
 
@@ -73,7 +64,7 @@ export class SettingsComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.store.dispatch(ConfigActions.loadConfig());
+    this.configStore.loadConfig();
   }
 
   initializeDefaultConfig() {
@@ -238,21 +229,16 @@ export class SettingsComponent implements OnInit {
       }
     };
 
-    this.store.dispatch(
-      ConfigActions.updateMethodConfig({
-        methodName,
-        methodConfig: { [field]: value },
-      })
-    );
+    this.configStore.updateMethodConfig(methodName, { [field]: value });
   }
 
   onSaveConfig() {
     const config: ConfigModel = { methods: this.currentConfig };
-    this.store.dispatch(ConfigActions.saveConfig({ config }));
+    this.configStore.saveConfig(config);
   }
 
   onResetConfig() {
-    this.store.dispatch(ConfigActions.resetConfig());
+    this.configStore.resetConfig();
   }
 
   getMethodConfig(methodName: string): XAIMethodConfig {
