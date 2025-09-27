@@ -1,0 +1,17 @@
+<app-generic-dataset-selector
+    [(selectedDataset)]="currentDataset"
+></app-generic-dataset-selector>
+@if(currentDataset()) {
+    <app-generic-label-selector
+        [dataset]="currentDataset()!"
+        [(selectedLabel)]="currentLabel"
+    >
+    <ng-template #postfixButton let-label="label" let-dataset="dataset">
+        <button mat-icon-button (click)="onUnsupervisedHeatmapOpen(dataset, label)">
+            <mat-icon>launch</mat-icon>
+        </button>
+    </ng-template>
+    </app-generic-label-selector>
+}
+
+<p>{{ currentDataset() }} -- {{ currentLabel() }}</p>

@@ -13,10 +13,17 @@ import { AllModelsResponse } from '../../../interfaces/all-models';
 import { environment } from '../../../../environments/environment';
 import { AllDatasetsResponse } from '../../../interfaces/all-datasets';
 import { AllHeatmapsResponse } from '../../../interfaces/all-heatmaps';
+import { TranslateXaiMethodsPipe } from '../../../pipes/translate-xai-methods-pipe';
 
 @Component({
   selector: 'app-generic-selector',
-  imports: [FormsModule, MatInputModule, MatSelectModule, MatFormFieldModule],
+  imports: [
+    FormsModule,
+    MatInputModule,
+    MatSelectModule,
+    MatFormFieldModule,
+    TranslateXaiMethodsPipe,
+  ],
   templateUrl: './generic-selector.html',
   styleUrl: './generic-selector.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -30,15 +37,15 @@ export class GenericSelector {
   selectedDataset = model<string | null>();
   selectedHeatmap = model<string | null>();
 
-  models = httpResource<AllModelsResponse>(
-    () => this.model() ? `${environment.apiUrl}/all-models` : undefined
+  models = httpResource<AllModelsResponse>(() =>
+    this.model() ? `${environment.apiUrl}/all-models` : undefined
   );
 
-  datasets = httpResource<AllDatasetsResponse>(
-    () => this.dataset() ? `${environment.apiUrl}/all-datasets` : undefined
+  datasets = httpResource<AllDatasetsResponse>(() =>
+    this.dataset() ? `${environment.apiUrl}/all-datasets` : undefined
   );
 
-  heatmaps = httpResource<AllHeatmapsResponse>(
-    () => this.heatmap() ? `${environment.apiUrl}/all-heatmaps` : undefined
+  heatmaps = httpResource<AllHeatmapsResponse>(() =>
+    this.heatmap() ? `${environment.apiUrl}/heatmap/all-heatmaps` : undefined
   );
 }

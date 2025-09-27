@@ -21,10 +21,10 @@
 }
 @if(heatmap()) {
 <mat-form-field>
-    <mat-label>Heatmapa</mat-label>
+    <mat-label>Mapa ciepła</mat-label>
     <mat-select [(ngModel)]="selectedHeatmap">
         @for (heatmap of heatmaps.value()?.heatmaps || []; track heatmap) {
-        <mat-option [value]="heatmap">{{heatmap}}</mat-option>
+        <mat-option [value]="heatmap">{{heatmap | translateXaiMethods}}</mat-option>
         }
     </mat-select>
 </mat-form-field>

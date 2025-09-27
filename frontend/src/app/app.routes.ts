@@ -5,6 +5,7 @@ import { Generator } from './components/generator-page/generator';
 import { Home } from './components/home-page/home/home';
 import { Statistics } from './components/statistics-page/statistics/statistics';
 import { Models } from './components/models-page/models/models';
+import { Datasets } from './components/datasets-page/datasets';
 
 export const routes: Routes = [
   {
@@ -20,6 +21,11 @@ export const routes: Routes = [
   {
     path: 'datasets',
     component: DatasetsComponent,
+    pathMatch: 'full',
+  },
+  {
+    path: 'datasets2',
+    component: Datasets,
     pathMatch: 'full',
   },
   {
