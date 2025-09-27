@@ -23,7 +23,7 @@ export const ConfigStore = signalStore(
   withComputed(({ config }) => ({
     methods: computed(() => config()?.methods || {}),
     methodNames: computed(() => Object.keys(config()?.methods || {})),
-    isConfigLoaded: computed(() => config() !== null),
+    isConfigLoaded: computed(() => config() !== null && Object.keys(config()?.methods || {}).length > 0),
     configWithLoading: computed(() => ({
       config: config(),
       loading: config() !== null,

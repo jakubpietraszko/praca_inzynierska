@@ -35,7 +35,7 @@ class UtilitiesService:
     async def delete_extension(self, filename: str) -> str:
         base = filename.split('.')[0]
         return base
-    
+
     async def add_png_extension(self, filename: str) -> str:
         base = await self.delete_extension(filename)
         base += '.png'
@@ -56,7 +56,7 @@ class UtilitiesService:
         assert image.dtype == np.uint8
 
         return image
-    
+
     async def aggregate_channels(self, image: np.ndarray, type: str) -> np.ndarray:
         assert len(image.shape) == 3
 
@@ -70,12 +70,11 @@ class UtilitiesService:
         assert len(image.shape) == 2
 
         return image
-    
+
     async def skip_forward(self, path) -> bool:
         if os.path.exists(path):
             return True
         return False
-    
+
     async def fill_target(self, model_info, label) -> int:
         return model_info.label_to_idx[label]
-

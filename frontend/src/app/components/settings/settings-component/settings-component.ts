@@ -14,7 +14,6 @@ import {
   XAIMethodConfig,
 } from '../../../state/config/config.model';
 
-
 @Component({
   selector: 'app-settings-component',
   imports: [
@@ -34,7 +33,6 @@ import {
 export class SettingsComponent implements OnInit {
   private configStore = inject(ConfigStore);
 
-  // Access signals directly from the store
   config = this.configStore.config;
   loading = this.configStore.loading;
   methods = this.configStore.methods;
@@ -50,15 +48,9 @@ export class SettingsComponent implements OnInit {
     effect(() => {
       const methods = this.methods();
       const loading = this.loading();
-      const config = this.config();
-      const error = this.error();
-      
-      if (!loading) {
-        if (methods && Object.keys(methods).length > 0) {
-          this.currentConfig = JSON.parse(JSON.stringify(methods));
-        } else if (config === null || error) {
-          this.initializeDefaultConfig();
-        }
+
+      if (!loading && methods && Object.keys(methods).length > 0) {
+        this.currentConfig = JSON.parse(JSON.stringify(methods));
       }
     });
   }
@@ -67,105 +59,8 @@ export class SettingsComponent implements OnInit {
     this.configStore.loadConfig();
   }
 
-  initializeDefaultConfig() {
-    const defaultMethods = [
-      'grad_cam',
-      'grad_cam_plus_plus',
-      'group_cam',
-      'hires_cam',
-      'wgrad_cam',
-      'ablation_cam',
-      'xgrad_cam',
-      'smooth_grad',
-      'smooth_grad_squared',
-      'var_grad',
-      'gradient',
-      'gradient_squared',
-      'deconvolution',
-      'guided_backpropagation',
-      'input_gradient',
-      'integrated_gradient',
-      'xrai',
-      'kernel_shap',
-      'lime',
-    ];
-
-    this.currentConfig = {};
-    defaultMethods.forEach((methodName) => {
-      this.currentConfig[methodName] = this.getDefaultMethodConfig(methodName);
-    });
-  }
-
   getDefaultMethodConfig(methodName: string): XAIMethodConfig {
-    const defaultConfigs: { [key: string]: XAIMethodConfig } = {
-      grad_cam: { epsilon: 1e-6 },
-      grad_cam_plus_plus: { epsilon: 1e-6 },
-      group_cam: {
-        epsilon: 1e-6,
-        group_size: 16,
-        k_size: 5,
-        sigma: 0.5,
-      },
-      hires_cam: { epsilon: 1e-6 },
-      wgrad_cam: { epsilon: 1e-6 },
-      ablation_cam: { epsilon: 1e-6 },
-      xgrad_cam: { epsilon: 1e-6 },
-      activation_cam: { epsilon: 1e-6 },
-      smooth_grad: {
-        epsilon: 1e-6,
-        n_samples: 50,
-        noise_level: 0.1,
-        aggregation: 'max',
-      },
-      smooth_grad_squared: {
-        epsilon: 1e-6,
-        n_samples: 50,
-        noise_level: 0.1,
-        aggregation: 'max',
-      },
-      var_grad: {
-        epsilon: 1e-6,
-        n_samples: 50,
-        noise_level: 0.1,
-        aggregation: 'max',
-      },
-      gradient: { epsilon: 1e-6, aggregation: 'max' },
-      gradient_squared: { epsilon: 1e-6, aggregation: 'max' },
-      deconvolution: { epsilon: 1e-6, aggregation: 'max' },
-      guided_backpropagation: { epsilon: 1e-6, aggregation: 'max' },
-      input_gradient: { epsilon: 1e-6, aggregation: 'max' },
-      integrated_gradient: {
-        epsilon: 1e-6,
-        baseline: 0,
-        steps: 50,
-        aggregation: 'max',
-      },
-      xrai: {
-        epsilon: 1e-6,
-        aggregation: 'max',
-        baseline: 0,
-        super_pixels: 30,
-        segmentation: 'seed',
-      },
-      kernel_shap: {
-        epsilon: 1e-6,
-        n_samples: 50,
-        aggregation: 'max',
-        baseline: 0,
-        super_pixels: 30,
-        segmentation: 'seed',
-      },
-      lime: {
-        epsilon: 1e-6,
-        n_samples: 50,
-        aggregation: 'max',
-        baseline: 0,
-        super_pixels: 30,
-        segmentation: 'seed',
-      },
-    };
-
-    return defaultConfigs[methodName] || { epsilon: 1e-6, aggregation: 'max' };
+    return this.getMethodConfig(methodName);
   }
 
   onMethodConfigChange(
@@ -173,10 +68,8 @@ export class SettingsComponent implements OnInit {
     field: keyof XAIMethodConfig,
     value: any
   ) {
-    console.log('Updating config:', methodName, field, value); // Debug log
-
-    // Get current config or default
-    const currentMethodConfig = this.currentConfig[methodName] || this.getDefaultMethodConfig(methodName);
+    const currentMethodConfig =
+      this.currentConfig[methodName] || this.getMethodConfig(methodName);
 
     if (
       [
@@ -189,6 +82,9 @@ export class SettingsComponent implements OnInit {
         'steps',
         'baseline',
         'super_pixels',
+        'gamma',
+        'alpha',
+        'beta',
       ].includes(field)
     ) {
       const numValue = parseFloat(value);
@@ -200,33 +96,32 @@ export class SettingsComponent implements OnInit {
       const currentValue = currentMethodConfig?.k_size || 5;
       const minValue = Math.max(1, currentValue - 2);
       const maxValue = currentValue + 2;
-      
+
       if (value % 2 === 0) {
         value = value + 1;
       }
-      
+
       if (value < minValue) {
         value = minValue % 2 === 0 ? minValue + 1 : minValue;
       } else if (value > maxValue) {
         value = maxValue % 2 === 0 ? maxValue - 1 : maxValue;
       }
-      
+
       if (value % 2 === 0) {
         value = value - 1;
       }
-      
+
       if (value < 1) {
         value = 1;
       }
     }
 
-    // Create a completely new config object to avoid mutation issues
     this.currentConfig = {
       ...this.currentConfig,
       [methodName]: {
         ...currentMethodConfig,
         [field]: value,
-      }
+      },
     };
 
     this.configStore.updateMethodConfig(methodName, { [field]: value });
@@ -245,7 +140,13 @@ export class SettingsComponent implements OnInit {
     if (this.currentConfig[methodName]) {
       return this.currentConfig[methodName];
     }
-    return this.getDefaultMethodConfig(methodName);
+
+    const storeConfig = this.configStore.getMethodConfig(methodName);
+    if (storeConfig) {
+      return storeConfig;
+    }
+
+    return { epsilon: 1e-6 };
   }
 
   hasField(methodName: string, field: string): boolean {
@@ -253,54 +154,15 @@ export class SettingsComponent implements OnInit {
   }
 
   getDefaultFields(methodName: string): string[] {
-    const fieldMap: { [key: string]: string[] } = {
-      grad_cam: ['epsilon'],
-      grad_cam_plus_plus: ['epsilon'],
-      group_cam: ['epsilon', 'group_size', 'k_size', 'sigma'],
-      hires_cam: ['epsilon'],
-      wgrad_cam: ['epsilon'],
-      ablation_cam: ['epsilon'],
-      xgrad_cam: ['epsilon'],
-      smooth_grad: ['epsilon', 'n_samples', 'noise_level', 'aggregation'],
-      smooth_grad_squared: [
-        'epsilon',
-        'n_samples',
-        'noise_level',
-        'aggregation',
-      ],
-      var_grad: ['epsilon', 'n_samples', 'noise_level', 'aggregation'],
-      gradient: ['epsilon', 'aggregation'],
-      gradient_squared: ['epsilon', 'aggregation'],
-      deconvolution: ['epsilon', 'aggregation'],
-      guided_backpropagation: ['epsilon', 'aggregation'],
-      input_gradient: ['epsilon', 'aggregation'],
-      integrated_gradient: ['epsilon', 'baseline', 'steps', 'aggregation'],
-      xrai: [
-        'epsilon',
-        'aggregation',
-        'baseline',
-        'super_pixels',
-        'segmentation',
-      ],
-      kernel_shap: [
-        'epsilon',
-        'n_samples',
-        'aggregation',
-        'baseline',
-        'super_pixels',
-        'segmentation',
-      ],
-      lime: [
-        'epsilon',
-        'n_samples',
-        'aggregation',
-        'baseline',
-        'super_pixels',
-        'segmentation',
-      ],
-    };
+    const methodConfig = this.getMethodConfig(methodName);
+    if (methodConfig) {
+      return Object.keys(methodConfig).filter((key) => {
+        const value = (methodConfig as any)[key];
+        return value !== null && value !== undefined;
+      });
+    }
 
-    return fieldMap[methodName] || ['epsilon', 'aggregation'];
+    return ['epsilon'];
   }
 
   getMethodDisplayName(methodName: string): string {
@@ -310,32 +172,8 @@ export class SettingsComponent implements OnInit {
   }
 
   getAllMethodNames(): string[] {
-    const loadedMethods = this.methodNames() || [];
-    const defaultMethods = [
-      'grad_cam',
-      'grad_cam_plus_plus',
-      'group_cam',
-      'hires_cam',
-      'wgrad_cam',
-      'ablation_cam',
-      'xgrad_cam',
-      'activation_cam',
-      'smooth_grad',
-      'smooth_grad_squared',
-      'var_grad',
-      'gradient',
-      'gradient_squared',
-      'deconvolution',
-      'guided_backpropagation',
-      'input_gradient',
-      'integrated_gradient',
-      'xrai',
-      'kernel_shap',
-      'lime',
-    ];
+    const methodNames = this.methodNames() || [];
 
-    return loadedMethods.length > 0 ? loadedMethods : defaultMethods;
+    return methodNames;
   }
-
-
 }

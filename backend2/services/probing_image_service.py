@@ -682,11 +682,11 @@ class ProbingImageService:
 
         coalitions.append(np.zeros(n_segments))
         predictions.append(baseline_pred)
-        weights.append(self._shapley_kernel_weight(0, n_segments))
+        weights.append(await self._shapley_kernel_weight(0, n_segments))
 
         coalitions.append(np.ones(n_segments))
         predictions.append(full_pred)
-        weights.append(self._shapley_kernel_weight(n_segments, n_segments))
+        weights.append(await self._shapley_kernel_weight(n_segments, n_segments))
 
         for _ in range(min(num_samples - 2, 2000)):
             coalition_size = np.random.choice(range(1, n_segments),
@@ -707,7 +707,7 @@ class ProbingImageService:
 
             coalitions.append(coalition)
             predictions.append(pred)
-            weights.append(self._shapley_kernel_weight(
+            weights.append(await self._shapley_kernel_weight(
                 coalition_size, n_segments))
 
         coalitions = np.array(coalitions)

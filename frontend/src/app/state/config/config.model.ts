@@ -10,6 +10,9 @@ export interface XAIMethodConfig {
   steps?: number;
   super_pixels?: number;
   segmentation?: string;
+  gamma?: number;
+  alpha?: number;
+  beta?: number;
 }
 
 export interface ConfigModel {

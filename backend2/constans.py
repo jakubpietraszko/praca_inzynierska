@@ -11,7 +11,7 @@ class Constants:
     MASK_SLIC: str = 'mask_slic'
     MASK_SEED: str = 'mask_seed'
 
-    EDGE_CANNY: str = 'edge_canny'
+    # EDGE_CANNY: str = 'edge_canny'
 
     ACTIVATIONS: str = 'activations'
 
@@ -22,10 +22,6 @@ class Constants:
     INPUT_GRADIENT: str = 'input_gradient'
 
     INTEGRATED_GRADIENT: str = 'integrated_gradient'
-    INTEGRATED_GRADIENT_NOISE: str = 'integrated_gradient_noise'
-    SMOOTH_TAYLOR: str = 'smooth_taylor'
-    SMOOTH_INTEGRATED_GRADIENT: str = 'smooth_integrated_gradient'
-    EXPECTED_GRADIENT: str = 'expected_gradient'
 
     SMOOTH_GRADIENT: str = 'smooth_gradient'
     SMOOTH_GRADIENT_SQUARE: str = 'smooth_gradient_square'
@@ -37,27 +33,21 @@ class Constants:
     HIRES_CAM: str = 'hires_cam'
     ABLATION_CAM: str = 'ablation_cam'
     GROUP_CAM: str = 'group_cam'
-    SCORE_CAM: str = 'score_cam'
     XGRAD_CAM: str = 'xgrad_cam'
-    EIGEN_CAM: str = 'eigen_cam'
+    # SCORE_CAM: str = 'score_cam'
+    # EIGEN_CAM: str = 'eigen_cam'
 
     XRAI: str = 'xrai'
-    EXACT_SHAP: str = 'exact_shap'
     KERNEL_SHAP: str = 'kernel_shap'
-    RISE: str = 'rise'
-
     LIME: str = 'lime'
+    # EXACT_SHAP: str = 'exact_shap'
+    # RISE: str = 'rise'
 
-    LRP: str = 'lrp_zero'
     LRP_EPSILON: str = 'lrp_epsilon'
     LRP_GAMMA: str = 'lrp_gamma'
     LRP_ALPHA_BETA: str = 'lrp_alpha_beta'
-    LRP_FLAT: str = 'lrp_flat'
-
-    DEEP_TAYLOR: str = 'deep_taylor'
-
-    LIFT: str = 'lift'
-    DEEP_LIFT: str = 'deep_lift'
+    LRP_ZPLUS: str = 'lrp_zplus'
+    LRP_W2: str = 'lrp_w2'
 
     AVAILABLE_HEATMAPS: list[str] = field(default_factory=lambda: [
     ])
@@ -89,14 +79,18 @@ class Constants:
             self.LIME,
             self.XRAI,
             self.KERNEL_SHAP,
+
+            self.LRP_EPSILON,
+            self.LRP_GAMMA,
+            self.LRP_ALPHA_BETA,
+            self.LRP_ZPLUS,
+            self.LRP_W2,
         ]
 
         self.ALL_DIRS = [
             self.MASK_RISE,
             self.MASK_SLIC,
             self.MASK_SEED,
-
-            self.EDGE_CANNY,
 
             self.ACTIVATIONS,
 
@@ -107,8 +101,6 @@ class Constants:
             self.INPUT_GRADIENT,
 
             self.INTEGRATED_GRADIENT,
-            self.INTEGRATED_GRADIENT_NOISE,
-            self.EXPECTED_GRADIENT,
 
             self.SMOOTH_GRADIENT,
             self.SMOOTH_GRADIENT_SQUARE,
@@ -120,17 +112,14 @@ class Constants:
             self.WGRAD_CAM,
             self.ABLATION_CAM,
             self.GROUP_CAM,
-            self.SCORE_CAM,
             self.XGRAD_CAM,
-            self.EIGEN_CAM,
 
-            self.LRP,
             self.LRP_EPSILON,
             self.LRP_GAMMA,
             self.LRP_ALPHA_BETA,
-            self.LRP_FLAT,
-            self.DEEP_TAYLOR,
-            
+            self.LRP_ZPLUS,
+            self.LRP_W2,
+
             self.XRAI,
             self.LIME,
             self.KERNEL_SHAP,

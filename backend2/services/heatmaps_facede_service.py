@@ -86,6 +86,17 @@ class HeatmapsFacedeService:
         elif type == self.get_constants().KERNEL_SHAP:
             return await self.get_probing_image_service().kernel_shap(**args)
 
+        elif type == self.get_constants().LRP_EPSILON:
+            return await self.get_lrp_service().lrp_epsilon(**args)
+        elif type == self.get_constants().LRP_GAMMA:
+            return await self.get_lrp_service().lrp_gamma(**args)
+        elif type == self.get_constants().LRP_ALPHA_BETA:
+            return await self.get_lrp_service().lrp_alpha_beta(**args)
+        elif type == self.get_constants().LRP_ZPLUS:
+            return await self.get_lrp_service().lrp_zplus(**args)
+        elif type == self.get_constants().LRP_W2:
+            return await self.get_lrp_service().lrp_w2(**args)
+
         return GradientResponse(
             success=True
         )

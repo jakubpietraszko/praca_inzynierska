@@ -14,6 +14,9 @@ class XAIMethodConfig(BaseModel):
     steps: Optional[int] = None
     super_pixels: Optional[int] = None
     segmentation: Optional[str] = None
+    gamma: Optional[float] = None
+    alpha: Optional[float] = None
+    beta: Optional[float] = None
 
 
 class ConfigModel(BaseModel):
@@ -71,7 +74,13 @@ class ConfigService:
 
             "xrai": XAIMethodConfig(epsilon=1e-6, aggregation="max", baseline=0, super_pixels=30, segmentation="seed"),
             "kernel_shap": XAIMethodConfig(epsilon=1e-6, n_samples=50, aggregation="max", baseline=0, super_pixels=30, segmentation="seed"),
-            "lime": XAIMethodConfig(epsilon=1e-6, n_samples=50, aggregation="max", baseline=0, super_pixels=30, segmentation="seed")
+            "lime": XAIMethodConfig(epsilon=1e-6, n_samples=50, aggregation="max", baseline=0, super_pixels=30, segmentation="seed"),
+
+            "lrp_epsilon": XAIMethodConfig(epsilon=1e-6, aggregation="max"),
+            "lrp_gamma": XAIMethodConfig(epsilon=1e-6, gamma=0.75, aggregation="max"),
+            "lrp_alpha_beta": XAIMethodConfig(epsilon=1e-6, alpha=2.5, beta=1.5, aggregation="max"),
+            "lrp_zplus": XAIMethodConfig(epsilon=1e-6, aggregation="max"),
+            "lrp_w2": XAIMethodConfig(epsilon=1e-6, aggregation="max"),
 
         }
         return ConfigModel(methods=default_methods)
@@ -87,7 +96,7 @@ class ConfigService:
                 for method_name, method_config in config.methods.items()
             }
         }
-        
+
         with open(path, 'w') as f:
             json.dump(config_dict, f, indent=4)
 
