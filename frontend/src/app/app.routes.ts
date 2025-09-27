@@ -1,15 +1,15 @@
 import { Routes } from '@angular/router';
-import { HomeComponent } from './components/home/home-component/home-component';
 import { SettingsComponent } from './components/settings/settings-component/settings-component';
 import { DatasetsComponent } from './components/datasets/datasets-component/datasets-component';
-import { ModelsComponent } from './components/models/models-component/models-component';
-import { Statistics } from './components/statistics/statistics/statistics';
 import { Generator } from './components/generator-page/generator';
+import { Home } from './components/home-page/home/home';
+import { Statistics } from './components/statistics-page/statistics/statistics';
+import { Models } from './components/models-page/models/models';
 
 export const routes: Routes = [
   {
     path: 'home',
-    component: HomeComponent,
+    component: Home,
     pathMatch: 'full',
   },
   {
@@ -24,7 +24,7 @@ export const routes: Routes = [
   },
   {
     path: 'models',
-    component: ModelsComponent,
+    component: Models,
     pathMatch: 'full',
   },
   {
