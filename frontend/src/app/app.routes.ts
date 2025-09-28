@@ -1,6 +1,5 @@
 import { Routes } from '@angular/router';
 import { SettingsComponent } from './components/settings/settings-component/settings-component';
-import { DatasetsComponent } from './components/datasets/datasets-component/datasets-component';
 import { Generator } from './components/generator-page/generator';
 import { Home } from './components/home-page/home/home';
 import { Statistics } from './components/statistics-page/statistics/statistics';
@@ -20,11 +19,6 @@ export const routes: Routes = [
   },
   {
     path: 'datasets',
-    component: DatasetsComponent,
-    pathMatch: 'full',
-  },
-  {
-    path: 'datasets2',
     component: Datasets,
     pathMatch: 'full',
   },
