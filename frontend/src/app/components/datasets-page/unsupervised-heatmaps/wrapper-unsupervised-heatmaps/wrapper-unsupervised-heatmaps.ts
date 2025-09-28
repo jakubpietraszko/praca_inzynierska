@@ -1,4 +1,10 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { GenericSelector } from '../../../shared/generic-selector/generic-selector';
 import { ContentUnsupervisedHeatmaps } from '../content-unsupervised-heatmaps/content-unsupervised-heatmaps';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
@@ -8,6 +14,7 @@ import { MAT_DIALOG_DATA } from '@angular/material/dialog';
   imports: [GenericSelector, ContentUnsupervisedHeatmaps],
   templateUrl: './wrapper-unsupervised-heatmaps.html',
   styleUrl: './wrapper-unsupervised-heatmaps.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class WrapperUnsupervisedHeatmaps {
   data = inject(MAT_DIALOG_DATA) as { dataset: string; label: string };

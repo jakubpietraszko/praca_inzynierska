@@ -1,1 +1,12 @@
-<p>content-unsupervised-heatmaps works!</p>
+@if(response()) {
+    <div class="image-container" #container>
+    @for (coord of response()!.filenames_coords; track coord; let i = $index) {
+    <div class="draggable-image" cdkDrag [cdkDragBoundary]="container"
+        [style.left.%]="coord.coordX * (100 - 6)" [style.top.%]="coord.coordY * (100 - 8)">
+        <img appLoadModelsDatasetsImage [dataset]="dataset()!" [label]="label()!" [filename]="coord.filename" [model]="model()!"
+            [type]="heatmap()!" alt="{{label()}} - {{coord.filename}}" draggable="false">
+        <div class="drag-placeholder" *cdkDragPlaceholder></div>
+    </div>
+    }
+</div>
+}

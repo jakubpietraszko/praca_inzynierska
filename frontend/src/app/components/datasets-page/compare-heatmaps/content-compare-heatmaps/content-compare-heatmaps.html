@@ -1,1 +1,14 @@
-<p>content-compare-heatmaps works!</p>
+@if(response() && !allHeatmaps.isLoading() && allHeatmaps.value()?.heatmaps) {
+    <div class="heatmaps-container">
+        @for(type of allHeatmaps.value()?.heatmaps; track type) {
+        <app-image-title-transparent
+            [title]="type"
+            [dataset]="dataset()"
+            [label]="label()"
+            [filename]="filename()"
+            [model]="model()"
+            [type]="type"
+        ></app-image-title-transparent>
+    }
+    </div>
+}

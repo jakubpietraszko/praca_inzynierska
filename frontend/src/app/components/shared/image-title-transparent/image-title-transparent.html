@@ -1,0 +1,27 @@
+    <div class="image-container" cdkDrag>
+      <div class="slider">
+        <mat-slider [min]="0" [max]="100">
+          <input
+            matSliderThumb
+            [value]="sliderValue()"
+            (input)="sliderValue.set($any($event.target).value)"
+          />
+        </mat-slider>
+      </div>
+
+      <img
+        cdkDragHandle
+        appLoadModelsDatasetsImage
+        [dataset]="dataset()"
+        [label]="label()"
+        [filename]="filename()"
+        [model]="model()"
+        [type]="type()"
+        [style.opacity]="sliderValue() / 100"
+        class="draggable-image"
+      />
+
+      <div class="title">
+        {{ title() }}
+      </div>
+    </div>

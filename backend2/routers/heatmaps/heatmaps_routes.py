@@ -10,6 +10,8 @@ from services.container import get_container
 from services.container import HeatmapsService, get_heatmaps_service
 from services.container import HeatmapsFacedeService, get_heatmaps_facede_service
 
+from interfaces.unsupervised_heatmaps import UnsupervisedHeatmapsRequest, UnsupervisedHeatmapsResponse, FilenameCoords
+
 router = APIRouter()
 
 
@@ -81,3 +83,14 @@ async def get_all_heatmaps_type(model: str, dataset: str, label: str, type: str,
         request=request,
         type=type,
     )
+
+
+@router.post('/unsupervised-heatmaps', response_model=UnsupervisedHeatmapsResponse)
+async def unsupervised_heatmaps(request: UnsupervisedHeatmapsRequest,
+                                heatmaps_service: HeatmapsService = Depends(
+                                    get_heatmaps_service
+                                )):
+    response = await heatmaps_service.unsupervised_heatmaps(
+        request=request
+    )
+    return response

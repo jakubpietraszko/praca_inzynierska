@@ -2,30 +2,44 @@ import numpy as np
 import cv2
 import os
 from interfaces.activations import ActivationsRequest, ActivationsResponse
+from interfaces.unsupervised_activations import UnsupervisedActivationsRequest, UnsupervisedActivationsResponse, LabelFilenameCoords
+
+from PIL import Image
+from sklearn.manifold import TSNE
+from sklearn.preprocessing import normalize, MinMaxScaler
+
 
 class ActivationsService:
     def __init__(self):
-        pass
+        from services.container import get_utilities_service
+        from services.utilities_service import UtilitiesService
+        from services.container import get_constants
+        from constans import Constants
+        from services.container import get_container
+        from services.container import get_models_service
+        from services.models_service import ModelsService
+        from services.datasets_service import DatasetsService
+        from services.container import get_datasets_service
+        self.utilities_service: UtilitiesService = get_utilities_service()
+        self.container = get_container()
+        self.constants: Constants = get_constants()
+        self.models_service: ModelsService = get_models_service()
+        self.datasets_service: DatasetsService = get_datasets_service()
 
     async def activations(self, request: ActivationsRequest,
-                    container,
-                    models_service,
-                    utilities_service,
-                    datasets_service,
-                    constants
-                    ):
-        
-        model_info = await models_service.load_model(request.model)
+                          ):
+
+        model_info = await self.models_service.load_model(request.model)
 
         filepath = os.path.join(
-            container.datasets_path,
+            self.container.datasets_path,
             request.dataset,
             request.label,
             request.filename
         )
 
-        image_np = await datasets_service.load_image(filepath, model_info.input_shape)
-        image_tensor = await utilities_service.convert_image_to_tensor(image_np)
+        image_np = await self.datasets_service.load_image(filepath, model_info.input_shape)
+        image_tensor = await self.utilities_service.convert_image_to_tensor(image_np)
 
         activations = None
 
@@ -41,17 +55,17 @@ class ActivationsService:
         activations = np.squeeze(activations, axis=0)
 
         path = os.path.join(
-            container.models_datasets_path,
-            await utilities_service.models_datasets_path(request.model, request.dataset),
-            constants.ACTIVATIONS,
+            self.container.models_datasets_path,
+            await self.utilities_service.models_datasets_path(request.model, request.dataset),
+            self.constants.ACTIVATIONS,
             request.label,
-            await utilities_service.delete_extension(request.filename)
+            await self.utilities_service.delete_extension(request.filename)
         )
         os.makedirs(path, exist_ok=True)
 
         for i, activation in enumerate(activations):
-            activation = await utilities_service.relu_normalize(
-                activation, model_info.input_shape, epsilon=constants.EPSILON)
+            activation = await self.utilities_service.relu_normalize(
+                activation, model_info.input_shape, epsilon=self.constants.EPSILON)
 
             activation_path = os.path.join(
                 path,
@@ -62,4 +76,59 @@ class ActivationsService:
         return ActivationsResponse(
             success=True,
             count=len(activations)
+        )
+
+    async def unsupervised_activations(self, request: UnsupervisedActivationsRequest):
+        req: ActivationsRequest = ActivationsRequest(
+            model=request.model,
+            dataset=request.dataset,
+            label=request.label,
+            filename=request.filename
+        )
+
+        await self.activations(
+            request=req
+        )
+
+        images_dir = os.path.join(
+            self.container.models_datasets_path,
+            await self.utilities_service.models_datasets_path(request.model, request.dataset),
+            self.constants.ACTIVATIONS,
+            request.label,
+            await self.utilities_service.delete_extension(request.filename)
+        )
+
+        image_path = [
+            os.path.join(images_dir, f) for f in os.listdir(images_dir)
+        ]
+        images = list()
+
+        for img_path in image_path:
+            img = np.array(Image.open(img_path))
+            images.append(img)
+
+        images_np = np.array(images)
+        n_samples = images_np.shape[0]
+        images_flat_np = images_np.reshape(n_samples, -1)
+        tsne = TSNE(n_components=2)
+        images_tsne = tsne.fit_transform(images_flat_np)
+        images_tsne = normalize(images_tsne, axis=0)
+        scaler = MinMaxScaler()
+        images_tsne = scaler.fit_transform(images_tsne)
+        label_filenames_coords = list()
+
+        for img_path, coords in zip(image_path, images_tsne):
+            label_filenames_coords.append(
+                LabelFilenameCoords(
+                    label=request.label,
+                    filename=os.path.basename(img_path),
+                    coordX=float(coords[0]),
+                    coordY=float(coords[1])
+                )
+            )
+
+        return UnsupervisedActivationsResponse(
+            dataset=request.dataset,
+            label_filenames_coords=label_filenames_coords,
+            success=True
         )

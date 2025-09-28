@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { GenericSelector } from '../../../shared/generic-selector/generic-selector';
 import { ContentUnsupervisedActivations } from '../content-unsupervised-activations/content-unsupervised-activations';
@@ -8,6 +8,7 @@ import { ContentUnsupervisedActivations } from '../content-unsupervised-activati
   imports: [GenericSelector, ContentUnsupervisedActivations],
   templateUrl: './wrapper-unsupervised-activations.html',
   styleUrl: './wrapper-unsupervised-activations.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class WrapperUnsupervisedActivations {
   data = inject(MAT_DIALOG_DATA) as {
