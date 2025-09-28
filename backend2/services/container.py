@@ -16,6 +16,7 @@ from .heatmaps_facede_service import HeatmapsFacedeService
 from .lrp_service import LRPService
 from .config_service import ConfigService
 from .websocket_service import WebSocketService
+from .statistics_service import StatisticsService
 
 from constans import Constants
 
@@ -50,6 +51,7 @@ class ServiceContainer:
         self._lrp_service = None
         self._config_service = None
         self._websocket_service = None
+        self._statistics_service = None
 
     @property
     def datasets_service(self) -> DatasetsService:
@@ -152,6 +154,12 @@ class ServiceContainer:
         if self._websocket_service is None:
             self._websocket_service = WebSocketService()
         return self._websocket_service
+    
+    @property
+    def statistics_service(self):
+        if self._statistics_service is None:
+            self._statistics_service = StatisticsService()
+        return self._statistics_service
 
 
 _container: ServiceContainer = None
@@ -213,3 +221,6 @@ def get_config_service() -> ConfigService:
 
 def get_websocket_service() -> WebSocketService:
     return get_container().websocket_service
+
+def get_statistics_service() -> StatisticsService:
+    return get_container().statistics_service

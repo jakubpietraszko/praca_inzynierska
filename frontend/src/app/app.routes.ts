@@ -2,7 +2,7 @@ import { Routes } from '@angular/router';
 import { SettingsComponent } from './components/settings/settings-component/settings-component';
 import { Generator } from './components/generator-page/generator';
 import { Home } from './components/home-page/home/home';
-import { Statistics } from './components/statistics-page/statistics/statistics';
+import { Statistics } from './components/statistics-page/statistics';
 import { Models } from './components/models-page/models/models';
 import { Datasets } from './components/datasets-page/datasets';
 
