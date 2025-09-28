@@ -9,11 +9,16 @@ import { WrapperUnsupervisedActivations } from './wrapper-unsupervised-activatio
 export class DialogUnsupervisedActivations {
   dialog = inject(MatDialog);
 
-  open() {
+  open(dataset: string, label: string, filename: string) {
     this.dialog.open(WrapperUnsupervisedActivations, {
       width: constants.DIALOG_WIDTH,
       height: constants.DIALOG_HEIGHT,
       panelClass: constants.DIALOG_PANEL_CLASS,
+      data: {
+        dataset,
+        label,
+        filename,
+      },
     });
   }
 }

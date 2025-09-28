@@ -48,10 +48,12 @@
                     </mat-grid-tile>
                     }
                 </mat-grid-list>
-                <div class="paginator-bottom"></div>
+                <div class="paginator-bottom">
                 <mat-paginator [length]="totalImages()" [pageSize]="imagesPerPage" [pageIndex]="currentPage()"
                     (page)="onPageChange($event)" showFirstLastButtons>
                 </mat-paginator>
+
+                </div>
             </div>
         }
     }

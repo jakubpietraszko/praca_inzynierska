@@ -48,6 +48,15 @@ async def all_images(
         request.dataset, request.label)
     return AllImagesResponse(images=images)
 
+@router.get('/all-images', response_model=AllImagesResponse)
+async def all_images_get(
+    dataset: str,
+    label: str,
+    datasets_service: DatasetsService = Depends(get_datasets_service)
+):
+    images = await datasets_service.list_filenames_in_label(
+        dataset, label)
+    return AllImagesResponse(images=images)
 
 @router.post('/fetch-image', response_model=FetchImageResponse)
 async def fetch_image(

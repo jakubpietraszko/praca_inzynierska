@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, input } from '@angular/core';
 
 @Component({
   selector: 'app-content-unsupervised-activations',
@@ -7,5 +7,8 @@ import { Component } from '@angular/core';
   styleUrl: './content-unsupervised-activations.css'
 })
 export class ContentUnsupervisedActivations {
-
+  model = input.required<string>();
+  dataset = input.required<string>();
+  label = input.required<string>();
+  filename = input.required<string>();
 }
