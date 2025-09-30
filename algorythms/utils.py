@@ -16,6 +16,7 @@ def trainStep(model, loader, optimizer, criterion, device):
         predictions = torch.argmax(outputs, dim=1)
         correct += (predictions == yBatch).sum().item()
 
+
     avgLoss = totalLoss / len(loader.dataset)
     accuracy = correct / len(loader.dataset)
     return avgLoss, accuracy

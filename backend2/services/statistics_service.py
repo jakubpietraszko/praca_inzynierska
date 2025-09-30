@@ -1,5 +1,62 @@
+from interfaces.all_quantitative_statistics import AllQuantitativeStatisticsRequest, AllQuantitativeStatisticsResponse
+import torch
+from torch.utils.data import DataLoader
+import os
+import torchvision.transforms as transforms
+import cv2
+
+
 class StatisticsService:
     def __init__(self):
-        pass
+        from services.models_service import ModelsService
+        from services.container import get_models_service
+        from services.datasets_service import DatasetsService
+        from services.container import get_datasets_service
 
-    
+        self.models_service: ModelsService = get_models_service()
+        self.datasets_service: DatasetsService = get_datasets_service()
+
+    async def generate_all_quantitative_statistics(self, request: AllQuantitativeStatisticsRequest) -> AllQuantitativeStatisticsResponse:
+
+        model_info = await self.models_service.load_model(request.model)
+        labels = await self.datasets_service.list_labels_in_dataset(request.dataset)
+        label_to_idx = model_info.label_to_idx
+
+        dataset_info = await self.datasets_service.load_dataset(request.dataset, model_info.transform)
+        dataset = dataset_info.dataset
+        idx_to_class = {v: k for k, v in dataset.class_to_idx.items()}
+        BATCH_SIZE = 16
+        label_to_idx = model_info.label_to_idx
+        idx_to_label = {v: k for k, v in label_to_idx.items()}
+
+        confusion_dict = {label: {l: 0 for l in labels} for label in labels}
+
+        model = model_info.model
+
+        model.eval()
+        dataloader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=False)
+
+        device = next(model.parameters()).device if next(
+            model.parameters(), None) is not None else 'cpu'
+        model.to(device)
+
+        with torch.no_grad():
+            for images, targets in dataloader:
+                images = images.to(device)
+                outputs = model(images)
+                preds = torch.argmax(outputs, 1)
+                for true_idx, pred_idx in zip(targets, preds):
+                    true_idx = true_idx.item()
+                    pred_idx = pred_idx.item()
+
+                    true_label = idx_to_class[true_idx]
+                    pred_label = idx_to_label[pred_idx]
+                    true_label = idx_to_class[true_idx]
+                    pred_label = idx_to_label[pred_idx]
+                    confusion_dict[true_label][pred_label] += 1
+
+        return AllQuantitativeStatisticsResponse(success=True, confusion_dict=confusion_dict)
+
+    async def all_quantitative_statistics(self, request: AllQuantitativeStatisticsRequest) -> AllQuantitativeStatisticsResponse:
+        response = await self.generate_all_quantitative_statistics(request)
+        return response

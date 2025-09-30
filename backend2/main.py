@@ -21,6 +21,7 @@ from routers.heatmaps.heatmaps_routes import router as heatmaps_router
 from routers.heatmaps.lrp_routes import router as lrp_router
 from routers.config_routes import router as config_router
 from routers.websocket_routes import router as websocket_router
+from routers.statistics_routes import router as statistics_router
 
 app = FastAPI()
 
@@ -52,6 +53,7 @@ app.include_router(lrp_router, prefix="/heatmap")
 app.include_router(config_router, prefix="/config")
 app.include_router(unsupervised_router, prefix="/unsupervised")
 app.include_router(websocket_router)
+app.include_router(statistics_router, prefix='/statistics')
 
 @app.get("/")
 async def root():

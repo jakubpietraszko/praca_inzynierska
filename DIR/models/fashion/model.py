@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import os
-from torchvision.transforms import ToTensor, Compose, Resize
+from torchvision.transforms import ToTensor, Compose, Resize, Grayscale
 
 LABEL_TO_IDX = {
     'tshirt': 0,
@@ -18,6 +18,7 @@ LABEL_TO_IDX = {
 
 TRANSFORM = Compose([
     Resize((28, 28)),
+    Grayscale(num_output_channels=1),
     ToTensor()
 ])
 
