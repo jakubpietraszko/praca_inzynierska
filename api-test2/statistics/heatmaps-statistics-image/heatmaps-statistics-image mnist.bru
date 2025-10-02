@@ -1,0 +1,25 @@
+meta {
+  name: heatmaps-statistics-image mnist
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://localhost:8000/statistics/heatmaps-statistics
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "model": "fashion",
+    "dataset": "fashion-dataset",
+    "heatmap": "gradient",
+    "label": "four",
+    "image": "test_5023.png"
+  }
+}
+
+settings {
+  encodeUrl: true
+}

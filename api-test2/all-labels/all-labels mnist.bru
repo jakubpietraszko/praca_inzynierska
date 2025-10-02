@@ -5,9 +5,13 @@ meta {
 }
 
 get {
-  url: http://localhost:8000/all-labels/mnist-dataset
+  url: http://localhost:8000/all-labels/?dataset=mnist-dataset
   body: none
   auth: inherit
+}
+
+params:query {
+  dataset: mnist-dataset
 }
 
 settings {

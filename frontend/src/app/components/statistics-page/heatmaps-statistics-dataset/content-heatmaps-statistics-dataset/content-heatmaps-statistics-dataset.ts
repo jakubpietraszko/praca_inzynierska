@@ -1,13 +1,13 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 
 @Component({
-  selector: 'app-content-heatmaps-statistics',
+  selector: 'app-content-heatmaps-statistics-dataset',
   imports: [],
-  templateUrl: './content-heatmaps-statistics.html',
-  styleUrl: './content-heatmaps-statistics.css',
+  templateUrl: './content-heatmaps-statistics-dataset.html',
+  styleUrl: './content-heatmaps-statistics-dataset.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ContentHeatmapsStatistics {
+export class ContentHeatmapsStatisticsDataset {
   model = input.required<string>();
   dataset = input.required<string>();
   heatmap = input.required<string>();

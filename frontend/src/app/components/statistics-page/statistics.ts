@@ -2,7 +2,8 @@ import { Component } from '@angular/core';
 import { MatTabsModule } from '@angular/material/tabs';
 import { WrapperQuantitativeStatistics } from './quantitative-statistics/wrapper-quantitative-statistics/wrapper-quantitative-statistics';
 import { WrapperDifferentStatistics } from './different-statistics/wrapper-different-statistics/wrapper-different-statistics';
-import { WrapperHeatmapsStatistics } from './heatmaps-statistics/wrapper-heatmaps-statistics/wrapper-heatmaps-statistics';
+import { WrapperHeatmapsStatisticsImage } from './heatmaps-statistics-image/wrapper-heatmaps-statistics-image/wrapper-heatmaps-statistics-image';
+import { WrapperHeatmapsStatisticsDataset } from './heatmaps-statistics-dataset/wrapper-heatmaps-statistics-dataset/wrapper-heatmaps-statistics-dataset';
 
 @Component({
   selector: 'app-statistics',
@@ -10,7 +11,8 @@ import { WrapperHeatmapsStatistics } from './heatmaps-statistics/wrapper-heatmap
     MatTabsModule,
     WrapperQuantitativeStatistics,
     WrapperDifferentStatistics,
-    WrapperHeatmapsStatistics,
+    WrapperHeatmapsStatisticsImage,
+    WrapperHeatmapsStatisticsDataset,
   ],
   templateUrl: './statistics.html',
   styleUrl: './statistics.css',

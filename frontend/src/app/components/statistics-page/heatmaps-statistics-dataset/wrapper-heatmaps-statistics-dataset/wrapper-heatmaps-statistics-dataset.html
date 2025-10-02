@@ -8,9 +8,9 @@
 ></app-generic-selector>
 
 @if(allSelected()) {
-<app-content-heatmaps-statistics
+<app-content-heatmaps-statistics-dataset
     [model]="selectedModel()!"
     [dataset]="selectedDataset()!"
     [heatmap]="selectedHeatmap()!"
-    ></app-content-heatmaps-statistics>
+    ></app-content-heatmaps-statistics-dataset>
 }

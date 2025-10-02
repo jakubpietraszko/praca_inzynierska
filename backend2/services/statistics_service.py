@@ -4,6 +4,8 @@ from torch.utils.data import DataLoader
 import os
 import torchvision.transforms as transforms
 import cv2
+from interfaces.heatmaps_statistics_image import HeatmapsStatisticsImageRequest, HeatmapsStatisticsImageResponse
+from interfaces.heatmaps_statistics_dataset import HeatmapsStatisticsDatasetRequest, HeatmapsStatisticsDatasetResponse
 
 
 class StatisticsService:
@@ -60,3 +62,19 @@ class StatisticsService:
     async def all_quantitative_statistics(self, request: AllQuantitativeStatisticsRequest) -> AllQuantitativeStatisticsResponse:
         response = await self.generate_all_quantitative_statistics(request)
         return response
+
+    async def heatmaps_statistics_image(self, request: HeatmapsStatisticsImageRequest) -> HeatmapsStatisticsImageResponse:
+        
+        return HeatmapsStatisticsImageResponse(
+            deletion=0.0,
+            insertion=0.0,
+            overall=0.0,
+            success=True,
+
+        )
+
+    async def heatmaps_statistics_dataset(self, request: HeatmapsStatisticsDatasetRequest) -> HeatmapsStatisticsDatasetResponse:
+        return HeatmapsStatisticsDatasetResponse(
+            avarage_drop=[0.0, 0.33, 0.66, 1.0],
+            rate_of_increase=[0.0, 0.33, 0.66, 1.0],
+            success=True)
