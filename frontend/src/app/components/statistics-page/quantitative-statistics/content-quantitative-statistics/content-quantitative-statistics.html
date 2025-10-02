@@ -1,1 +1,149 @@
-<p>content-quantitative-statistics works!</p>
+@if(quantitativeStatisticsResponse()) {
+<div class="statistics-container">
+    <div class="metrics-grid">
+        <mat-card class="metric-card">
+            <mat-card-header>
+                <mat-card-title>Dokładność</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+                <div class="metric-value">{{ accuracy() | percent:'1.2-2' }}</div>
+            </mat-card-content>
+        </mat-card>
+
+        <mat-card class="metric-card">
+            <mat-card-header>
+                <mat-card-title>Precyzja</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+                <div class="metric-value">{{ macroPrecision() | percent:'1.2-2' }}</div>
+            </mat-card-content>
+        </mat-card>
+
+        <mat-card class="metric-card">
+            <mat-card-header>
+                <mat-card-title>Czułość</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+                <div class="metric-value">{{ macroRecall() | percent:'1.2-2' }}</div>
+            </mat-card-content>
+        </mat-card>
+
+        <mat-card class="metric-card">
+            <mat-card-header>
+                <mat-card-title>F1</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+                <div class="metric-value">{{ macroF1() | percent:'1.2-2' }}</div>
+            </mat-card-content>
+        </mat-card>
+    </div>
+    <div class="metrics-grid">
+        <mat-card class="metric-card">
+            <mat-card-header>
+                <mat-card-title>Precyzja ważona</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+                <div class="metric-value">{{ macroWeightedPrecision() | percent:'1.2-2' }}</div>
+            </mat-card-content>
+        </mat-card>
+
+        <mat-card class="metric-card">
+            <mat-card-header>
+                <mat-card-title>Czułość ważona</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+                <div class="metric-value">{{ macroWeightedRecall() | percent:'1.2-2' }}</div>
+            </mat-card-content>
+        </mat-card>
+
+        <mat-card class="metric-card">
+            <mat-card-header>
+                <mat-card-title>F1 ważone</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+                <div class="metric-value">{{ macroWeightedF1() | percent:'1.2-2' }}</div>
+            </mat-card-content>
+        </mat-card>
+    </div>
+
+    <mat-card class="table-card">
+        <mat-card-header>
+            <mat-card-title>Metryki dla klas</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+            <table mat-table [dataSource]="classMetrics()" class="metrics-table">
+                <ng-container matColumnDef="class">
+                    <th mat-header-cell *matHeaderCellDef>Klasa</th>
+                    <td mat-cell *matCellDef="let element">{{ element.class }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="precision">
+                    <th mat-header-cell *matHeaderCellDef>Precyzja</th>
+                    <td mat-cell *matCellDef="let element">{{ element.precision | percent:'1.2-2' }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="recall">
+                    <th mat-header-cell *matHeaderCellDef>Czułość</th>
+                    <td mat-cell *matCellDef="let element">{{ element.recall | percent:'1.2-2' }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="f1">
+                    <th mat-header-cell *matHeaderCellDef>F1</th>
+                    <td mat-cell *matCellDef="let element">{{ element.f1 | percent:'1.2-2' }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="accuracy">
+                    <th mat-header-cell *matHeaderCellDef>Dokładność</th>
+                    <td mat-cell *matCellDef="let element">{{ element.accuracy | percent:'1.2-2' }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="support">
+                    <th mat-header-cell *matHeaderCellDef>Ilość elementów</th>
+                    <td mat-cell *matCellDef="let element">{{ element.support }}</td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+            </table>
+        </mat-card-content>
+    </mat-card>
+
+    <mat-card class="confusion-matrix-card">
+        <mat-card-header>
+            <mat-card-title>Macierz pomyłek</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+            <div class="confusion-matrix-wrapper">
+                <div class="matrix-container">
+                    <div class="matrix-header">
+                        <div class="corner-cell">
+                            <div class="axis-label-predicted">Przewidywane</div>
+                            <div class="axis-label-actual">Prawda</div>
+                        </div>
+                        @for(className of classNames(); track className) {
+                        <div class="predicted-label">{{ className }}</div>
+                        }
+                    </div>
+
+                    @for(actualClass of classNames(); track actualClass; let i = $index) {
+                    <div class="matrix-row">
+                        <div class="actual-label">{{ actualClass }}</div>
+                        @for(predictedClass of classNames(); track predictedClass) {
+                        <div class="matrix-cell" [class.diagonal]="actualClass === predictedClass"
+                            [style.background-color]="getCellColor(actualClass, predictedClass)">
+                            {{ getConfusionValue(actualClass, predictedClass) }}
+                        </div>
+                        }
+                    </div>
+                    }
+                </div>
+            </div>
+        </mat-card-content>
+    </mat-card>
+
+</div>
+} @else {
+<div class="loading-container">
+    <mat-progress-spinner [mode]="'indeterminate'"></mat-progress-spinner>
+</div>
+}
