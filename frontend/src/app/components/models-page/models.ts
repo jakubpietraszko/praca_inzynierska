@@ -1,8 +1,8 @@
 import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
-import { GenericModelSelector } from '../../shared/generic-model-selector/generic-model-selector';
 import { httpResource } from '@angular/common/http';
-import { ModelLayersResponse } from '../../../interfaces/model-layers';
-import { environment } from '../../../../environments/environment';
+import { GenericModelSelector } from '../shared/generic-model-selector/generic-model-selector';
+import { ModelLayersResponse } from '../../interfaces/model-layers';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-models',

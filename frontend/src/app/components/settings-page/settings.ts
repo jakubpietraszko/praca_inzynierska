@@ -1,18 +1,18 @@
-import { Component, inject, OnInit, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatSelectModule } from '@angular/material/select';
-import { MatInputModule } from '@angular/material/input';
-import { MatButtonModule } from '@angular/material/button';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatExpansionModule } from '@angular/material/expansion';
-import { MatCardModule } from '@angular/material/card';
+import { Component, effect, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ConfigStore } from '../../../stores';
-import { ConfigModel, XAIMethodConfig } from '../../../stores/config.interface';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatExpansionModule } from '@angular/material/expansion';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSelectModule } from '@angular/material/select';
+import { ConfigStore } from '../../stores';
+import { ConfigModel, XAIMethodConfig } from '../../stores/config.interface';
 
 @Component({
-  selector: 'app-settings-component',
+  selector: 'app-settings',
   imports: [
     CommonModule,
     MatFormFieldModule,
@@ -24,10 +24,10 @@ import { ConfigModel, XAIMethodConfig } from '../../../stores/config.interface';
     MatCardModule,
     FormsModule,
   ],
-  templateUrl: './settings-component.html',
-  styleUrl: './settings-component.css',
+  templateUrl: './settings.html',
+  styleUrl: './settings.css',
 })
-export class SettingsComponent implements OnInit {
+export class Settings implements OnInit {
   private configStore = inject(ConfigStore);
 
   config = this.configStore.config;
@@ -37,7 +37,6 @@ export class SettingsComponent implements OnInit {
   error = this.configStore.error;
 
   currentConfig: { [methodName: string]: XAIMethodConfig } = {};
-
 
   aggregationOptions = ['max', 'sum', 'mean'];
   segmentationOptions = ['seed', 'slic'];
