@@ -3,7 +3,6 @@ import { inject, Injectable, resource } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { firstValueFrom, Observable } from 'rxjs';
 import {
-  LabelFilenameTarget,
   HeatmapResponse,
   HeatmapRequest,
   AllHeatmapsResponse,

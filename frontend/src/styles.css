@@ -1,9 +1,13 @@
-/* You can add global styles to this file, and also import other style files */
+html,
+body {
+  height: 100%;
+}
 
-html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+body {
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+}
 
-/* Dialog styles for large dialog */
 .large-dialog .mat-mdc-dialog-container,
 .large-dialog .mdc-dialog__container,
 .large-dialog .mdc-dialog__surface {
@@ -19,7 +23,6 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
   max-height: calc(90vh - 120px) !important;
 }
 
-/* Override Material Dialog default max-width and max-height */
 .cdk-overlay-pane.large-dialog {
   max-width: 90vw !important;
   max-height: 90vh !important;

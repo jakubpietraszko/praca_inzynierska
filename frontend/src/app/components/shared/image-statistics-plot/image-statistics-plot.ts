@@ -30,9 +30,9 @@ export class ImageStatisticsPlot implements OnDestroy {
     effect(() => {
       const xData = this.xData();
       const yData = this.yData();
-      const title = this.title();
-      const xAxisLabel = this.xAxisLabel();
-      const yAxisLabel = this.yAxisLabel();
+      this.title();
+      this.xAxisLabel();
+      this.yAxisLabel();
       const plotElement = this.plotContainer();
 
       if (plotElement && xData.length > 0 && yData.length > 0) {
@@ -72,13 +72,13 @@ export class ImageStatisticsPlot implements OnDestroy {
 
     const layout: Partial<Plotly.Layout> = {
       title: { text: this.title() },
-      xaxis: { 
+      xaxis: {
         title: { text: this.xAxisLabel() },
-        autorange: true
+        autorange: true,
       },
-      yaxis: { 
+      yaxis: {
         title: { text: this.yAxisLabel() },
-        autorange: true
+        autorange: true,
       },
       autosize: true,
     };

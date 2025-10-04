@@ -4,7 +4,6 @@ import {
   input,
   OnDestroy,
   OnInit,
-  Signal,
   WritableSignal,
   computed,
   signal,
@@ -130,10 +129,6 @@ export class GeneratorList implements OnInit, OnDestroy {
   }
 
   generateHeatmapsByType(heatmapType: string) {
-    // if (this.numeratorSignals[heatmapType]) {
-    //   this.numeratorSignals[heatmapType].set(0);
-    // }
-
     const messagesToRemove = Array.from(this.processedMessages).filter(
       (messageId) => messageId.includes(`-${heatmapType}-`)
     );
@@ -149,8 +144,8 @@ export class GeneratorList implements OnInit, OnDestroy {
         heatmapType
       )
       .subscribe({
-        next: (response) => {},
-        error: (error) => {},
+        next: () => {},
+        error: () => {},
       });
   }
 

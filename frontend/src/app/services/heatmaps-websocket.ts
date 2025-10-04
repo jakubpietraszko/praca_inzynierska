@@ -1,7 +1,6 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { environment } from '../../environments/environment';
-import { Observable, Subject, BehaviorSubject } from 'rxjs';
-import { throttleTime } from 'rxjs/operators';
+import { Subject, BehaviorSubject } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -32,11 +31,11 @@ export class HeatmapsWebsocket {
         this._dataSubject.next({ ...data, timestamp: Date.now() });
       };
 
-      this.socket.onerror = (event) => {
+      this.socket.onerror = () => {
         this._errorSubject.next('WebSocket error occurred');
       };
 
-      this.socket.onclose = (event) => {
+      this.socket.onclose = () => {
         this._isConnectedSubject.next(false);
       };
     }

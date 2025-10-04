@@ -5,7 +5,7 @@ import { constants } from '../../constants';
   name: 'translateXaiMethods',
 })
 export class TranslateXaiMethodsPipe implements PipeTransform {
-  transform(value: unknown, ...args: unknown[]): unknown {
+  transform(value: unknown): unknown {
     return (
       constants.heatmaps[value as keyof typeof constants.heatmaps]
         ?.translation || ''

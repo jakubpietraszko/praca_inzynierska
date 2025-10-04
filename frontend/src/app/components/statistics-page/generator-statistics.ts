@@ -18,7 +18,6 @@ export interface HeatmapsStatisticsRequest {
   heatmap: string;
 }
 
-export interface HeatmapsStatisticsResponse {}
 
 @Injectable({
   providedIn: 'root',
