@@ -6,6 +6,7 @@ import torchvision.transforms as transforms
 import cv2
 from interfaces.heatmaps_statistics_image import HeatmapsStatisticsImageRequest, HeatmapsStatisticsImageResponse
 from interfaces.heatmaps_statistics_dataset import HeatmapsStatisticsDatasetRequest, HeatmapsStatisticsDatasetResponse
+from interfaces.gradient import GradientRequest, GradientResponse, LabelFilenameTarget
 
 
 class StatisticsService:
@@ -14,9 +15,15 @@ class StatisticsService:
         from services.container import get_models_service
         from services.datasets_service import DatasetsService
         from services.container import get_datasets_service
+        from services.models_datasets_service import ModelsDatasetsService
+        from services.container import get_models_datasets_service
+        from services.heatmaps_facede_service import HeatmapsFacedeService
+        from services.container import get_heatmaps_facede_service
 
         self.models_service: ModelsService = get_models_service()
         self.datasets_service: DatasetsService = get_datasets_service()
+        self.models_datasets_service: ModelsDatasetsService = get_models_datasets_service()
+        self.heatmaps_facede_service: HeatmapsFacedeService = get_heatmaps_facede_service()
 
     async def generate_all_quantitative_statistics(self, request: AllQuantitativeStatisticsRequest) -> AllQuantitativeStatisticsResponse:
 
@@ -63,8 +70,47 @@ class StatisticsService:
         response = await self.generate_all_quantitative_statistics(request)
         return response
 
+    async def deletion_score(self):
+        pass
+
+    async def insertion_score(self):
+        pass
+
+    async def overall_score(self):
+        pass
+
+    async def generate_deletion_plot(self):
+        pass
+
+    async def generate_insertion_plot(self):
+        pass
+
     async def heatmaps_statistics_image(self, request: HeatmapsStatisticsImageRequest) -> HeatmapsStatisticsImageResponse:
-        
+
+        await self.heatmaps_facede_service.generate_heatmap(
+            GradientRequest(
+                model=request.model,
+                dataset=request.dataset,
+                images=[LabelFilenameTarget(
+                    label=request.label,
+                    filename=request.image,
+                    target=None
+                )],
+                overwrite=False
+            ),
+            type=request.heatmap,
+        )
+
+        image = await self.models_datasets_service.load_image(
+            model=request.model,
+            dataset=request.dataset,
+            label=request.label,
+            heatmap=request.heatmap,
+            filename=request.image
+        )
+
+        print(image.shape)
+
         return HeatmapsStatisticsImageResponse(
             deletion=0.0,
             insertion=0.0,

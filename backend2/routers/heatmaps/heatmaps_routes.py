@@ -1,7 +1,7 @@
 import os
 
 from fastapi import APIRouter, Depends
-from interfaces.gradient import GradientRequest, GradientResponse
+from interfaces.gradient import GradientRequest, GradientResponse, GradientStatisticRequest, GradientStatisticResponse
 from interfaces.all_heatmaps import AllHeatmapsResponse
 from constans import Constants
 from services.container import get_constants
@@ -91,6 +91,16 @@ async def unsupervised_heatmaps(request: UnsupervisedHeatmapsRequest,
                                     get_heatmaps_service
                                 )):
     response = await heatmaps_service.unsupervised_heatmaps(
+        request=request
+    )
+    return response
+
+@router.post('/heatmap-statistics', response_model=GradientStatisticResponse)
+async def heatmap_statistics(request: GradientStatisticRequest,
+                              heatmaps_facede_service: HeatmapsFacedeService = Depends(
+                                  get_heatmaps_facede_service
+                              )):
+    response = await heatmaps_facede_service.generate_heatmap_statistics(
         request=request
     )
     return response

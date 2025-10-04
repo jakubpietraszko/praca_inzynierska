@@ -1,0 +1,33 @@
+meta {
+  name: test
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:8000/heatmap/heatmap-statistics
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "model": "mnist",
+    "dataset": "mnist-dataset",
+    "images": [
+      {
+        "label": "five",
+        "filename": "test_8.png",
+        "target": null
+      }
+    ],
+    "overwrite": false,
+    "heatmap": "gradient",
+    "threshold": 90,
+    "threshold_type": "down"
+  }
+}
+
+settings {
+  encodeUrl: true
+}

@@ -1,1 +1,43 @@
-<p>content-heatmaps-statistics-image works!</p>
+@if(allInputsSelected()) {
+<div class="images">
+    <div class="image-container">
+        <h3>Oryginalny obraz</h3>
+        <img
+         appLoadImageDirective
+         [dataset]="dataset()!"
+         [label]="label()!"
+         [filename]="image()!"
+        />
+    </div>
+
+    <div class="image-container">
+        <h3>Mapa ciepła</h3>
+        <img appLoadModelsDatasetsImage
+            [dataset]="dataset()!"
+            [label]="label()!"
+            [filename]="image()!"
+            [model]="model()!"
+            [type]="heatmap()!"
+        />
+    </div>
+</div>
+<hr class="divider" />
+<div class="statistics">
+    @if(insertionScores() && deletionsScores()) {
+    <app-image-statistics-plot
+        [xData]="insertionXData()"
+        [yData]="insertionYData()"
+        title="Insertion Score {{insertionAUC() | number:'1.2-2'}}, wynik idealny 1.00"
+        xAxisLabel="Procent (%)"
+        yAxisLabel="Prawdopodobieństwo Softmax">
+    </app-image-statistics-plot>
+
+    <app-image-statistics-plot
+        [xData]="deletionXData()"
+        [yData]="deletionYData()"
+        title="Deletion Score {{deletionAUC() | number:'1.2-2' }}, wynik idealny 0.00"
+        xAxisLabel="Procent (%)" yAxisLabel="Prawdopodobieństwo Softmax">
+    </app-image-statistics-plot>
+    }
+</div>
+}

@@ -1,7 +1,7 @@
 import os
 import numpy as np
 import asyncio
-from interfaces.gradient import GradientRequest, GradientResponse
+from interfaces.gradient import GradientRequest, GradientResponse, GradientStatisticRequest, GradientStatisticResponse
 from services.models_service import ModelInfo
 import torch
 import cv2
@@ -10,24 +10,33 @@ import cv2
 class GradientService:
     def __init__(self):
         from services.container import get_config_service, get_websocket_service
+        from services.container import get_datasets_service
+        from services.datasets_service import DatasetsService
+        from services.container import get_utilities_service
+        from services.utilities_service import UtilitiesService
+        from services.models_service import ModelsService
+        from services.container import get_models_service
+        from services.container import Constants, get_constants
+        from services.container import get_container
+        from services.container import ServiceContainer
+
         self.config_service = get_config_service()
         self.websocket_service = get_websocket_service()
+        self.datasets_service: DatasetsService = get_datasets_service()
+        self.utilities_service: UtilitiesService = get_utilities_service()
+        self.models_service: ModelsService = get_models_service()
+        self.constants: Constants = get_constants()
+        self.container: ServiceContainer = get_container()
 
-    async def gradient(self, request: GradientRequest,
-                 container,
-                 datasets_service,
-                 utilities_service,
-                 models_service,
-                 constants
-                 ):
+    async def gradient(self, request: GradientRequest) -> GradientResponse:
         root_path = os.path.join(
-            container.models_datasets_path,
-            await utilities_service.models_datasets_path(request.model, request.dataset),
-            constants.GRADIENT
+            self.container.models_datasets_path,
+            await self.utilities_service.models_datasets_path(request.model, request.dataset),
+            self.constants.GRADIENT
         )
         os.makedirs(root_path, exist_ok=True)
 
-        model_info = await models_service.load_model(request.model)
+        model_info = await self.models_service.load_model(request.model)
 
         config = await self.config_service.get_method_config('gradient')
         EPSILON = config.epsilon
@@ -39,7 +48,7 @@ class GradientService:
             filename = image.filename
             target = image.target
             if target is None:
-                target = await utilities_service.fill_target(model_info, label)
+                target = await self.utilities_service.fill_target(model_info, label)
             label_path = os.path.join(
                 root_path, label
             )
@@ -47,39 +56,38 @@ class GradientService:
             os.makedirs(label_path, exist_ok=True)
             save_path = os.path.join(
                 label_path,
-                await utilities_service.add_png_extension(filename)
+                await self.utilities_service.add_png_extension(filename)
             )
 
-            if await utilities_service.skip_forward(save_path):
-                print(f"Skipping {save_path}")
+            if await self.utilities_service.skip_forward(save_path):
+                # print(f"Skipping {save_path}")
                 continue
             image_path = os.path.join(
-                container.datasets_path,
+                self.datasets_service.datasets_path,
                 request.dataset,
                 label,
                 filename
             )
 
-            image_np = await datasets_service.load_image(
+            image_np = await self.datasets_service.load_image(
                 image_path, model_info.input_shape
             )
 
-            image_tensor = await utilities_service.convert_image_to_tensor(
+            image_tensor = await self.utilities_service.convert_image_to_tensor(
                 image_np, grad=True
             )
 
             model_info.model.eval()
-
             output = model_info.model(image_tensor)
             y_c = output[0, target]
             grad = torch.autograd.grad(y_c, image_tensor)[0]
             result = grad.squeeze().cpu().detach().numpy()
 
             if len(result.shape) == 3 and result.shape[0] == 3:
-                result = await utilities_service.aggregate_channels(
+                result = await self.utilities_service.aggregate_channels(
                     result, AGGREGATION)
 
-            result = await utilities_service.relu_normalize(
+            result = await self.utilities_service.relu_normalize(
                 result, model_info.input_shape, epsilon=EPSILON
             )
 
@@ -101,12 +109,12 @@ class GradientService:
         )
 
     async def gradient_squared(self, request: GradientRequest,
-                         container,
-                         datasets_service,
-                         utilities_service,
-                         models_service,
-                         constants
-                         ):
+                               container,
+                               datasets_service,
+                               utilities_service,
+                               models_service,
+                               constants
+                               ):
         root_path = os.path.join(
             container.models_datasets_path,
             await utilities_service.models_datasets_path(request.model, request.dataset),
@@ -188,12 +196,12 @@ class GradientService:
         )
 
     async def deconvolution(self, request: GradientRequest,
-                      container,
-                      datasets_service,
-                      utilities_service,
-                      models_service,
-                      constants
-                      ):
+                            container,
+                            datasets_service,
+                            utilities_service,
+                            models_service,
+                            constants
+                            ):
         root_path = os.path.join(
             container.models_datasets_path,
             await utilities_service.models_datasets_path(request.model, request.dataset),
@@ -297,12 +305,12 @@ class GradientService:
         )
 
     async def guided_backpropagation(self, request: GradientRequest,
-                               container,
-                               datasets_service,
-                               utilities_service,
-                               models_service,
-                               constants
-                               ):
+                                     container,
+                                     datasets_service,
+                                     utilities_service,
+                                     models_service,
+                                     constants
+                                     ):
         root_path = os.path.join(
             container.models_datasets_path,
             await utilities_service.models_datasets_path(request.model, request.dataset),
@@ -425,12 +433,12 @@ class GradientService:
         )
 
     async def input_gradient(self, request: GradientRequest,
-                       container,
-                       datasets_service,
-                       utilities_service,
-                       models_service,
-                       constants
-                       ):
+                             container,
+                             datasets_service,
+                             utilities_service,
+                             models_service,
+                             constants
+                             ):
         root_path = os.path.join(
             container.models_datasets_path,
             await utilities_service.models_datasets_path(request.model, request.dataset),

@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  effect,
   input,
   model,
 } from '@angular/core';
@@ -42,6 +43,19 @@ export class GenericSelector {
   selectedHeatmap = model<string | null>();
   selectedLabel = model<string | null>();
   selectedImage = model<string | null>();
+
+  constructor() {
+    effect(() => {
+      this.selectedLabel();
+      this.selectedImage.set(null);
+    });
+
+    effect(() => {
+      this.selectedDataset();
+      this.selectedLabel.set(null);
+      this.selectedImage.set(null);
+    });
+  }
 
   models = httpResource<AllModelsResponse>(() =>
     this.model() ? `${environment.apiUrl}/all-models` : undefined

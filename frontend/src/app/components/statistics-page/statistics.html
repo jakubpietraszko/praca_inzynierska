@@ -1,14 +1,30 @@
 <mat-tab-group>
     <mat-tab label="Statystyki Ilościowe">
+        @defer (on viewport) {
         <app-wrapper-quantitative-statistics></app-wrapper-quantitative-statistics>
+        } @placeholder {
+        <div></div>
+        }
     </mat-tab>
     <mat-tab label="Statystyki Map Ciepła - Obraz">
+        @defer (on viewport) {
         <app-wrapper-heatmaps-statistics-image></app-wrapper-heatmaps-statistics-image>
+        } @placeholder {
+        <div></div>
+        }
     </mat-tab>
     <mat-tab label="Statystyki Map Ciepła - Cały Zbiór Danych">
+        @defer (on viewport) {
         <app-wrapper-heatmaps-statistics-dataset></app-wrapper-heatmaps-statistics-dataset>
+        } @placeholder {
+        <div></div>
+        }
     </mat-tab>
     <mat-tab label="Inne">
+        @defer (on viewport) {
         <app-wrapper-different-statistics></app-wrapper-different-statistics>
+        } @placeholder {
+        <div></div>
+        }
     </mat-tab>
 </mat-tab-group>

@@ -8,5 +8,16 @@ class GradientRequest(BaseModel):
     images: List[LabelFilenameTarget]
     overwrite: bool
 
+class GradientStatisticRequest(GradientRequest):
+    heatmap: str
+    threshold: int
+    threshold_type: str
+
 class GradientResponse(BaseModel):
     success: bool
+
+class ListOfScores(BaseModel):
+    scores: List[float]
+
+class GradientStatisticResponse(GradientResponse):
+    softmax_scores: List[ListOfScores]

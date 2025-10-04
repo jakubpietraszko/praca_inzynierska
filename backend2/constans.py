@@ -7,6 +7,17 @@ class Constants:
     MODELS: str = 'models'
     MODELS_DATASETS: str = 'models-datasets'
 
+    STATISTICS: str = 'statistics'
+
+    INSERTION: str = 'insertion'
+    DELETION: str = 'deletion'
+    OVERALL: str = 'overall'
+    AVERAGE_DROP: str = 'average_drop'
+    RATE_OF_INCREASE_IN_SCORES: str = 'rate_of_increase_in_scores'
+    STATISTICS_TYPES: list[str] = field(default_factory=lambda: [])
+    STATISTICS_PERCENTAGES_STEP: list[int] = field(
+        default_factory=lambda: [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100])
+
     MASK_RISE: str = 'mask_rise'
     MASK_SLIC: str = 'mask_slic'
     MASK_SEED: str = 'mask_seed'
@@ -93,6 +104,7 @@ class Constants:
             self.MASK_SEED,
 
             self.ACTIVATIONS,
+            self.STATISTICS,
 
             self.GRADIENT,
             self.GRADIENT_SQUARED,
@@ -123,6 +135,14 @@ class Constants:
             self.XRAI,
             self.LIME,
             self.KERNEL_SHAP,
+        ]
+
+        self.STATISTICS_TYPES = [
+            self.INSERTION,
+            self.DELETION,
+            self.OVERALL,
+            self.RATE_OF_INCREASE_IN_SCORES,
+            self.AVERAGE_DROP
         ]
 
     CMAP: str = 'hot',
