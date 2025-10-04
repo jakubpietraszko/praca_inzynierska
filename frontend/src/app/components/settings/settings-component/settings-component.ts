@@ -8,11 +8,8 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatCardModule } from '@angular/material/card';
 import { FormsModule } from '@angular/forms';
-import { ConfigStore } from '../../../stores/config.store';
-import {
-  ConfigModel,
-  XAIMethodConfig,
-} from '../../../state/config/config.model';
+import { ConfigStore } from '../../../stores';
+import { ConfigModel, XAIMethodConfig } from '../../../stores/config.interface';
 
 @Component({
   selector: 'app-settings-component',
@@ -40,6 +37,7 @@ export class SettingsComponent implements OnInit {
   error = this.configStore.error;
 
   currentConfig: { [methodName: string]: XAIMethodConfig } = {};
+
 
   aggregationOptions = ['max', 'sum', 'mean'];
   segmentationOptions = ['seed', 'slic'];

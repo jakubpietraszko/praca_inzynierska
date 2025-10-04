@@ -124,7 +124,7 @@ class GradientService:
 
         model_info = await models_service.load_model(request.model)
 
-        config = await self.config_service.get_method_config('gradient_squared')
+        config = await self.config_service.get_method_config(constants.GRADIENT_SQUARED)
         EPSILON = config.epsilon
         AGGREGATION = config.aggregation
         print(EPSILON, AGGREGATION)

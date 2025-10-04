@@ -1,15 +1,15 @@
 import { computed, inject } from '@angular/core';
-import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals';
+import {
+  patchState,
+  signalStore,
+  withComputed,
+  withMethods,
+  withState,
+} from '@ngrx/signals';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { pipe, switchMap, tap, catchError, of } from 'rxjs';
-import { ConfigService } from '../services/config.service';
-import { ConfigModel, XAIMethodConfig } from '../state/config/config.model';
-
-interface ConfigState {
-  config: ConfigModel | null;
-  loading: boolean;
-  error: string | null;
-}
+import { ConfigService } from './config.service';
+import { ConfigModel, ConfigState, XAIMethodConfig } from './config.interface';
 
 const initialState: ConfigState = {
   config: null,
@@ -23,7 +23,9 @@ export const ConfigStore = signalStore(
   withComputed(({ config }) => ({
     methods: computed(() => config()?.methods || {}),
     methodNames: computed(() => Object.keys(config()?.methods || {})),
-    isConfigLoaded: computed(() => config() !== null && Object.keys(config()?.methods || {}).length > 0),
+    isConfigLoaded: computed(
+      () => config() !== null && Object.keys(config()?.methods || {}).length > 0
+    ),
     configWithLoading: computed(() => ({
       config: config(),
       loading: config() !== null,
@@ -81,7 +83,10 @@ export const ConfigStore = signalStore(
       }
     },
 
-    updateMethodConfig: (methodName: string, methodConfig: Partial<XAIMethodConfig>) => {
+    updateMethodConfig: (
+      methodName: string,
+      methodConfig: Partial<XAIMethodConfig>
+    ) => {
       const currentConfig = store.config();
       if (currentConfig) {
         patchState(store, {
@@ -106,7 +111,10 @@ export const ConfigStore = signalStore(
       return methods[methodName] || null;
     },
 
-    getMethodConfigWithDefault: (methodName: string, defaultConfig: XAIMethodConfig): XAIMethodConfig => {
+    getMethodConfigWithDefault: (
+      methodName: string,
+      defaultConfig: XAIMethodConfig
+    ): XAIMethodConfig => {
       const methods = store.methods();
       return methods[methodName] || defaultConfig;
     },
