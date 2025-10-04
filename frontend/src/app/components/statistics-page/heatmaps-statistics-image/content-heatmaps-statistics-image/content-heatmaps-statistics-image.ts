@@ -15,12 +15,12 @@ import {
 import { Subscription } from 'rxjs';
 import { ImageStatisticsPlot } from '../../../shared/image-statistics-plot/image-statistics-plot';
 import { DecimalPipe } from '@angular/common';
-import { LoadModelsDatasetsImage } from '../../../../directives/load-models-datasets-image/load-models-datasets-image';
-import { LoadImageDirective } from '../../../../directives/load-image/load-image-directive';
+import { LoadModelsDatasetsImage } from '../../../../directives/load-models-datasets-image';
+import { LoadImage } from '../../../../directives/load-image';
 
 @Component({
   selector: 'app-content-heatmaps-statistics-image',
-  imports: [ImageStatisticsPlot, DecimalPipe, LoadModelsDatasetsImage, LoadImageDirective],
+  imports: [ImageStatisticsPlot, DecimalPipe, LoadModelsDatasetsImage, LoadImage],
   templateUrl: './content-heatmaps-statistics-image.html',
   styleUrl: './content-heatmaps-statistics-image.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

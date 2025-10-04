@@ -14,7 +14,7 @@ import {
 } from '../generator-unsupervised-heatmaps';
 import { Subscription } from 'rxjs';
 import { DragDropModule } from '@angular/cdk/drag-drop';
-import { LoadModelsDatasetsImage } from '../../../../directives/load-models-datasets-image/load-models-datasets-image';
+import { LoadModelsDatasetsImage } from '../../../../directives/load-models-datasets-image';
 
 @Component({
   selector: 'app-content-unsupervised-heatmaps',

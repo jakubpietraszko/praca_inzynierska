@@ -13,8 +13,8 @@ import {
   UnsupervisedActivationsResponse,
 } from '../generator-unsupervised-activations';
 import { Subscription } from 'rxjs';
-import { LoadActivationImage } from '../../../../directives/load-activation-image/load-activation-image';
 import { DragDropModule } from '@angular/cdk/drag-drop';
+import { LoadActivationImage } from '../../../../directives/load-activation-image';
 
 @Component({
   selector: 'app-content-unsupervised-activations',

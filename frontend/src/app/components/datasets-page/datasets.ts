@@ -17,8 +17,8 @@ import { AllImagesResponse } from '../../interfaces/all-images';
 import { environment } from '../../../environments/environment';
 import { constants } from '../../../constants';
 import { MatPaginatorModule } from '@angular/material/paginator';
-import { LoadImageDirective } from '../../directives/load-image/load-image-directive';
 import { MatGridListModule } from '@angular/material/grid-list';
+import { LoadImage } from '../../directives/load-image';
 
 @Component({
   selector: 'app-datasets',
@@ -27,7 +27,7 @@ import { MatGridListModule } from '@angular/material/grid-list';
     GenericLabelSelector,
     MatIconModule,
     MatPaginatorModule,
-    LoadImageDirective,
+    LoadImage,
     MatGridListModule,
   ],
   templateUrl: './datasets.html',

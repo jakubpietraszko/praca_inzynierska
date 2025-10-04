@@ -77,6 +77,21 @@ async def fetch_image(
     return FetchImageResponse(image=image)
 
 
+@router.get('/fetch-image', response_model=FetchImageResponse)
+async def fetch_image(
+    dataset: str,
+    label: str,
+    filename: str,
+    datasets_service: DatasetsService = Depends(get_datasets_service)
+):
+    image = await datasets_service.fetch_image(
+        dataset=dataset,
+        label=label,
+        filename=filename
+    )
+    return FetchImageResponse(image=image)
+
+
 @router.post('/fetch-activations-image', response_model=FetchImageResponse)
 async def fetch_activations_image(
     request: FetchActivationImageRequest,
@@ -97,6 +112,29 @@ async def fetch_activations_image(
 
     return FetchImageResponse(image=image)
 
+@router.get('/fetch-activations-image', response_model=FetchImageResponse)
+async def fetch_activations_image(
+    dataset: str,
+    model: str,
+    label: str,
+    filename: str,
+    image: str,
+    models_data_service: ModelsDatasetsService = Depends(
+        get_models_datasets_service),
+    utilities_service: UtilitiesService = Depends(get_utilities_service),
+    constants: Constants = Depends(get_constants)
+):
+
+    image_ = await models_data_service.fetch_activations_image(
+        await utilities_service.models_datasets_path(model, dataset),
+        constants.ACTIVATIONS,
+        label,
+        await utilities_service.delete_extension(filename),
+        image
+    )
+
+    return FetchImageResponse(image=image_)
+
 
 @router.post('/fetch-models-datasets-image', response_model=FetchImageResponse)
 async def fetch_models_datasets_image(
@@ -105,6 +143,36 @@ async def fetch_models_datasets_image(
         get_models_datasets_service),
     utilities_service: UtilitiesService = Depends(get_utilities_service)
 ):
+
+    image = await models_data_service.fetch_image(
+        await utilities_service.models_datasets_path(request.model, request.dataset),
+        request.type,
+        request.label,
+        request.filename
+    )
+
+    return FetchImageResponse(image=image)
+
+
+@router.get('/fetch-models-datasets-image', response_model=FetchImageResponse)
+async def fetch_models_datasets_image(
+    model: str,
+    dataset: str,
+    type: str,
+    label: str,
+    filename: str,
+    models_data_service: ModelsDatasetsService = Depends(
+        get_models_datasets_service),
+    utilities_service: UtilitiesService = Depends(get_utilities_service)
+):
+
+    request = FetchModelsDatasetsRequest(
+        model=model,
+        dataset=dataset,
+        type=type,
+        label=label,
+        filename=filename
+    )
 
     image = await models_data_service.fetch_image(
         await utilities_service.models_datasets_path(request.model, request.dataset),

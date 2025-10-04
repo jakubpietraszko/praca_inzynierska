@@ -1,7 +1,7 @@
 import { Component, input, signal } from '@angular/core';
-import { LoadModelsDatasetsImage } from '../../../directives/load-models-datasets-image/load-models-datasets-image';
 import { MatSliderModule } from '@angular/material/slider';
 import { CdkDrag, CdkDragHandle } from '@angular/cdk/drag-drop';
+import { LoadModelsDatasetsImage } from '../../../directives/load-models-datasets-image';
 
 @Component({
   selector: 'app-image-title-transparent',
