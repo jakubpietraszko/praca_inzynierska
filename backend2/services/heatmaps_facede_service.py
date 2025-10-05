@@ -1,4 +1,5 @@
 from interfaces.gradient import GradientRequest, GradientResponse, GradientStatisticRequest, GradientStatisticResponse, ListOfScores, GradientStatisticsDatasetRequest, GradientStatisticsDatasetResponse, LabelFilenameTarget, GradientStatisticsLabelRequest, GradientStatisticsLabelManyRequest, GradientStatisticsLabelManyResponse, GradientStatisticsDatasetManyRequest,  GradientStatisticsDatasetManyResponse
+from interfaces.shapes import ShapeMetricsDatasetRequest, ShapeMetricsDatasetResponse, ShapeMetricsLabelRequest, ShapeMetricsLabelResponse
 
 from services.models_service import ModelInfo
 import os
@@ -464,4 +465,104 @@ class HeatmapsFacedeService:
             success=True,
             list_of_rate_of_increase_in_scores=list_of_rate_of_increase_in_scores,
             list_of_average_drop=list_of_average_drop
+        )
+
+    async def generate_heatmap_statistics_dataset_shapes(self, request: ShapeMetricsDatasetRequest) -> ShapeMetricsDatasetResponse:
+        areas = []
+        images = [LabelFilenameTarget(label=label, filename=filename, target=None)
+                  for label in await self.datasets_service.list_labels_in_dataset(request.dataset)
+                  for filename in await self.datasets_service.list_filenames_in_label(request.dataset, label)
+                  ]
+
+        images = random.sample(images, int(
+            len(images) * (request.percentage / 100)))
+
+        base_request: GradientRequest = GradientRequest(
+            model=request.model,
+            dataset=request.dataset,
+            images=images,
+            overwrite=True,
+        )
+
+        await self.generate_heatmap(
+            request=base_request, type=request.heatmap
+        )
+
+        for image in images:
+            label = image.label
+            filename = image.filename
+
+            image_from_heatmap_path = os.path.join(
+                self.container.models_datasets_path,
+                await self.utilities_service.models_datasets_path(
+                    request.model, request.dataset
+                ),
+                request.heatmap,
+                label,
+                filename
+            )
+
+            image_from_heatmap = np.array(Image.open(
+                image_from_heatmap_path
+            ))
+
+            area = np.sum(image_from_heatmap / 255) / \
+                np.multiply(*image_from_heatmap.shape)
+            area = np.round(area * 10) / 10
+
+            areas.append(area)
+
+        return ShapeMetricsDatasetResponse(
+            success=True,
+            areas=areas
+        )
+
+    async def generate_heatmap_statistics_label_shapes(self, request: ShapeMetricsLabelRequest) -> ShapeMetricsLabelResponse:
+        areas = []
+
+        images = [LabelFilenameTarget(label=request.label, filename=filename, target=None)
+                  for filename in await self.datasets_service.list_filenames_in_label(request.dataset, request.label)
+                  ]
+
+        images = random.sample(images, int(
+            len(images) * (request.percentage / 100)))
+
+        base_request: GradientRequest = GradientRequest(
+            model=request.model,
+            dataset=request.dataset,
+            images=images,
+            overwrite=True,
+        )
+
+        await self.generate_heatmap(
+            request=base_request, type=request.heatmap
+        )
+
+        for image in images:
+            label = image.label
+            filename = image.filename
+
+            image_from_heatmap_path = os.path.join(
+                self.container.models_datasets_path,
+                await self.utilities_service.models_datasets_path(
+                    request.model, request.dataset
+                ),
+                request.heatmap,
+                label,
+                filename
+            )
+
+            image_from_heatmap = np.array(Image.open(
+                image_from_heatmap_path
+            ))
+
+            area = np.sum(image_from_heatmap / 255) / \
+                np.multiply(*image_from_heatmap.shape)
+
+            area = np.round(area * 10) / 10
+            areas.append(area)
+
+        return ShapeMetricsLabelResponse(
+            success=True,
+            areas=areas
         )

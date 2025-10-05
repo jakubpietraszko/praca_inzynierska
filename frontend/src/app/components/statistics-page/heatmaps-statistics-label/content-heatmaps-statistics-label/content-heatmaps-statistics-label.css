@@ -8,3 +8,14 @@
         flex: 1;
     }
 }
+
+.histograms {
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
+    width: 100%;
+
+    app-histogram-plot {
+        flex: 1;
+    }
+}

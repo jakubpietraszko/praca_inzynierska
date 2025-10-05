@@ -16,6 +16,18 @@ export interface GradientStatisticsResponse {
   list_of_average_drop: number[];
 }
 
+export interface ShapeMetricsDatasetRequest {
+  model: string;
+  dataset: string;
+  heatmap: string;
+  percentage: number;
+}
+
+export interface ShapeMetricsDatasetResponse {
+  success: boolean;
+  areas: number[];
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -27,6 +39,15 @@ export class HeatmapsStatisticsDataset {
   ): Observable<GradientStatisticsResponse> {
     return this.http.post<GradientStatisticsResponse>(
       `${environment.apiUrl}/heatmap/heatmaps-statistics-dataset-many`,
+      request
+    );
+  }
+
+  getShapeScore(
+    request: ShapeMetricsDatasetRequest
+  ): Observable<ShapeMetricsDatasetResponse> {
+    return this.http.post<ShapeMetricsDatasetResponse>(
+      `${environment.apiUrl}/heatmap/heatmaps-statistics-dataset-shapes`,
       request
     );
   }

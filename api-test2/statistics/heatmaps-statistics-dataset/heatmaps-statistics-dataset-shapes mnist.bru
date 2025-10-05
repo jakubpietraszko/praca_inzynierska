@@ -1,0 +1,24 @@
+meta {
+  name: heatmaps-statistics-dataset-shapes mnist
+  type: http
+  seq: 3
+}
+
+post {
+  url: http://localhost:8000/heatmap/heatmaps-statistics-dataset-shapes
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "model": "mnist",
+    "dataset": "mnist-dataset",
+    "heatmap": "gradient",
+    "percentage": 5
+  }
+}
+
+settings {
+  encodeUrl: true
+}

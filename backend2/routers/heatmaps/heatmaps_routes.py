@@ -2,6 +2,8 @@ import os
 
 from fastapi import APIRouter, Depends
 from interfaces.gradient import GradientRequest, GradientResponse, GradientStatisticRequest, GradientStatisticResponse, GradientStatisticsDatasetRequest, GradientStatisticsDatasetResponse, GradientStatisticsLabelRequest, GradientStatisticsLabelManyRequest, GradientStatisticsLabelManyResponse, GradientStatisticsDatasetManyRequest, GradientStatisticsDatasetManyResponse
+from interfaces.shapes import ShapeMetricsLabelRequest, ShapeMetricsLabelResponse
+from interfaces.shapes import ShapeMetricsDatasetRequest, ShapeMetricsDatasetResponse
 
 from interfaces.all_heatmaps import AllHeatmapsResponse
 from constans import Constants
@@ -130,6 +132,17 @@ async def heatmap_statistics_dataset_many(request: GradientStatisticsDatasetMany
     return response
 
 
+@router.post('/heatmaps-statistics-dataset-shapes', response_model=ShapeMetricsDatasetResponse)
+async def heatmap_statistics_dataset_shapes(request: ShapeMetricsDatasetRequest,
+                                            heatmaps_facede_service: HeatmapsFacedeService = Depends(
+                                                get_heatmaps_facede_service
+                                            )):
+    response = await heatmaps_facede_service.generate_heatmap_statistics_dataset_shapes(
+        request=request
+    )
+    return response
+
+
 @router.post('/heatmaps-statistics-label', response_model=GradientStatisticsDatasetResponse)
 async def heatmap_statistics_label(request: GradientStatisticsLabelRequest,
                                    heatmaps_facede_service: HeatmapsFacedeService = Depends(
@@ -147,6 +160,16 @@ async def heatmap_statistics_label(request: GradientStatisticsLabelManyRequest,
                                        get_heatmaps_facede_service
                                    )):
     response = await heatmaps_facede_service.generate_heatmap_statistics_label_many(
+        request=request
+    )
+    return response
+
+@router.post('/heatmaps-statistics-label-shapes', response_model=ShapeMetricsLabelResponse)
+async def heatmap_statistics_label_shapes(request: ShapeMetricsLabelRequest,
+                                   heatmaps_facede_service: HeatmapsFacedeService = Depends(
+                                       get_heatmaps_facede_service
+                                   )):
+    response = await heatmaps_facede_service.generate_heatmap_statistics_label_shapes(
         request=request
     )
     return response

@@ -11,13 +11,16 @@ import {
   GradientStatisticsRequest,
   GradientStatisticsResponse,
   HeatmapsStatisticsLabel,
+  ShapeMetricsLabelRequest,
+  ShapeMetricsLabelResponse,
 } from '../heatmaps-statistics-label';
 import { Subscription } from 'rxjs';
 import { ImageStatisticsPlot } from '../../../shared/image-statistics-plot/image-statistics-plot';
+import { HistogramPlot } from '../../../shared/histogram-plot/histogram-plot';
 
 @Component({
   selector: 'app-content-heatmaps-statistics-label',
-  imports: [ImageStatisticsPlot],
+  imports: [ImageStatisticsPlot, HistogramPlot],
   templateUrl: './content-heatmaps-statistics-label.html',
   styleUrl: './content-heatmaps-statistics-label.css',
 })
@@ -30,8 +33,10 @@ export class ContentHeatmapsStatisticsLabel implements OnDestroy {
   heatmapsStatisticsLabelService = inject(HeatmapsStatisticsLabel);
 
   gradientScores = signal<GradientStatisticsResponse | null>(null);
+  shapeScores = signal<ShapeMetricsLabelResponse | null>(null);
 
   gradientSubscription = new Subscription();
+  shapeSubscription = new Subscription();
 
   allInputsSelected = computed(() => {
     return this.model() && this.dataset() && this.heatmap() && this.label();
@@ -101,6 +106,14 @@ export class ContentHeatmapsStatisticsLabel implements OnDestroy {
     return scores.list_of_rate_of_increase_in_scores;
   });
 
+  areasData = computed(() => {
+    const scores = this.shapeScores();
+    if (!scores || !scores.areas || scores.areas.length === 0) {
+      return [];
+    }
+    return scores.areas;
+  });
+
   constructor() {
     effect(() => {
       const model = this.model();
@@ -111,7 +124,11 @@ export class ContentHeatmapsStatisticsLabel implements OnDestroy {
       this.gradientSubscription.unsubscribe();
       this.gradientSubscription = new Subscription();
 
+      this.shapeSubscription.unsubscribe();
+      this.shapeSubscription = new Subscription();
+
       this.gradientScores.set(null);
+      this.shapeScores.set(null);
 
       if (!model || !dataset || !heatmap || !label) {
         return;
@@ -135,10 +152,30 @@ export class ContentHeatmapsStatisticsLabel implements OnDestroy {
           },
         })
       );
+
+      const shapeRequest: ShapeMetricsLabelRequest = {
+        model: model,
+        dataset: dataset,
+        heatmap: heatmap,
+        label: label,
+        percentage: 15,
+      };
+
+      this.shapeSubscription.add(
+        this.heatmapsStatisticsLabelService.getShapeScore(shapeRequest).subscribe({
+          next: (response: ShapeMetricsLabelResponse) => {
+            this.shapeScores.set(response);
+          },
+          error: () => {
+            this.shapeScores.set(null);
+          },
+        })
+      );
     });
   }
 
   ngOnDestroy(): void {
     this.gradientSubscription.unsubscribe();
+    this.shapeSubscription.unsubscribe();
   }
 }
