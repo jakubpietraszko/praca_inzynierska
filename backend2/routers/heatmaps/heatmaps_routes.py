@@ -1,7 +1,8 @@
 import os
 
 from fastapi import APIRouter, Depends
-from interfaces.gradient import GradientRequest, GradientResponse, GradientStatisticRequest, GradientStatisticResponse, GradientStatisticsDatasetRequest, GradientStatisticsDatasetResponse, GradientStatisticsLabelRequest, GradientStatisticsLabelManyRequest, GradientStatisticsLabelManyResponse
+from interfaces.gradient import GradientRequest, GradientResponse, GradientStatisticRequest, GradientStatisticResponse, GradientStatisticsDatasetRequest, GradientStatisticsDatasetResponse, GradientStatisticsLabelRequest, GradientStatisticsLabelManyRequest, GradientStatisticsLabelManyResponse, GradientStatisticsDatasetManyRequest, GradientStatisticsDatasetManyResponse
+
 from interfaces.all_heatmaps import AllHeatmapsResponse
 from constans import Constants
 from services.container import get_constants
@@ -118,6 +119,17 @@ async def heatmap_statistics_dataset(request: GradientStatisticsDatasetRequest,
     return response
 
 
+@router.post('/heatmaps-statistics-dataset-many', response_model=GradientStatisticsDatasetManyResponse)
+async def heatmap_statistics_dataset_many(request: GradientStatisticsDatasetManyRequest,
+                                          heatmaps_facede_service: HeatmapsFacedeService = Depends(
+                                              get_heatmaps_facede_service
+                                          )):
+    response = await heatmaps_facede_service.generate_heatmap_statistics_dataset_many(
+        request=request
+    )
+    return response
+
+
 @router.post('/heatmaps-statistics-label', response_model=GradientStatisticsDatasetResponse)
 async def heatmap_statistics_label(request: GradientStatisticsLabelRequest,
                                    heatmaps_facede_service: HeatmapsFacedeService = Depends(
@@ -127,6 +139,7 @@ async def heatmap_statistics_label(request: GradientStatisticsLabelRequest,
         request=request
     )
     return response
+
 
 @router.post('/heatmaps-statistics-label-many', response_model=GradientStatisticsLabelManyResponse)
 async def heatmap_statistics_label(request: GradientStatisticsLabelManyRequest,

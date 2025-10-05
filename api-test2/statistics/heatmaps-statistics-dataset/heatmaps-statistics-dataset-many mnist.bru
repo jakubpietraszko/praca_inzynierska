@@ -1,11 +1,11 @@
 meta {
-  name: test copy
+  name: heatmaps-statistics-dataset-many mnist
   type: http
   seq: 2
 }
 
 post {
-  url: http://localhost:8000/heatmap/heatmaps-statistics-dataset
+  url: http://localhost:8000/heatmap/heatmaps-statistics-dataset-many
   body: json
   auth: inherit
 }
@@ -15,8 +15,7 @@ body:json {
     "model": "mnist",
     "dataset": "mnist-dataset",
     "heatmap": "gradient",
-    "threshold": 50,
-    "percentage": 10
+    "percentage": 5
   }
 }
 

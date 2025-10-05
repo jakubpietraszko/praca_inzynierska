@@ -1,19 +1,22 @@
 meta {
   name: heatmaps-statistics-dataset mnist
   type: http
-  seq: 1
+  seq: 2
 }
 
 post {
-  url: http://localhost:8000/statistics/heatmaps-statistics
+  url: http://localhost:8000/heatmap/heatmaps-statistics-dataset
   body: json
   auth: inherit
 }
 
 body:json {
   {
-    "model": "fashion",
-    "dataset": "fashion-dataset"
+    "model": "mnist",
+    "dataset": "mnist-dataset",
+    "heatmap": "gradient",
+    "threshold": 50,
+    "percentage": 5
   }
 }
 
