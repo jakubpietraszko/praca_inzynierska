@@ -175,3 +175,24 @@ async def fetch_models_datasets_image(
     )
 
     return FetchImageResponse(image=image)
+
+@router.get('/fetch-models-datasets-fourier-image', response_model=FetchImageResponse)
+async def fetch_models_datasets_fourier_image(
+    model: str,
+    dataset: str,
+    type: str,
+    label: str,
+    filename: str,
+    models_data_service: ModelsDatasetsService = Depends(
+        get_models_datasets_service),
+    utilities_service: UtilitiesService = Depends(get_utilities_service)
+):
+
+    image = await models_data_service.fetch_fourier_image(
+        await utilities_service.models_datasets_path(model, dataset),
+        type,
+        label,
+        filename
+    )
+
+    return FetchImageResponse(image=image)

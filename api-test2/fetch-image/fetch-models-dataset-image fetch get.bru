@@ -1,0 +1,23 @@
+meta {
+  name: fetch-models-dataset-image fetch get
+  type: http
+  seq: 6
+}
+
+get {
+  url: http://localhost:8000/fetch-models-datasets-fourier-image?model=mnist&dataset=mnist-dataset&label=five&type=gradient&filename=test_8.png
+  body: json
+  auth: inherit
+}
+
+params:query {
+  model: mnist
+  dataset: mnist-dataset
+  label: five
+  type: gradient
+  filename: test_8.png
+}
+
+settings {
+  encodeUrl: true
+}

@@ -1,0 +1,23 @@
+meta {
+  name: fetch-image get
+  type: http
+  seq: 5
+}
+
+post {
+  url: http://localhost:8000/fetch-image
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "dataset": "dogs-vs-cats-dataset",
+    "label": "cat",
+    "filename": "10000.png"
+  }
+}
+
+settings {
+  encodeUrl: true
+}

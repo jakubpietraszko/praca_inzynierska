@@ -20,6 +20,19 @@
             [type]="heatmap()!"
         />
     </div>
+
+    @if(heatmapGenerated()) {
+    <div class="image-container">
+        <h3>Fourier mapy ciepła</h3>
+        <img appLoadFourier
+            [dataset]="dataset()!"
+            [label]="label()!"
+            [filename]="image()!"
+            [model]="model()!"
+            [type]="heatmap()!"
+        />
+    </div>
+    }
 </div>
 <hr class="divider" />
 <div class="statistics">

@@ -17,10 +17,11 @@ import { ImageStatisticsPlot } from '../../../shared/image-statistics-plot/image
 import { DecimalPipe } from '@angular/common';
 import { LoadModelsDatasetsImage } from '../../../../directives/load-models-datasets-image';
 import { LoadImage } from '../../../../directives/load-image';
+import { LoadFourier } from '../../../../directives/load-fourier';
 
 @Component({
   selector: 'app-content-heatmaps-statistics-image',
-  imports: [ImageStatisticsPlot, DecimalPipe, LoadModelsDatasetsImage, LoadImage],
+  imports: [ImageStatisticsPlot, DecimalPipe, LoadModelsDatasetsImage, LoadImage, LoadFourier],
   templateUrl: './content-heatmaps-statistics-image.html',
   styleUrl: './content-heatmaps-statistics-image.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -41,6 +42,8 @@ export class ContentHeatmapsStatisticsImage implements OnDestroy {
   insertionSubscription = new Subscription();
 
   deletionSubscription = new Subscription();
+
+  heatmapGenerated = signal(false);
 
   allInputsSelected = computed(() => {
     return (
@@ -142,6 +145,8 @@ export class ContentHeatmapsStatisticsImage implements OnDestroy {
       const label = this.label();
       const image = this.image();
 
+      this.heatmapGenerated.set(false);
+
       this.insertionSubscription.unsubscribe();
       this.deletionSubscription.unsubscribe();
 
@@ -165,9 +170,11 @@ export class ContentHeatmapsStatisticsImage implements OnDestroy {
         .subscribe({
           next: (response) => {
             this.insertionScores.set(response);
+            this.heatmapGenerated.set(true);
           },
           error: () => {
             this.insertionScores.set(null);
+            this.heatmapGenerated.set(false);
           },
         });
 
@@ -184,9 +191,11 @@ export class ContentHeatmapsStatisticsImage implements OnDestroy {
         .subscribe({
           next: (response) => {
             this.deletionsScores.set(response);
+            this.heatmapGenerated.set(true);
           },
           error: () => {
             this.deletionsScores.set(null);
+            this.heatmapGenerated.set(false);
           },
         });
     });

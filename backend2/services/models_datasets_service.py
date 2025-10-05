@@ -2,6 +2,7 @@ import os
 import base64
 from typing import Dict
 import numpy as np
+import cv2
 from PIL import Image
 from interfaces.gradient import GradientRequest, GradientResponse, LabelFilenameTarget
 
@@ -106,6 +107,51 @@ class ModelsDatasetsService:
             image = base64.b64encode(f.read()).decode('utf-8')
 
         return image
+
+    async def fetch_fourier_image(self,
+                                  models_dataset: str,
+                                  type: str,
+                                  label: str,
+                                  filename: str) -> bytes:
+        path = os.path.join(
+            self.models_datasets_path,
+            models_dataset,
+            type,
+            label,
+            filename
+        )
+
+        images = [
+            LabelFilenameTarget(
+                label=label, filename=filename, target=None
+            )
+        ]
+
+        request = GradientRequest(
+            model=models_dataset.split('_')[0],
+            dataset=models_dataset.split('_')[1],
+            images=images,
+            overwrite=False
+        )
+
+        await self.heatmaps_facede_service.generate_heatmap(request, type=type)
+
+        image = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
+
+        dft = cv2.dft(np.float32(image), flags=cv2.DFT_COMPLEX_OUTPUT)
+        dft_shift = np.fft.fftshift(dft)
+
+        magnitude_spectrum = 20 * \
+            np.log(cv2.magnitude(dft_shift[:, :, 0], dft_shift[:, :, 1]) + 1)
+
+        magnitude_spectrum = cv2.normalize(
+            magnitude_spectrum, None, 0, 255, cv2.NORM_MINMAX)
+        magnitude_spectrum = np.uint8(magnitude_spectrum)
+
+        _, buffer = cv2.imencode('.png', magnitude_spectrum)
+        image_b64 = base64.b64encode(buffer).decode('utf-8')
+
+        return image_b64
 
     async def full_init_dir(self, model: str, dataset: str) -> bool:
         name_of_dir = await self.utilities_service.models_datasets_path(
