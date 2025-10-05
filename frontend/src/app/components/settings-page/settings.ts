@@ -8,8 +8,8 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
-import { ConfigStore } from '../../stores';
-import { ConfigModel, XAIMethodConfig } from '../../stores/config.interface';
+import { ConfigModel, XAIMethodConfig } from '../../stores/config/config.interface';
+import { ConfigStore } from '../../stores/config/config.store';
 
 @Component({
   selector: 'app-settings',

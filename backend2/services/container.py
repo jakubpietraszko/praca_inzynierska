@@ -17,6 +17,7 @@ from .lrp_service import LRPService
 from .config_service import ConfigService
 from .websocket_service import WebSocketService
 from .statistics_service import StatisticsService
+from .constants_service import ConstantsService
 
 from constans import Constants
 
@@ -52,6 +53,7 @@ class ServiceContainer:
         self._config_service = None
         self._websocket_service = None
         self._statistics_service = None
+        self.config_service = None
 
     @property
     def datasets_service(self) -> DatasetsService:
@@ -161,6 +163,11 @@ class ServiceContainer:
             self._statistics_service = StatisticsService()
         return self._statistics_service
 
+    @property
+    def constants_service(self):
+        if self._constants_service is None:
+            self._constants_service = ConstantsService()
+        return self._constants_service
 
 _container: ServiceContainer = None
 
@@ -224,3 +231,6 @@ def get_websocket_service() -> WebSocketService:
 
 def get_statistics_service() -> StatisticsService:
     return get_container().statistics_service
+
+def get_constants_service() -> ConstantsService:
+    return get_container().constants_service

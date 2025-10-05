@@ -22,6 +22,7 @@ from routers.heatmaps.lrp_routes import router as lrp_router
 from routers.config_routes import router as config_router
 from routers.websocket_routes import router as websocket_router
 from routers.statistics_routes import router as statistics_router
+from routers.constants_routes import router as constants_router
 
 app = FastAPI()
 
@@ -37,10 +38,12 @@ app.add_middleware(
 )
 
 app.include_router(datasets_router)
-app.include_router(utilities_router)
 app.include_router(models_router)
 app.include_router(models_datasets_router)
+app.include_router(utilities_router)
+
 app.include_router(masks_router, prefix="/mask")
+
 app.include_router(edge_router, prefix="/heatmap")
 app.include_router(heatmaps_router, prefix="/heatmap")
 app.include_router(activations_router, prefix="/heatmap")
@@ -50,10 +53,14 @@ app.include_router(gradient_router, prefix="/heatmap")
 app.include_router(probing_router, prefix='/heatmap')
 app.include_router(integrated_gradient_router, prefix="/heatmap")
 app.include_router(lrp_router, prefix="/heatmap")
-app.include_router(config_router, prefix="/config")
+
 app.include_router(unsupervised_router, prefix="/unsupervised")
-app.include_router(websocket_router)
 app.include_router(statistics_router, prefix='/statistics')
+
+app.include_router(websocket_router)
+
+app.include_router(config_router, prefix="/config")
+app.include_router(constants_router, prefix='/constants')
 
 @app.get("/")
 async def root():
