@@ -13,6 +13,13 @@
         <div></div>
         }
     </mat-tab>
+    <mat-tab label="Statystyki Map Ciepła - Klasa">
+        @defer (on viewport) {
+        <app-wrapper-heatmaps-statistics-label></app-wrapper-heatmaps-statistics-label>
+        } @placeholder {
+        <div></div>
+        }
+    </mat-tab>
     <mat-tab label="Statystyki Map Ciepła - Cały Zbiór Danych">
         @defer (on viewport) {
         <app-wrapper-heatmaps-statistics-dataset></app-wrapper-heatmaps-statistics-dataset>

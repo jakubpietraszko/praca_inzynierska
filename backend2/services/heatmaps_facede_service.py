@@ -1,4 +1,4 @@
-from interfaces.gradient import GradientRequest, GradientResponse, GradientStatisticRequest, GradientStatisticResponse, ListOfScores
+from interfaces.gradient import GradientRequest, GradientResponse, GradientStatisticRequest, GradientStatisticResponse, ListOfScores, GradientStatisticsDatasetRequest, GradientStatisticsDatasetResponse, LabelFilenameTarget, GradientStatisticsLabelRequest
 
 from services.models_service import ModelInfo
 import os
@@ -6,6 +6,7 @@ import numpy as np
 from PIL import Image
 import cv2
 import torch
+import random
 
 
 class HeatmapsFacedeService:
@@ -197,4 +198,219 @@ class HeatmapsFacedeService:
         return GradientStatisticResponse(
             success=False,
             softmax_scores=softmax_scores
+        )
+
+    async def generate_heatmap_statistics_dataset(self, request: GradientStatisticsDatasetRequest) -> GradientStatisticsDatasetResponse:
+
+        images = [LabelFilenameTarget(label=label, filename=filename, target=None)
+                  for label in await self.datasets_service.list_labels_in_dataset(request.dataset)
+                  for filename in await self.datasets_service.list_filenames_in_label(request.dataset, label)
+                  ]
+
+        images = random.sample(images, int(
+            len(images) * (request.percentage / 100)))
+
+        base_request: GradientRequest = GradientRequest(
+            model=request.model,
+            dataset=request.dataset,
+            images=images,
+            overwrite=True,
+        )
+
+        await self.generate_heatmap(
+            request=base_request, type=request.heatmap
+        )
+
+        model_info: ModelInfo = await self.model_service.load_model(
+            request.model
+        )
+
+        model_info.model.eval()
+
+        normalized_threshold = int((request.threshold / 100) * 255)
+        models_datasets_path = await self.utilities_service.models_datasets_path(
+            request.model, request.dataset
+        )
+        heatmap_base_path = os.path.join(
+            self.container.models_datasets_path,
+            models_datasets_path,
+            request.heatmap
+        )
+
+        original_softmax_scores = []
+        modified_softmax_scores = []
+
+        with torch.no_grad():
+            for image_info in images:
+                label = image_info.label
+                filename = image_info.filename
+
+                target = await self.utilities_service.fill_target(
+                    model_info, label
+                )
+
+                image_from_dataset_path = os.path.join(
+                    self.datasets_service.datasets_path,
+                    request.dataset,
+                    label,
+                    filename
+                )
+                image_from_heatmap_path = os.path.join(
+                    heatmap_base_path,
+                    label,
+                    filename
+                )
+
+                image_from_dataset = await self.datasets_service.load_image(
+                    image_from_dataset_path, model_info.input_shape
+                )
+
+                image_from_heatmap = np.array(Image.open(
+                    image_from_heatmap_path
+                ))
+
+                mask = np.where(
+                    image_from_heatmap < normalized_threshold, 0, 1
+                )
+
+                img_to_model = (image_from_dataset * mask).astype(np.uint8)
+
+                img_tensor_modified = await self.utilities_service.convert_image_to_tensor(
+                    img_to_model, grad=False
+                )
+                img_tensor_original = await self.utilities_service.convert_image_to_tensor(
+                    image_from_dataset, grad=False
+                )
+
+                output_modified = model_info.model(img_tensor_modified)
+                output_softmax_modified = torch.softmax(output_modified, dim=1)
+                score_modified = output_softmax_modified[0, target].item()
+                modified_softmax_scores.append(score_modified)
+
+                output_original = model_info.model(img_tensor_original)
+                output_softmax_original = torch.softmax(output_original, dim=1)
+                score_original = output_softmax_original[0, target].item()
+                original_softmax_scores.append(score_original)
+
+        rate_of_increase_in_scores = sum(
+            1 for original, modified in zip(original_softmax_scores, modified_softmax_scores)
+            if modified > original
+        ) / len(original_softmax_scores)
+
+        average_drop = sum(
+            max(0, original - modified)
+            for original, modified in zip(original_softmax_scores, modified_softmax_scores)
+        ) / len(original_softmax_scores)
+
+        return GradientStatisticsDatasetResponse(
+            success=True,
+            rate_of_increase_in_scores=rate_of_increase_in_scores,
+            average_drop=average_drop
+        )
+
+    async def generate_heatmap_statistics_label(self, request: GradientStatisticsLabelRequest) -> GradientStatisticsDatasetResponse:
+
+        images = [LabelFilenameTarget(label=request.label, filename=filename, target=None)
+                  for filename in await self.datasets_service.list_filenames_in_label(request.dataset, request.label)
+                  ]
+
+        images = random.sample(images, int(
+            len(images) * (request.percentage / 100)))
+
+        base_request: GradientRequest = GradientRequest(
+            model=request.model,
+            dataset=request.dataset,
+            images=images,
+            overwrite=True,
+        )
+
+        await self.generate_heatmap(
+            request=base_request, type=request.heatmap
+        )
+
+        model_info: ModelInfo = await self.model_service.load_model(
+            request.model
+        )
+
+        model_info.model.eval()
+
+        normalized_threshold = int((request.threshold / 100) * 255)
+        models_datasets_path = await self.utilities_service.models_datasets_path(
+            request.model, request.dataset
+        )
+        heatmap_base_path = os.path.join(
+            self.container.models_datasets_path,
+            models_datasets_path,
+            request.heatmap
+        )
+
+        original_softmax_scores = []
+        modified_softmax_scores = []
+
+        with torch.no_grad():
+            for image_info in images:
+                label = image_info.label
+                filename = image_info.filename
+
+                target = await self.utilities_service.fill_target(
+                    model_info, label
+                )
+
+                image_from_dataset_path = os.path.join(
+                    self.datasets_service.datasets_path,
+                    request.dataset,
+                    label,
+                    filename
+                )
+                image_from_heatmap_path = os.path.join(
+                    heatmap_base_path,
+                    label,
+                    filename
+                )
+
+                image_from_dataset = await self.datasets_service.load_image(
+                    image_from_dataset_path, model_info.input_shape
+                )
+
+                image_from_heatmap = np.array(Image.open(
+                    image_from_heatmap_path
+                ))
+
+                mask = np.where(
+                    image_from_heatmap < normalized_threshold, 0, 1
+                )
+
+                img_to_model = (image_from_dataset * mask).astype(np.uint8)
+
+                img_tensor_modified = await self.utilities_service.convert_image_to_tensor(
+                    img_to_model, grad=False
+                )
+                img_tensor_original = await self.utilities_service.convert_image_to_tensor(
+                    image_from_dataset, grad=False
+                )
+
+                output_modified = model_info.model(img_tensor_modified)
+                output_softmax_modified = torch.softmax(output_modified, dim=1)
+                score_modified = output_softmax_modified[0, target].item()
+                modified_softmax_scores.append(score_modified)
+
+                output_original = model_info.model(img_tensor_original)
+                output_softmax_original = torch.softmax(output_original, dim=1)
+                score_original = output_softmax_original[0, target].item()
+                original_softmax_scores.append(score_original)
+
+        rate_of_increase_in_scores = sum(
+            1 for original, modified in zip(original_softmax_scores, modified_softmax_scores)
+            if modified > original
+        ) / len(original_softmax_scores)
+
+        average_drop = sum(
+            max(0, original - modified)
+            for original, modified in zip(original_softmax_scores, modified_softmax_scores)
+        ) / len(original_softmax_scores)
+
+        return GradientStatisticsDatasetResponse(
+            success=True,
+            rate_of_increase_in_scores=rate_of_increase_in_scores,
+            average_drop=average_drop
         )

@@ -37,7 +37,7 @@ export class HeatmapsStatisticsImage {
     request: GradientStatisticsRequest
   ): Observable<GradientStatisticsResponse> {
     return this.http.post<GradientStatisticsResponse>(
-      `${environment.apiUrl}/heatmap/heatmap-statistics`,
+      `${environment.apiUrl}/heatmap/heatmaps-statistics-image`,
       request
     );
   }

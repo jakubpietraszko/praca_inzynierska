@@ -21,3 +21,18 @@ class ListOfScores(BaseModel):
 
 class GradientStatisticResponse(GradientResponse):
     softmax_scores: List[ListOfScores]
+
+class GradientStatisticsDatasetRequest(BaseModel):
+    model: str
+    dataset: str
+    heatmap: str
+    threshold: int
+    percentage: int
+
+class GradientStatisticsLabelRequest(GradientStatisticsDatasetRequest):
+    label: str
+
+class GradientStatisticsDatasetResponse(GradientResponse):
+    rate_of_increase_in_scores: float
+    average_drop: float
+    success: bool

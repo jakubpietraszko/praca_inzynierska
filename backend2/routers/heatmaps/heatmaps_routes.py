@@ -1,7 +1,7 @@
 import os
 
 from fastapi import APIRouter, Depends
-from interfaces.gradient import GradientRequest, GradientResponse, GradientStatisticRequest, GradientStatisticResponse
+from interfaces.gradient import GradientRequest, GradientResponse, GradientStatisticRequest, GradientStatisticResponse, GradientStatisticsDatasetRequest, GradientStatisticsDatasetResponse, GradientStatisticsLabelRequest
 from interfaces.all_heatmaps import AllHeatmapsResponse
 from constans import Constants
 from services.container import get_constants
@@ -95,12 +95,35 @@ async def unsupervised_heatmaps(request: UnsupervisedHeatmapsRequest,
     )
     return response
 
-@router.post('/heatmap-statistics', response_model=GradientStatisticResponse)
+
+@router.post('/heatmaps-statistics-image', response_model=GradientStatisticResponse)
 async def heatmap_statistics(request: GradientStatisticRequest,
-                              heatmaps_facede_service: HeatmapsFacedeService = Depends(
-                                  get_heatmaps_facede_service
-                              )):
+                             heatmaps_facede_service: HeatmapsFacedeService = Depends(
+                                 get_heatmaps_facede_service
+                             )):
     response = await heatmaps_facede_service.generate_heatmap_statistics(
+        request=request
+    )
+    return response
+
+
+@router.post('/heatmaps-statistics-dataset', response_model=GradientStatisticsDatasetResponse)
+async def heatmap_statistics_dataset(request: GradientStatisticsDatasetRequest,
+                                     heatmaps_facede_service: HeatmapsFacedeService = Depends(
+                                         get_heatmaps_facede_service
+                                     )):
+    response = await heatmaps_facede_service.generate_heatmap_statistics_dataset(
+        request=request
+    )
+    return response
+
+
+@router.post('/heatmaps-statistics-label', response_model=GradientStatisticsDatasetResponse)
+async def heatmap_statistics_label(request: GradientStatisticsLabelRequest,
+                                   heatmaps_facede_service: HeatmapsFacedeService = Depends(
+                                       get_heatmaps_facede_service
+                                   )):
+    response = await heatmaps_facede_service.generate_heatmap_statistics_label(
         request=request
     )
     return response

@@ -1,0 +1,19 @@
+<app-generic-selector
+    [model]="true"
+    [dataset]="true"
+    [heatmap]="true"
+    [label]="true"
+    [(selectedModel)]="selectedModel"
+    [(selectedDataset)]="selectedDataset"
+    [(selectedHeatmap)]="selectedHeatmap"
+    [(selectedLabel)]="selectedLabel"
+></app-generic-selector>
+
+@if(allSelected()){
+    <app-content-heatmaps-statistics-label
+        [model]="selectedModel()!"
+        [dataset]="selectedDataset()!"
+        [heatmap]="selectedHeatmap()!"
+        [label]="selectedLabel()!"
+    ></app-content-heatmaps-statistics-label>
+}
