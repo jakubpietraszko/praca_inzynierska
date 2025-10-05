@@ -28,7 +28,7 @@
         [xData]="insertionXData()"
         [yData]="insertionYData()"
         title="Insertion Score {{insertionAUC() | number:'1.2-2'}}, wynik idealny 1.00"
-        xAxisLabel="Procent (%)"
+        xAxisLabel="Procent (%) najważniejszych pikseli"
         yAxisLabel="Prawdopodobieństwo Softmax">
     </app-image-statistics-plot>
 
@@ -36,7 +36,8 @@
         [xData]="deletionXData()"
         [yData]="deletionYData()"
         title="Deletion Score {{deletionAUC() | number:'1.2-2' }}, wynik idealny 0.00"
-        xAxisLabel="Procent (%)" yAxisLabel="Prawdopodobieństwo Softmax">
+        xAxisLabel="Procent (%) usuniętych najważniejszych pikseli"
+        yAxisLabel="Prawdopodobieństwo Softmax">
     </app-image-statistics-plot>
     }
 </div>

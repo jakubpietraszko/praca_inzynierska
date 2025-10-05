@@ -1,1 +1,17 @@
-<p>content-heatmaps-statistics-label works!</p>
+@if(allInputsSelected()) {
+<div class="statistics">
+    <app-image-statistics-plot
+        [xData]="averageDropXData()"
+        [yData]="averageDropYData()"
+        xAxisLabel="Procent (%) najważniejszych pikseli"
+        yAxisLabel="Average Drop in Score"
+    ></app-image-statistics-plot>
+
+    <app-image-statistics-plot
+        [xData]="rateOfIncreaseXData()"
+        [yData]="rateOfIncreaseYData()"
+        xAxisLabel="Procent (%) najważniejszych pikseli"
+        yAxisLabel="Rate of Increase in Score"
+    ></app-image-statistics-plot>
+</div>
+}

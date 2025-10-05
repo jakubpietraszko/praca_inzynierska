@@ -1,0 +1,25 @@
+meta {
+  name: heatmaps-statistics-label-many mnist
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:8000/heatmap/heatmaps-statistics-label-many
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "model": "mnist",
+    "dataset": "mnist-dataset",
+    "heatmap": "gradient",
+    "percentage": 10,
+    "label": "seven"
+  }
+}
+
+settings {
+  encodeUrl: true
+}

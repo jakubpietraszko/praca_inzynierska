@@ -36,3 +36,15 @@ class GradientStatisticsDatasetResponse(GradientResponse):
     rate_of_increase_in_scores: float
     average_drop: float
     success: bool
+
+class GradientStatisticsLabelManyRequest(BaseModel):
+    model: str
+    dataset: str
+    heatmap: str
+    percentage: int
+    label: str
+
+class GradientStatisticsLabelManyResponse(GradientResponse):
+    success: bool
+    list_of_rate_of_increase_in_scores: List[float]
+    list_of_average_drop: List[float]

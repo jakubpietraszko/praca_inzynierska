@@ -112,6 +112,7 @@ async def fetch_activations_image(
 
     return FetchImageResponse(image=image)
 
+
 @router.get('/fetch-activations-image', response_model=FetchImageResponse)
 async def fetch_activations_image(
     dataset: str,
@@ -166,19 +167,11 @@ async def fetch_models_datasets_image(
     utilities_service: UtilitiesService = Depends(get_utilities_service)
 ):
 
-    request = FetchModelsDatasetsRequest(
-        model=model,
-        dataset=dataset,
-        type=type,
-        label=label,
-        filename=filename
-    )
-
     image = await models_data_service.fetch_image(
-        await utilities_service.models_datasets_path(request.model, request.dataset),
-        request.type,
-        request.label,
-        request.filename
+        await utilities_service.models_datasets_path(model, dataset),
+        type,
+        label,
+        filename
     )
 
     return FetchImageResponse(image=image)

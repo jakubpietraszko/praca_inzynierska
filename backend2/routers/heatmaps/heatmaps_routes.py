@@ -1,7 +1,7 @@
 import os
 
 from fastapi import APIRouter, Depends
-from interfaces.gradient import GradientRequest, GradientResponse, GradientStatisticRequest, GradientStatisticResponse, GradientStatisticsDatasetRequest, GradientStatisticsDatasetResponse, GradientStatisticsLabelRequest
+from interfaces.gradient import GradientRequest, GradientResponse, GradientStatisticRequest, GradientStatisticResponse, GradientStatisticsDatasetRequest, GradientStatisticsDatasetResponse, GradientStatisticsLabelRequest, GradientStatisticsLabelManyRequest, GradientStatisticsLabelManyResponse
 from interfaces.all_heatmaps import AllHeatmapsResponse
 from constans import Constants
 from services.container import get_constants
@@ -124,6 +124,16 @@ async def heatmap_statistics_label(request: GradientStatisticsLabelRequest,
                                        get_heatmaps_facede_service
                                    )):
     response = await heatmaps_facede_service.generate_heatmap_statistics_label(
+        request=request
+    )
+    return response
+
+@router.post('/heatmaps-statistics-label-many', response_model=GradientStatisticsLabelManyResponse)
+async def heatmap_statistics_label(request: GradientStatisticsLabelManyRequest,
+                                   heatmaps_facede_service: HeatmapsFacedeService = Depends(
+                                       get_heatmaps_facede_service
+                                   )):
+    response = await heatmaps_facede_service.generate_heatmap_statistics_label_many(
         request=request
     )
     return response

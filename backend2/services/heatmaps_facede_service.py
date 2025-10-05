@@ -1,4 +1,4 @@
-from interfaces.gradient import GradientRequest, GradientResponse, GradientStatisticRequest, GradientStatisticResponse, ListOfScores, GradientStatisticsDatasetRequest, GradientStatisticsDatasetResponse, LabelFilenameTarget, GradientStatisticsLabelRequest
+from interfaces.gradient import GradientRequest, GradientResponse, GradientStatisticRequest, GradientStatisticResponse, ListOfScores, GradientStatisticsDatasetRequest, GradientStatisticsDatasetResponse, LabelFilenameTarget, GradientStatisticsLabelRequest, GradientStatisticsLabelManyRequest, GradientStatisticsLabelManyResponse
 
 from services.models_service import ModelInfo
 import os
@@ -413,4 +413,30 @@ class HeatmapsFacedeService:
             success=True,
             rate_of_increase_in_scores=rate_of_increase_in_scores,
             average_drop=average_drop
+        )
+
+    async def generate_heatmap_statistics_label_many(self, request: GradientStatisticsLabelManyRequest) -> GradientStatisticsLabelManyResponse:
+        list_of_rate_of_increase_in_scores = []
+        list_of_average_drop = []
+
+        for percentage in self.constants.STATISTICS_PERCENTAGES_STEP:
+            modified_request = GradientStatisticsLabelRequest(
+                model=request.model,
+                dataset=request.dataset,
+                heatmap=request.heatmap,
+                threshold=percentage,
+                percentage=10,
+                label=request.label
+            )
+            response = await self.generate_heatmap_statistics_label(
+                request=modified_request
+            )
+            list_of_rate_of_increase_in_scores.append(
+                response.rate_of_increase_in_scores)
+            list_of_average_drop.append(response.average_drop)
+
+        return GradientStatisticsLabelManyResponse(
+            success=True,
+            list_of_rate_of_increase_in_scores=list_of_rate_of_increase_in_scores,
+            list_of_average_drop=list_of_average_drop
         )

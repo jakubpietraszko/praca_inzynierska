@@ -1,0 +1,10 @@
+.statistics {
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
+    width: 100%;
+
+    app-image-statistics-plot {
+        flex: 1;
+    }
+}

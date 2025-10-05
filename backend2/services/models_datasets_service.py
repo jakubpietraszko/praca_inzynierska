@@ -3,6 +3,7 @@ import base64
 from typing import Dict
 import numpy as np
 from PIL import Image
+from interfaces.gradient import GradientRequest, GradientResponse, LabelFilenameTarget
 
 
 class ModelsDatasetsService:
@@ -14,6 +15,9 @@ class ModelsDatasetsService:
 
         from services.utilities_service import UtilitiesService
 
+        from services.container import get_heatmaps_facede_service
+        from services.heatmaps_facede_service import HeatmapsFacedeService
+
         self.models_datasets_path = models_datasets_path
         self.datasets_path = datasets_path
 
@@ -21,6 +25,7 @@ class ModelsDatasetsService:
 
         self.constants = get_constants()
         self.datasets_service: DatasetsService = get_datasets_service()
+        self.heatmaps_facede_service: HeatmapsFacedeService = get_heatmaps_facede_service()
 
     async def init_dir(self, model: str, dataset: str) -> bool:
         try:
@@ -81,6 +86,21 @@ class ModelsDatasetsService:
             label,
             filename
         )
+
+        images = [
+            LabelFilenameTarget(
+                label=label, filename=filename, target=None
+            )
+        ]
+
+        request = GradientRequest(
+            model=models_dataset.split('_')[0],
+            dataset=models_dataset.split('_')[1],
+            images=images,
+            overwrite=False
+        )
+
+        await self.heatmaps_facede_service.generate_heatmap(request, type=type)
 
         with open(path, 'rb') as f:
             image = base64.b64encode(f.read()).decode('utf-8')

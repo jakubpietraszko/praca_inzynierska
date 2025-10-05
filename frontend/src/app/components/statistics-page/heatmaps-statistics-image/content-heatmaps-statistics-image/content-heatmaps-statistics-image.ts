@@ -142,14 +142,16 @@ export class ContentHeatmapsStatisticsImage implements OnDestroy {
       const label = this.label();
       const image = this.image();
 
+      this.insertionSubscription.unsubscribe();
+      this.deletionSubscription.unsubscribe();
+
+      this.insertionScores.set(null);
+      this.deletionsScores.set(null);
+
       if (!model || !dataset || !heatmap || !label || !image) {
-        this.insertionScores.set(null);
-        this.deletionsScores.set(null);
         return;
       }
 
-      this.insertionSubscription.unsubscribe();
-      this.insertionSubscription = new Subscription();
       this.insertionSubscription = this.heatmapsStatisticsService
         .getScore({
           model,
@@ -164,10 +166,11 @@ export class ContentHeatmapsStatisticsImage implements OnDestroy {
           next: (response) => {
             this.insertionScores.set(response);
           },
+          error: () => {
+            this.insertionScores.set(null);
+          },
         });
 
-      this.deletionSubscription.unsubscribe();
-      this.deletionSubscription = new Subscription();
       this.deletionSubscription = this.heatmapsStatisticsService
         .getScore({
           model,
@@ -181,6 +184,9 @@ export class ContentHeatmapsStatisticsImage implements OnDestroy {
         .subscribe({
           next: (response) => {
             this.deletionsScores.set(response);
+          },
+          error: () => {
+            this.deletionsScores.set(null);
           },
         });
     });
