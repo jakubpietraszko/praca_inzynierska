@@ -53,7 +53,7 @@ class ServiceContainer:
         self._config_service = None
         self._websocket_service = None
         self._statistics_service = None
-        self.config_service = None
+        self._constants_service = None
 
     @property
     def datasets_service(self) -> DatasetsService:
