@@ -1,4 +1,4 @@
-import { Component, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, signal } from '@angular/core';
 import { MatSliderModule } from '@angular/material/slider';
 import { CdkDrag, CdkDragHandle } from '@angular/cdk/drag-drop';
 import { LoadModelsDatasetsImage } from '../../../directives/load-models-datasets-image';
@@ -8,6 +8,7 @@ import { LoadModelsDatasetsImage } from '../../../directives/load-models-dataset
   imports: [LoadModelsDatasetsImage, MatSliderModule, CdkDragHandle, CdkDrag],
   templateUrl: './image-title-transparent.html',
   styleUrl: './image-title-transparent.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ImageTitleTransparent {
   title = input<string>();

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { MatTabsModule } from '@angular/material/tabs';
 import { WrapperQuantitativeStatistics } from './quantitative-statistics/wrapper-quantitative-statistics/wrapper-quantitative-statistics';
 import { WrapperDifferentStatistics } from './different-statistics/wrapper-different-statistics/wrapper-different-statistics';
@@ -18,5 +18,6 @@ import { WrapperHeatmapsStatisticsLabel } from './heatmaps-statistics-label/wrap
   ],
   templateUrl: './statistics.html',
   styleUrl: './statistics.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Statistics {}

@@ -8,6 +8,7 @@ import {
   computed,
   signal,
   effect,
+  ChangeDetectionStrategy,
 } from '@angular/core';
 import { HeatmapsWebsocket } from '../../../services/heatmaps-websocket';
 import { Heatmaps } from '../../../services/heatmaps';
@@ -40,6 +41,7 @@ export interface NumeratorDenominatorSignals {
   ],
   templateUrl: './generator-list.html',
   styleUrl: './generator-list.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class GeneratorList implements OnInit, OnDestroy {
   model = input.required<string>();

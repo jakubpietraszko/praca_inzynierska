@@ -1,4 +1,5 @@
 import {
+  ChangeDetectionStrategy,
   Component,
   computed,
   effect,
@@ -23,6 +24,7 @@ import { HistogramPlot } from '../../../shared/histogram-plot/histogram-plot';
   imports: [ImageStatisticsPlot, HistogramPlot],
   templateUrl: './content-heatmaps-statistics-label.html',
   styleUrl: './content-heatmaps-statistics-label.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ContentHeatmapsStatisticsLabel implements OnDestroy {
   model = input.required<string>();
