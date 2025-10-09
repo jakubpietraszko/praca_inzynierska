@@ -114,6 +114,30 @@ export class ContentHeatmapsStatisticsLabel implements OnDestroy {
     return scores.areas;
   });
 
+  perimetersData = computed(() => {
+    const scores = this.shapeScores();
+    if (!scores || !scores.perimeters || scores.perimeters.length === 0) {
+      return [];
+    }
+    return scores.perimeters;
+  });
+
+  circularitiesData = computed(() => {
+    const scores = this.shapeScores();
+    if (!scores || !scores.circularities || scores.circularities.length === 0) {
+      return [];
+    }
+    return scores.circularities;
+  });
+
+  rectangularitiesData = computed(() => {
+    const scores = this.shapeScores();
+    if (!scores || !scores.rectangularities || scores.rectangularities.length === 0) {
+      return [];
+    }
+    return scores.rectangularities;
+  });
+
   constructor() {
     effect(() => {
       const model = this.model();

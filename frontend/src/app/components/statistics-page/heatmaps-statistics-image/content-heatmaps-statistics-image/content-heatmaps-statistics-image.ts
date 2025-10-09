@@ -18,6 +18,7 @@ import { DecimalPipe } from '@angular/common';
 import { LoadModelsDatasetsImage } from '../../../../directives/load-models-datasets-image';
 import { LoadImage } from '../../../../directives/load-image';
 import { LoadFourier } from '../../../../directives/load-fourier';
+import { LoadFourierDataset } from '../../../../directives/load-fourier-dataset';
 
 @Component({
   selector: 'app-content-heatmaps-statistics-image',
@@ -27,6 +28,7 @@ import { LoadFourier } from '../../../../directives/load-fourier';
     LoadModelsDatasetsImage,
     LoadImage,
     LoadFourier,
+    LoadFourierDataset,
   ],
   templateUrl: './content-heatmaps-statistics-image.html',
   styleUrl: './content-heatmaps-statistics-image.css',

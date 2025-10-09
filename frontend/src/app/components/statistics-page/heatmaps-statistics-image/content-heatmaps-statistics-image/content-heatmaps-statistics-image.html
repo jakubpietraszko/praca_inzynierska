@@ -11,6 +11,16 @@
     </div>
 
     <div class="image-container">
+      <h3>Fourier oryginalnego obrazu</h3>
+      <img
+        appLoadFourierDataset
+        [dataset]="dataset()!"
+        [label]="label()!"
+        [filename]="image()!"
+      />
+    </div>
+
+    <div class="image-container">
       <h3>Mapa ciepła</h3>
       <img
         appLoadModelsDatasetsImage

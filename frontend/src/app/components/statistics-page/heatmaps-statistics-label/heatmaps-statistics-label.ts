@@ -28,6 +28,9 @@ export interface ShapeMetricsLabelRequest {
 export interface ShapeMetricsLabelResponse {
   success: boolean;
   areas: number[];
+  perimeters: number[];
+  circularities: number[];
+  rectangularities: number[];
 }
 
 @Injectable({

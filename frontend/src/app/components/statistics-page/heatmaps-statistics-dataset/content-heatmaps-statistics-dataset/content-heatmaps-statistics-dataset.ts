@@ -9,16 +9,19 @@ import {
   signal,
 } from '@angular/core';
 import { ImageStatisticsPlot } from '../../../shared/image-statistics-plot/image-statistics-plot';
+import { HistogramPlot } from '../../../shared/histogram-plot/histogram-plot';
 import {
   GradientStatisticsRequest,
   GradientStatisticsResponse,
   HeatmapsStatisticsDataset,
+  ShapeMetricsDatasetRequest,
+  ShapeMetricsDatasetResponse,
 } from '../heatmaps-statistics-dataset';
 import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-content-heatmaps-statistics-dataset',
-  imports: [ImageStatisticsPlot],
+  imports: [ImageStatisticsPlot, HistogramPlot],
   templateUrl: './content-heatmaps-statistics-dataset.html',
   styleUrl: './content-heatmaps-statistics-dataset.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -31,8 +34,10 @@ export class ContentHeatmapsStatisticsDataset implements OnDestroy {
   heatmapsStatisticsDatasetService = inject(HeatmapsStatisticsDataset);
 
   gradientScores = signal<GradientStatisticsResponse | null>(null);
+  shapeScores = signal<ShapeMetricsDatasetResponse | null>(null);
 
   gradientSubscription = new Subscription();
+  shapeSubscription = new Subscription();
 
   allInputsSelected = computed(() => {
     return this.model() && this.dataset() && this.heatmap();
@@ -102,6 +107,38 @@ export class ContentHeatmapsStatisticsDataset implements OnDestroy {
     return scores.list_of_rate_of_increase_in_scores;
   });
 
+  areasData = computed(() => {
+    const scores = this.shapeScores();
+    if (!scores || !scores.areas || scores.areas.length === 0) {
+      return [];
+    }
+    return scores.areas;
+  });
+
+  perimetersData = computed(() => {
+    const scores = this.shapeScores();
+    if (!scores || !scores.perimeters || scores.perimeters.length === 0) {
+      return [];
+    }
+    return scores.perimeters;
+  });
+
+  circularitiesData = computed(() => {
+    const scores = this.shapeScores();
+    if (!scores || !scores.circularities || scores.circularities.length === 0) {
+      return [];
+    }
+    return scores.circularities;
+  });
+
+  rectangularitiesData = computed(() => {
+    const scores = this.shapeScores();
+    if (!scores || !scores.rectangularities || scores.rectangularities.length === 0) {
+      return [];
+    }
+    return scores.rectangularities;
+  });
+
   constructor() {
     effect(() => {
       const model = this.model();
@@ -111,7 +148,11 @@ export class ContentHeatmapsStatisticsDataset implements OnDestroy {
       this.gradientSubscription.unsubscribe();
       this.gradientSubscription = new Subscription();
 
+      this.shapeSubscription.unsubscribe();
+      this.shapeSubscription = new Subscription();
+
       this.gradientScores.set(null);
+      this.shapeScores.set(null);
 
       if (!model || !dataset || !heatmap) {
         return;
@@ -134,10 +175,31 @@ export class ContentHeatmapsStatisticsDataset implements OnDestroy {
           },
         }),
       );
+
+      const shapeRequest: ShapeMetricsDatasetRequest = {
+        model: model,
+        dataset: dataset,
+        heatmap: heatmap,
+        percentage: 15,
+      };
+
+      this.shapeSubscription.add(
+        this.heatmapsStatisticsDatasetService
+          .getShapeScore(shapeRequest)
+          .subscribe({
+            next: (response: ShapeMetricsDatasetResponse) => {
+              this.shapeScores.set(response);
+            },
+            error: () => {
+              this.shapeScores.set(null);
+            },
+          }),
+      );
     });
   }
 
   ngOnDestroy(): void {
     this.gradientSubscription.unsubscribe();
+    this.shapeSubscription.unsubscribe();
   }
 }

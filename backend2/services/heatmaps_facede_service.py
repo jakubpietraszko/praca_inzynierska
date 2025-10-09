@@ -8,6 +8,7 @@ from PIL import Image
 import cv2
 import torch
 import random
+import math
 
 
 class HeatmapsFacedeService:
@@ -469,6 +470,9 @@ class HeatmapsFacedeService:
 
     async def generate_heatmap_statistics_dataset_shapes(self, request: ShapeMetricsDatasetRequest) -> ShapeMetricsDatasetResponse:
         areas = []
+        perimeters = []
+        circularities = []
+        rectangularities = []
         images = [LabelFilenameTarget(label=label, filename=filename, target=None)
                   for label in await self.datasets_service.list_labels_in_dataset(request.dataset)
                   for filename in await self.datasets_service.list_filenames_in_label(request.dataset, label)
@@ -506,19 +510,51 @@ class HeatmapsFacedeService:
                 image_from_heatmap_path
             ))
 
-            area = np.sum(image_from_heatmap / 255) / \
-                np.multiply(*image_from_heatmap.shape)
-            area = np.round(area * 10) / 10
+            THRESHOLD = 0.1
+            image_from_heatmap_normalized = image_from_heatmap / 255
+            image_binary = (image_from_heatmap_normalized > THRESHOLD).astype(np.uint8)
 
+            area = np.sum(image_binary)
             areas.append(area)
+
+            contours, _ = cv2.findContours(image_binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            total_perimeter = sum(cv2.arcLength(contour, True) for contour in contours)
+            
+            total_perimeter = max(0, total_perimeter)
+            perimeters.append(total_perimeter)
+
+            if area > 0:
+                circularity = (total_perimeter ** 2) / (4 * math.pi * area)
+            else:
+                circularity = 0
+            circularities.append(circularity)
+
+            if len(contours) > 0:
+                all_points = np.vstack([contour for contour in contours])
+                mbr = cv2.minAreaRect(all_points)
+                mbr_area = mbr[1][0] * mbr[1][1]
+                
+                if mbr_area > 0:
+                    rectangularity = area / mbr_area
+                else:
+                    rectangularity = 0
+            else:
+                rectangularity = 0
+            rectangularities.append(rectangularity)
 
         return ShapeMetricsDatasetResponse(
             success=True,
-            areas=areas
+            areas=areas,
+            perimeters=perimeters,
+            circularities=circularities,
+            rectangularities=rectangularities
         )
 
     async def generate_heatmap_statistics_label_shapes(self, request: ShapeMetricsLabelRequest) -> ShapeMetricsLabelResponse:
         areas = []
+        perimeters = []
+        circularities = []
+        rectangularities = []
 
         images = [LabelFilenameTarget(label=request.label, filename=filename, target=None)
                   for filename in await self.datasets_service.list_filenames_in_label(request.dataset, request.label)
@@ -556,13 +592,46 @@ class HeatmapsFacedeService:
                 image_from_heatmap_path
             ))
 
-            area = np.sum(image_from_heatmap / 255) / \
-                np.multiply(*image_from_heatmap.shape)
+            THRESHOLD = 0.1
 
-            area = np.round(area * 10) / 10
+            image_from_heatmap = image_from_heatmap / 255
+
+            image_binary = (image_from_heatmap > THRESHOLD)
+
+            area = np.sum(image_binary)
+
             areas.append(area)
+
+            image_binary_uint8 = image_binary.astype(np.uint8)
+            contours, _ = cv2.findContours(image_binary_uint8, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            total_perimeter = sum(cv2.arcLength(contour, True) for contour in contours)
+            
+            total_perimeter = max(0, total_perimeter)
+            perimeters.append(total_perimeter)
+
+            if area > 0:
+                circularity = (total_perimeter ** 2) / (4 * math.pi * area)
+            else:
+                circularity = 0
+            circularities.append(circularity)
+
+            if len(contours) > 0:
+                all_points = np.vstack([contour for contour in contours])
+                mbr = cv2.minAreaRect(all_points)
+                mbr_area = mbr[1][0] * mbr[1][1]
+                
+                if mbr_area > 0:
+                    rectangularity = area / mbr_area
+                else:
+                    rectangularity = 0
+            else:
+                rectangularity = 0
+            rectangularities.append(rectangularity)
 
         return ShapeMetricsLabelResponse(
             success=True,
-            areas=areas
+            areas=areas,
+            perimeters=perimeters,
+            circularities=circularities,
+            rectangularities=rectangularities
         )

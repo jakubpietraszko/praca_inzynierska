@@ -14,4 +14,34 @@
       yAxisLabel="Rate of Increase in Score"
     ></app-image-statistics-plot>
   </div>
+
+  <div class="histograms">
+    <app-histogram-plot
+      [data]="areasData()"
+      title="Pola Powierzchni"
+      xAxisLabel="Pole"
+      yAxisLabel="Liczba"
+    ></app-histogram-plot>
+
+    <app-histogram-plot
+      [data]="perimetersData()"
+      title="Obwody"
+      xAxisLabel="Obwód"
+      yAxisLabel="Liczba"
+    ></app-histogram-plot>
+
+    <app-histogram-plot
+      [data]="circularitiesData()"
+      title="Współczynniki Kolistości"
+      xAxisLabel="(P²/4πA)"
+      yAxisLabel="Liczba"
+    ></app-histogram-plot>
+
+    <app-histogram-plot
+      [data]="rectangularitiesData()"
+      title="Współczynniki Prostokątności"
+      xAxisLabel="Pole/Pole Najmniejszego Prostokąta"
+      yAxisLabel="Liczba"
+    ></app-histogram-plot>
+  </div>
 }

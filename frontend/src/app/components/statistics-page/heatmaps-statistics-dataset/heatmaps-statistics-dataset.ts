@@ -26,6 +26,9 @@ export interface ShapeMetricsDatasetRequest {
 export interface ShapeMetricsDatasetResponse {
   success: boolean;
   areas: number[];
+  perimeters: number[];
+  circularities: number[];
+  rectangularities: number[];
 }
 
 @Injectable({
