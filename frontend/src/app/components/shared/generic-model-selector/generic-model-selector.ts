@@ -20,7 +20,7 @@ export class GenericModelSelector {
   selectedModel = model<string | null>(null);
 
   models = httpResource<AllModelsResponse>(
-    () => `${environment.apiUrl}/all-models`
+    () => `${environment.apiUrl}/all-models`,
   );
 
   constructor() {

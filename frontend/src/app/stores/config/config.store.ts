@@ -24,7 +24,8 @@ export const ConfigStore = signalStore(
     methods: computed(() => config()?.methods || {}),
     methodNames: computed(() => Object.keys(config()?.methods || {})),
     isConfigLoaded: computed(
-      () => config() !== null && Object.keys(config()?.methods || {}).length > 0
+      () =>
+        config() !== null && Object.keys(config()?.methods || {}).length > 0,
     ),
     configWithLoading: computed(() => ({
       config: config(),
@@ -38,7 +39,7 @@ export const ConfigStore = signalStore(
         switchMap(() =>
           configService.getConfig().pipe(
             tap((config) =>
-              patchState(store, { config, loading: false, error: null })
+              patchState(store, { config, loading: false, error: null }),
             ),
             catchError((error) => {
               console.error('Failed to load config:', error);
@@ -47,10 +48,10 @@ export const ConfigStore = signalStore(
                 error: error.message || 'Failed to load config',
               });
               return of(null);
-            })
-          )
-        )
-      )
+            }),
+          ),
+        ),
+      ),
     ),
 
     saveConfig: rxMethod<ConfigModel>(
@@ -59,7 +60,7 @@ export const ConfigStore = signalStore(
         switchMap((config) =>
           configService.saveConfig(config).pipe(
             tap(() =>
-              patchState(store, { config, loading: false, error: null })
+              patchState(store, { config, loading: false, error: null }),
             ),
             catchError((error) => {
               console.error('Failed to save config:', error);
@@ -68,10 +69,10 @@ export const ConfigStore = signalStore(
                 error: error.message || 'Failed to save config',
               });
               return of(null);
-            })
-          )
-        )
-      )
+            }),
+          ),
+        ),
+      ),
     ),
 
     updateConfig: (configUpdate: Partial<ConfigModel>) => {
@@ -85,7 +86,7 @@ export const ConfigStore = signalStore(
 
     updateMethodConfig: (
       methodName: string,
-      methodConfig: Partial<XAIMethodConfig>
+      methodConfig: Partial<XAIMethodConfig>,
     ) => {
       const currentConfig = store.config();
       if (currentConfig) {
@@ -113,10 +114,10 @@ export const ConfigStore = signalStore(
 
     getMethodConfigWithDefault: (
       methodName: string,
-      defaultConfig: XAIMethodConfig
+      defaultConfig: XAIMethodConfig,
     ): XAIMethodConfig => {
       const methods = store.methods();
       return methods[methodName] || defaultConfig;
     },
-  }))
+  })),
 );

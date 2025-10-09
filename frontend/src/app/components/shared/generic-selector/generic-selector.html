@@ -1,54 +1,66 @@
-@if(model()) {
-<mat-form-field>
+@if (model()) {
+  <mat-form-field>
     <mat-label>Model</mat-label>
     <mat-select [(ngModel)]="selectedModel">
-        @for (model of models.value()?.models || []; track model) {
-        <mat-option [value]="model">{{model}}</mat-option>
-        }
+      @for (model of models.value()?.models || []; track model) {
+        <mat-option [value]="model">{{ model }}</mat-option>
+      }
     </mat-select>
-</mat-form-field>
+  </mat-form-field>
 }
 
-@if(dataset()) {
-<mat-form-field>
+@if (dataset()) {
+  <mat-form-field>
     <mat-label>Zbiór danych</mat-label>
     <mat-select [(ngModel)]="selectedDataset">
-        @for (dataset of datasets.value()?.datasets || []; track dataset) {
-        <mat-option [value]="dataset">{{dataset}}</mat-option>
-        }
+      @for (dataset of datasets.value()?.datasets || []; track dataset) {
+        <mat-option [value]="dataset">{{ dataset }}</mat-option>
+      }
     </mat-select>
-</mat-form-field>
+  </mat-form-field>
 }
 
-@if(heatmap()) {
-<mat-form-field>
+@if (heatmap()) {
+  <mat-form-field>
     <mat-label>Mapa ciepła</mat-label>
     <mat-select [(ngModel)]="selectedHeatmap">
-        @for (heatmap of heatmaps.value()?.heatmaps || []; track heatmap) {
-        <mat-option [value]="heatmap">{{heatmap | translateXaiMethods}}</mat-option>
-        }
+      @for (heatmap of heatmaps.value()?.heatmaps || []; track heatmap) {
+        <mat-option [value]="heatmap">{{
+          heatmap | translateXaiMethods
+        }}</mat-option>
+      }
     </mat-select>
-</mat-form-field>
+  </mat-form-field>
 }
 
-@if(dataset() && label()) {
-<mat-form-field>
+@if (dataset() && label()) {
+  <mat-form-field>
     <mat-label>Klasa</mat-label>
-    <mat-select [(ngModel)]="selectedLabel" [disabled]="!labels.value()?.labels || labels.value()!.labels.length === 0">
-        @for (label of labels.value()?.labels || []; track label) {
-        <mat-option [value]="label">{{label }}</mat-option>
-        }
+    <mat-select
+      [(ngModel)]="selectedLabel"
+      [disabled]="
+        !labels.value()?.labels || labels.value()!.labels.length === 0
+      "
+    >
+      @for (label of labels.value()?.labels || []; track label) {
+        <mat-option [value]="label">{{ label }}</mat-option>
+      }
     </mat-select>
-</mat-form-field>
+  </mat-form-field>
 }
 
-@if(dataset() && label() && image()) {
-<mat-form-field>
+@if (dataset() && label() && image()) {
+  <mat-form-field>
     <mat-label>Obraz</mat-label>
-    <mat-select [(ngModel)]="selectedImage" [disabled]="!images.value()?.images || images.value()!.images.length === 0">
-        @for (image of images.value()?.images || []; track image) {
-        <mat-option [value]="image">{{image }}</mat-option>
-        }
+    <mat-select
+      [(ngModel)]="selectedImage"
+      [disabled]="
+        !images.value()?.images || images.value()!.images.length === 0
+      "
+    >
+      @for (image of images.value()?.images || []; track image) {
+        <mat-option [value]="image">{{ image }}</mat-option>
+      }
     </mat-select>
-</mat-form-field>
+  </mat-form-field>
 }

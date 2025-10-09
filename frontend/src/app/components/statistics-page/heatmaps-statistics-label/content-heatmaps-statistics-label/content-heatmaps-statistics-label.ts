@@ -150,7 +150,7 @@ export class ContentHeatmapsStatisticsLabel implements OnDestroy {
           error: () => {
             this.gradientScores.set(null);
           },
-        })
+        }),
       );
 
       const shapeRequest: ShapeMetricsLabelRequest = {
@@ -162,14 +162,16 @@ export class ContentHeatmapsStatisticsLabel implements OnDestroy {
       };
 
       this.shapeSubscription.add(
-        this.heatmapsStatisticsLabelService.getShapeScore(shapeRequest).subscribe({
-          next: (response: ShapeMetricsLabelResponse) => {
-            this.shapeScores.set(response);
-          },
-          error: () => {
-            this.shapeScores.set(null);
-          },
-        })
+        this.heatmapsStatisticsLabelService
+          .getShapeScore(shapeRequest)
+          .subscribe({
+            next: (response: ShapeMetricsLabelResponse) => {
+              this.shapeScores.set(response);
+            },
+            error: () => {
+              this.shapeScores.set(null);
+            },
+          }),
       );
     });
   }

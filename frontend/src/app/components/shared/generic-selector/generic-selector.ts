@@ -58,15 +58,15 @@ export class GenericSelector {
   }
 
   models = httpResource<AllModelsResponse>(() =>
-    this.model() ? `${environment.apiUrl}/all-models` : undefined
+    this.model() ? `${environment.apiUrl}/all-models` : undefined,
   );
 
   datasets = httpResource<AllDatasetsResponse>(() =>
-    this.dataset() ? `${environment.apiUrl}/all-datasets` : undefined
+    this.dataset() ? `${environment.apiUrl}/all-datasets` : undefined,
   );
 
   heatmaps = httpResource<AllHeatmapsResponse>(() =>
-    this.heatmap() ? `${environment.apiUrl}/heatmap/all-heatmaps` : undefined
+    this.heatmap() ? `${environment.apiUrl}/heatmap/all-heatmaps` : undefined,
   );
 
   labels = httpResource<AllLabelsResponse>(() => {

@@ -31,11 +31,11 @@ export class GeneratorUnsupervisedActivations {
   http = inject(HttpClient);
 
   unsupervisedActivations(
-    request: UnsupervisedActivationsRequest
+    request: UnsupervisedActivationsRequest,
   ): Observable<UnsupervisedActivationsResponse> {
     return this.http.post<UnsupervisedActivationsResponse>(
       `${environment.apiUrl}/heatmap/unsupervised-activations`,
-      request
+      request,
     );
   }
 }

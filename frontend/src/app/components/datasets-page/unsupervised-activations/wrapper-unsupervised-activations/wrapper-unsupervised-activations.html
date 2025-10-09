@@ -1,13 +1,13 @@
 <app-generic-selector
-    [model]="true"
-    [(selectedModel)]="selectedModel"
+  [model]="true"
+  [(selectedModel)]="selectedModel"
 ></app-generic-selector>
 
-@if(selectedModel()) {
-    <app-content-unsupervised-activations
-        [model]="selectedModel()!"
-        [dataset]="selectedDataset()!"
-        [label]="selectedLabel()!"
-        [filename]="selectedFilename()!"
-    ></app-content-unsupervised-activations>
+@if (selectedModel()) {
+  <app-content-unsupervised-activations
+    [model]="selectedModel()!"
+    [dataset]="selectedDataset()!"
+    [label]="selectedLabel()!"
+    [filename]="selectedFilename()!"
+  ></app-content-unsupervised-activations>
 }

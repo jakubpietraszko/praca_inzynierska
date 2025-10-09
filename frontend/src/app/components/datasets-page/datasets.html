@@ -1,61 +1,79 @@
 <app-generic-dataset-selector
-    [(selectedDataset)]="currentDataset"
+  [(selectedDataset)]="currentDataset"
 ></app-generic-dataset-selector>
-@if(currentDataset()) {
-    <app-generic-label-selector
-        [dataset]="currentDataset()!"
-        [(selectedLabel)]="currentLabel"
-    >
+@if (currentDataset()) {
+  <app-generic-label-selector
+    [dataset]="currentDataset()!"
+    [(selectedLabel)]="currentLabel"
+  >
     <ng-template #postfixButton let-label="label" let-dataset="dataset">
-        <button mat-icon-button (click)="onUnsupervisedHeatmapsOpen(dataset, label)">
-            <mat-icon>launch</mat-icon>
-        </button>
+      <button
+        mat-icon-button
+        (click)="onUnsupervisedHeatmapsOpen(dataset, label)"
+      >
+        <mat-icon>launch</mat-icon>
+      </button>
     </ng-template>
-    </app-generic-label-selector>
-    @if(currentLabel()) {
-        <div class="container">
-            <div class="images">
-                <mat-grid-list
-                    [cols]="imagesPerRow"
-                    rowHeight="220px"
-                >
-                    @for(path of paginatedImages(); track path) {
-                        <mat-grid-tile>
-                            <div class="image-wrapper">
-                                <img 
-                                    class="grid-image"
-                                    appLoadImage
-                                    [dataset]="currentDataset()!"
-                                    [label]="currentLabel()!"
-                                    [filename]="path"
-                                />
-                                <div class="image-filename">{{ path }}</div>
-                                <div class="image-footer">
-                                    <button mat-fab color="primary" class="image-button"
-                                        (click)="onUnsupervisedActivationsOpen(currentDataset()!, currentLabel()!, path)" 
-                                    >
-                                        Mapy Aktywacji
-                                    </button>
-                                    <button mat-fab color="primary" class="image-button"
-                                        (click)="onCompareHeatmapsOpen(currentDataset()!, currentLabel()!, path)"
-                                    >
-                                        Mapy ciepła
-                                    </button>
-                                </div>
-                            </div>
-                        </mat-grid-tile>
-                    }
-                </mat-grid-list>
-            </div>
-            <div class="paginator">
-                <mat-paginator
-                    [length]="images.value()?.images?.length || 0"
-                    [pageSize]="imagesPerPage"
-                    [pageIndex]="currentPage()"
-                    (page)="onPageChange($event)"
-                    showFirstLastButtons
-                ></mat-paginator>
-            </div>
-        </div>
-    }
+  </app-generic-label-selector>
+  @if (currentLabel()) {
+    <div class="container">
+      <div class="images">
+        <mat-grid-list [cols]="imagesPerRow" rowHeight="220px">
+          @for (path of paginatedImages(); track path) {
+            <mat-grid-tile>
+              <div class="image-wrapper">
+                <img
+                  class="grid-image"
+                  appLoadImage
+                  [dataset]="currentDataset()!"
+                  [label]="currentLabel()!"
+                  [filename]="path"
+                />
+                <div class="image-filename">{{ path }}</div>
+                <div class="image-footer">
+                  <button
+                    mat-fab
+                    color="primary"
+                    class="image-button"
+                    (click)="
+                      onUnsupervisedActivationsOpen(
+                        currentDataset()!,
+                        currentLabel()!,
+                        path
+                      )
+                    "
+                  >
+                    Mapy Aktywacji
+                  </button>
+                  <button
+                    mat-fab
+                    color="primary"
+                    class="image-button"
+                    (click)="
+                      onCompareHeatmapsOpen(
+                        currentDataset()!,
+                        currentLabel()!,
+                        path
+                      )
+                    "
+                  >
+                    Mapy ciepła
+                  </button>
+                </div>
+              </div>
+            </mat-grid-tile>
+          }
+        </mat-grid-list>
+      </div>
+      <div class="paginator">
+        <mat-paginator
+          [length]="images.value()?.images?.length || 0"
+          [pageSize]="imagesPerPage"
+          [pageIndex]="currentPage()"
+          (page)="onPageChange($event)"
+          showFirstLastButtons
+        ></mat-paginator>
+      </div>
+    </div>
+  }
 }

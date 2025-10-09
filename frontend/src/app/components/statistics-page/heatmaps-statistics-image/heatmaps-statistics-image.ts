@@ -34,11 +34,11 @@ export class HeatmapsStatisticsImage {
   private http = inject(HttpClient);
 
   getScore(
-    request: GradientStatisticsRequest
+    request: GradientStatisticsRequest,
   ): Observable<GradientStatisticsResponse> {
     return this.http.post<GradientStatisticsResponse>(
       `${environment.apiUrl}/heatmap/heatmaps-statistics-image`,
-      request
+      request,
     );
   }
 }

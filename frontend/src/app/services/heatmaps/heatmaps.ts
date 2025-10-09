@@ -17,14 +17,14 @@ export class HeatmapsService {
 
   allHeatmaps(): Observable<AllHeatmapsResponse> {
     return this.http.get<AllHeatmapsResponse>(
-      `${this.apiUrl}/heatmap/all-heatmaps`
+      `${this.apiUrl}/heatmap/all-heatmaps`,
     );
   }
 
   generateHeatmap(request: HeatmapRequest): Observable<HeatmapResponse> {
     return this.http.post<HeatmapResponse>(
       `${this.apiUrl}/heatmap/all-heatmaps`,
-      request
+      request,
     );
   }
 
@@ -32,8 +32,8 @@ export class HeatmapsService {
     loader: () => {
       return firstValueFrom(
         this.http.get<AllHeatmapsResponse>(
-          `${this.apiUrl}/heatmap/all-heatmaps`
-        )
+          `${this.apiUrl}/heatmap/all-heatmaps`,
+        ),
       );
     },
   });

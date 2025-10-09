@@ -1,4 +1,4 @@
 export interface IDialogUnsupervisedHeatmaps {
-    dataset: string;
-    label: string;
+  dataset: string;
+  label: string;
 }

@@ -4,8 +4,6 @@ import { Component } from '@angular/core';
   selector: 'app-wrapper-different-statistics',
   imports: [],
   templateUrl: './wrapper-different-statistics.html',
-  styleUrl: './wrapper-different-statistics.css'
+  styleUrl: './wrapper-different-statistics.css',
 })
-export class WrapperDifferentStatistics {
-
-}
+export class WrapperDifferentStatistics {}

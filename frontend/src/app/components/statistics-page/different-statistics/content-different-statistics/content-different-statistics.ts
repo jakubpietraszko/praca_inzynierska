@@ -4,8 +4,6 @@ import { Component } from '@angular/core';
   selector: 'app-content-different-statistics',
   imports: [],
   templateUrl: './content-different-statistics.html',
-  styleUrl: './content-different-statistics.css'
+  styleUrl: './content-different-statistics.css',
 })
-export class ContentDifferentStatistics {
-
-}
+export class ContentDifferentStatistics {}

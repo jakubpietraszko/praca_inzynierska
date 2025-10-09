@@ -83,7 +83,11 @@ export class Datasets {
     this.compareHeatmapsDialog.open(dataset, label, filename);
   }
 
-  onUnsupervisedActivationsOpen(dataset: string, label: string, filename: string) {
+  onUnsupervisedActivationsOpen(
+    dataset: string,
+    label: string,
+    filename: string,
+  ) {
     this.unsupervisedActivationsDialog.open(dataset, label, filename);
   }
 

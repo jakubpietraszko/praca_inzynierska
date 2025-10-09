@@ -37,7 +37,7 @@ export class ContentCompareHeatmaps implements OnInit, OnDestroy {
   compareHeatmapsService = inject(GeneratorCompareHeatmaps);
 
   allHeatmaps = httpResource<{ heatmaps: string[] }>(
-    () => `${environment.apiUrl}/heatmap/all-heatmaps`
+    () => `${environment.apiUrl}/heatmap/all-heatmaps`,
   );
 
   ngOnInit(): void {
@@ -59,7 +59,7 @@ export class ContentCompareHeatmaps implements OnInit, OnDestroy {
         .compareHeatmaps(request)
         .subscribe((response: CompareHeatmapsResponse) => {
           this.response.set(response);
-        })
+        }),
     );
   }
 

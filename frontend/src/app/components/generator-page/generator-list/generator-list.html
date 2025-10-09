@@ -1,18 +1,41 @@
-@if(!allHeatmaps.isLoading() && !numeratorDenominatorResource.isLoading()) {
-<cdk-accordion>
-    @for (heatmap of allHeatmaps.value()?.heatmaps; track heatmap; let index = $index) {
-    <cdk-accordion-item #accordionItem="cdkAccordionItem" class="accordion-item">
-        <button class="accordion-item-header" (click)="accordionItem.toggle()" tabindex="0"
-            [attr.id]="'accordion-header-' + index" [attr.aria-expanded]="accordionItem.expanded"
-            [attr.aria-controls]="'accordion-body-' + index">
-            {{ heatmap | translateXaiMethods}}
+@if (!allHeatmaps.isLoading() && !numeratorDenominatorResource.isLoading()) {
+  <cdk-accordion>
+    @for (
+      heatmap of allHeatmaps.value()?.heatmaps;
+      track heatmap;
+      let index = $index
+    ) {
+      <cdk-accordion-item
+        #accordionItem="cdkAccordionItem"
+        class="accordion-item"
+      >
+        <button
+          class="accordion-item-header"
+          (click)="accordionItem.toggle()"
+          tabindex="0"
+          [attr.id]="'accordion-header-' + index"
+          [attr.aria-expanded]="accordionItem.expanded"
+          [attr.aria-controls]="'accordion-body-' + index"
+        >
+          {{ heatmap | translateXaiMethods }}
         </button>
-        <span> {{ numeratorDenominatorData()?.numerator?.[heatmap]?.() }} / {{ numeratorDenominatorData()?.denominator }}</span>
-        <button mat-raised-button color="primary" class="generate-button" (click)="generateHeatmapsByType(heatmap)">
-            Generuj
+        <span>
+          {{ numeratorDenominatorData()?.numerator?.[heatmap]?.() }} /
+          {{ numeratorDenominatorData()?.denominator }}</span
+        >
+        <button
+          mat-raised-button
+          color="primary"
+          class="generate-button"
+          (click)="generateHeatmapsByType(heatmap)"
+        >
+          Generuj
         </button>
-        <mat-progress-bar mode="determinate" [value]="getProgress(heatmap)"></mat-progress-bar>
-    </cdk-accordion-item>
+        <mat-progress-bar
+          mode="determinate"
+          [value]="getProgress(heatmap)"
+        ></mat-progress-bar>
+      </cdk-accordion-item>
     }
-</cdk-accordion>
+  </cdk-accordion>
 }

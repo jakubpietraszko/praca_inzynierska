@@ -4,8 +4,6 @@ import { Component } from '@angular/core';
   selector: 'app-image-shapes-chart',
   imports: [],
   templateUrl: './image-shapes-chart.html',
-  styleUrl: './image-shapes-chart.css'
+  styleUrl: './image-shapes-chart.css',
 })
-export class ImageShapesChart {
-
-}
+export class ImageShapesChart {}

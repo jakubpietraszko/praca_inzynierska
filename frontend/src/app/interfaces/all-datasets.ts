@@ -1,3 +1,3 @@
 export interface AllDatasetsResponse {
-    datasets: string[];
+  datasets: string[];
 }

@@ -1,57 +1,65 @@
-@if(allInputsSelected()) {
-<div class="images">
+@if (allInputsSelected()) {
+  <div class="images">
     <div class="image-container">
-        <h3>Oryginalny obraz</h3>
-        <img
-         appLoadImage
-         [dataset]="dataset()!"
-         [label]="label()!"
-         [filename]="image()!"
-        />
+      <h3>Oryginalny obraz</h3>
+      <img
+        appLoadImage
+        [dataset]="dataset()!"
+        [label]="label()!"
+        [filename]="image()!"
+      />
     </div>
 
     <div class="image-container">
-        <h3>Mapa ciepła</h3>
-        <img appLoadModelsDatasetsImage
-            [dataset]="dataset()!"
-            [label]="label()!"
-            [filename]="image()!"
-            [model]="model()!"
-            [type]="heatmap()!"
-        />
+      <h3>Mapa ciepła</h3>
+      <img
+        appLoadModelsDatasetsImage
+        [dataset]="dataset()!"
+        [label]="label()!"
+        [filename]="image()!"
+        [model]="model()!"
+        [type]="heatmap()!"
+      />
     </div>
 
-    @if(heatmapGenerated()) {
-    <div class="image-container">
+    @if (heatmapGenerated()) {
+      <div class="image-container">
         <h3>Fourier mapy ciepła</h3>
-        <img appLoadFourier
-            [dataset]="dataset()!"
-            [label]="label()!"
-            [filename]="image()!"
-            [model]="model()!"
-            [type]="heatmap()!"
+        <img
+          appLoadFourier
+          [dataset]="dataset()!"
+          [label]="label()!"
+          [filename]="image()!"
+          [model]="model()!"
+          [type]="heatmap()!"
         />
-    </div>
+      </div>
     }
-</div>
-<hr class="divider" />
-<div class="statistics">
-    @if(insertionScores() && deletionsScores()) {
-    <app-image-statistics-plot
+  </div>
+  <hr class="divider" />
+  <div class="statistics">
+    @if (insertionScores() && deletionsScores()) {
+      <app-image-statistics-plot
         [xData]="insertionXData()"
         [yData]="insertionYData()"
-        title="Insertion Score {{insertionAUC() | number:'1.2-2'}}, wynik idealny 1.00"
+        title="Insertion Score {{
+          insertionAUC() | number: '1.2-2'
+        }}, wynik idealny 1.00"
         xAxisLabel="Procent (%) najważniejszych pikseli"
-        yAxisLabel="Prawdopodobieństwo Softmax">
-    </app-image-statistics-plot>
+        yAxisLabel="Prawdopodobieństwo Softmax"
+      >
+      </app-image-statistics-plot>
 
-    <app-image-statistics-plot
+      <app-image-statistics-plot
         [xData]="deletionXData()"
         [yData]="deletionYData()"
-        title="Deletion Score {{deletionAUC() | number:'1.2-2' }}, wynik idealny 0.00"
+        title="Deletion Score {{
+          deletionAUC() | number: '1.2-2'
+        }}, wynik idealny 0.00"
         xAxisLabel="Procent (%) usuniętych najważniejszych pikseli"
-        yAxisLabel="Prawdopodobieństwo Softmax">
-    </app-image-statistics-plot>
+        yAxisLabel="Prawdopodobieństwo Softmax"
+      >
+      </app-image-statistics-plot>
     }
-</div>
+  </div>
 }

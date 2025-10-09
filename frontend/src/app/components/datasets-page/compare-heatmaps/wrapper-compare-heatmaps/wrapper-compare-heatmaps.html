@@ -1,13 +1,13 @@
 <app-generic-selector
-    [model]="true"
-    [(selectedModel)]="selectedModel"
+  [model]="true"
+  [(selectedModel)]="selectedModel"
 ></app-generic-selector>
 
-@if(allNotNull()) {
-    <app-content-compare-heatmaps
-        [model]="selectedModel()!"
-        [dataset]="selectedDataset()!"
-        [label]="selectedLabel()!"
-        [filename]="selectedFilename()!"
-    ></app-content-compare-heatmaps>
+@if (allNotNull()) {
+  <app-content-compare-heatmaps
+    [model]="selectedModel()!"
+    [dataset]="selectedDataset()!"
+    [label]="selectedLabel()!"
+    [filename]="selectedFilename()!"
+  ></app-content-compare-heatmaps>
 }

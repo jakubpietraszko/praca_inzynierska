@@ -21,29 +21,29 @@ export class UnsupervisedActivationsService {
   private apiUrl = environment.apiUrl;
 
   getActivations(
-    request: UnsupervisedActivationsRequest
+    request: UnsupervisedActivationsRequest,
   ): Observable<UnsupervisedActivationsResponse> {
     return this.http.post<UnsupervisedActivationsResponse>(
       `${this.apiUrl}/unsupervised/activations`,
-      request
+      request,
     );
   }
 
   generateActivations(
-    request: GeneratingActivationsRequest
+    request: GeneratingActivationsRequest,
   ): Observable<GeneratingActivationsResponse> {
     return this.http.post<GeneratingActivationsResponse>(
       `${this.apiUrl}/heatmap/activations`,
-      request
+      request,
     );
   }
 
   getHeatmaps(
-    request: UnsupervisedHeatmapsRequest
+    request: UnsupervisedHeatmapsRequest,
   ): Observable<UnsupervisedHeatmapsResponse> {
     return this.http.post<UnsupervisedHeatmapsResponse>(
       `${this.apiUrl}/unsupervised/heatmaps`,
-      request
+      request,
     );
   }
 }

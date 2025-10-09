@@ -10,7 +10,6 @@ export class Heatmaps {
   getAllHeatmaps() {
     return httpResource<AllHeatmapsResponse>(
       () => `${environment.apiUrl}/heatmap/all-heatmaps`,
-
     );
   }
 }

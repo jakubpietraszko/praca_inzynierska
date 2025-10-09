@@ -1,7 +1,7 @@
 export interface AllLabelsRequest {
-    dataset: string;
+  dataset: string;
 }
 
 export interface AllLabelsResponse {
-    labels: string[];
+  labels: string[];
 }

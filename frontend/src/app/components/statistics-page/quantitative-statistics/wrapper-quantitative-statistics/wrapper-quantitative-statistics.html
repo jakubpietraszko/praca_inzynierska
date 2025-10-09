@@ -1,13 +1,13 @@
 <app-generic-selector
-    [model]="true"
-    [dataset]="true"
-    [(selectedDataset)]="selectedDataset"
-    [(selectedModel)]="selectedModel"
+  [model]="true"
+  [dataset]="true"
+  [(selectedDataset)]="selectedDataset"
+  [(selectedModel)]="selectedModel"
 ></app-generic-selector>
 
-@if(allSelected()) {
-    <app-content-quantitative-statistics
-        [dataset]="selectedDataset()!"
-        [model]="selectedModel()!"
-    ></app-content-quantitative-statistics>
+@if (allSelected()) {
+  <app-content-quantitative-statistics
+    [dataset]="selectedDataset()!"
+    [model]="selectedModel()!"
+  ></app-content-quantitative-statistics>
 }

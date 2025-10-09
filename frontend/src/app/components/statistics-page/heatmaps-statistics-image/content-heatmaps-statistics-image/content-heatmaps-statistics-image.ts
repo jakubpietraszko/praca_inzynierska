@@ -21,7 +21,13 @@ import { LoadFourier } from '../../../../directives/load-fourier';
 
 @Component({
   selector: 'app-content-heatmaps-statistics-image',
-  imports: [ImageStatisticsPlot, DecimalPipe, LoadModelsDatasetsImage, LoadImage, LoadFourier],
+  imports: [
+    ImageStatisticsPlot,
+    DecimalPipe,
+    LoadModelsDatasetsImage,
+    LoadImage,
+    LoadFourier,
+  ],
   templateUrl: './content-heatmaps-statistics-image.html',
   styleUrl: './content-heatmaps-statistics-image.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

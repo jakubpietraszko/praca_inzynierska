@@ -58,7 +58,7 @@ export class ContentUnsupervisedHeatmaps implements OnDestroy {
             .unsupervisedHeatmaps(request)
             .subscribe((response: UnsupervisedHeatmapsResponse) => {
               this.response.set(response);
-            })
+            }),
         );
       }
     });

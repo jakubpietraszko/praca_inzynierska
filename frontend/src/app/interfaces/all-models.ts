@@ -1,3 +1,3 @@
 export interface AllModelsResponse {
-    models: string[];
+  models: string[];
 }

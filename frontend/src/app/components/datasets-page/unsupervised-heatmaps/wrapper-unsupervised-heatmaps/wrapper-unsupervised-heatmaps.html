@@ -1,15 +1,15 @@
 <app-generic-selector
-    [model]="true"
-    [heatmap]="true"
-    [(selectedModel)]="selectedModel"
-    [(selectedHeatmap)]="selectedHeatmap"
+  [model]="true"
+  [heatmap]="true"
+  [(selectedModel)]="selectedModel"
+  [(selectedHeatmap)]="selectedHeatmap"
 ></app-generic-selector>
 
-@if(allNotNull()) {
-    <app-content-unsupervised-heatmaps
-        [model]="selectedModel()!"
-        [heatmap]="selectedHeatmap()!"
-        [dataset]="selectedDataset()!"
-        [label]="selectedLabel()!"
-    ></app-content-unsupervised-heatmaps>
+@if (allNotNull()) {
+  <app-content-unsupervised-heatmaps
+    [model]="selectedModel()!"
+    [heatmap]="selectedHeatmap()!"
+    [dataset]="selectedDataset()!"
+    [label]="selectedLabel()!"
+  ></app-content-unsupervised-heatmaps>
 }

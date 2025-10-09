@@ -18,7 +18,7 @@ export class ModelsService {
   allModelsResource = resource({
     loader: () => {
       return firstValueFrom(
-        this.http.get<AllModelsResponse>(`${this.apiUrl}/all-models`)
+        this.http.get<AllModelsResponse>(`${this.apiUrl}/all-models`),
       );
     },
   });

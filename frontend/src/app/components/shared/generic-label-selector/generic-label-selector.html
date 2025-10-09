@@ -1,19 +1,22 @@
-@if(!labels.isLoading()) {
-  <mat-tab-group 
+@if (!labels.isLoading()) {
+  <mat-tab-group
     (selectedTabChange)="onLabelTabChange($event.index)"
     color="primary"
   >
-  @for (label of labels.value()?.labels; track $index) {
-    <mat-tab [label]="label">
-      <ng-template mat-tab-label>
-        <div class="label-flex-row">
-          <span>{{ label }}</span>
-          <ng-container
-            *ngTemplateOutlet="postfixButtonTemplate; context: { label: label, dataset: dataset() }"
-          ></ng-container>
-        </div>
-      </ng-template>
-    </mat-tab>
-  }
+    @for (label of labels.value()?.labels; track $index) {
+      <mat-tab [label]="label">
+        <ng-template mat-tab-label>
+          <div class="label-flex-row">
+            <span>{{ label }}</span>
+            <ng-container
+              *ngTemplateOutlet="
+                postfixButtonTemplate;
+                context: { label: label, dataset: dataset() }
+              "
+            ></ng-container>
+          </div>
+        </ng-template>
+      </mat-tab>
+    }
   </mat-tab-group>
 }

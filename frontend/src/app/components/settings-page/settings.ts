@@ -8,7 +8,10 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
-import { ConfigModel, XAIMethodConfig } from '../../stores/config/config.interface';
+import {
+  ConfigModel,
+  XAIMethodConfig,
+} from '../../stores/config/config.interface';
 import { ConfigStore } from '../../stores/config/config.store';
 
 @Component({
@@ -63,7 +66,7 @@ export class Settings implements OnInit {
   onMethodConfigChange(
     methodName: string,
     field: keyof XAIMethodConfig,
-    value: any
+    value: any,
   ) {
     const currentMethodConfig =
       this.currentConfig[methodName] || this.getMethodConfig(methodName);

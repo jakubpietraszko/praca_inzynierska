@@ -1,22 +1,22 @@
 <app-generic-selector
-    [model]="true"
-    [dataset]="true"
-    [heatmap]="true"
-    [label]="true"
-    [image]="true"
-    [(selectedModel)]="selectedModel"
-    [(selectedDataset)]="selectedDataset"
-    [(selectedHeatmap)]="selectedHeatmap"
-    [(selectedLabel)]="selectedLabel"
-    [(selectedImage)]="selectedImage"
+  [model]="true"
+  [dataset]="true"
+  [heatmap]="true"
+  [label]="true"
+  [image]="true"
+  [(selectedModel)]="selectedModel"
+  [(selectedDataset)]="selectedDataset"
+  [(selectedHeatmap)]="selectedHeatmap"
+  [(selectedLabel)]="selectedLabel"
+  [(selectedImage)]="selectedImage"
 ></app-generic-selector>
 
-@if(allSelected()){
-    <app-content-heatmaps-statistics-image
-        [model]="selectedModel()!"
-        [dataset]="selectedDataset()!"
-        [heatmap]="selectedHeatmap()!"
-        [label]="selectedLabel()!"
-        [image]="selectedImage()!"
-    ></app-content-heatmaps-statistics-image>
+@if (allSelected()) {
+  <app-content-heatmaps-statistics-image
+    [model]="selectedModel()!"
+    [dataset]="selectedDataset()!"
+    [heatmap]="selectedHeatmap()!"
+    [label]="selectedLabel()!"
+    [image]="selectedImage()!"
+  ></app-content-heatmaps-statistics-image>
 }

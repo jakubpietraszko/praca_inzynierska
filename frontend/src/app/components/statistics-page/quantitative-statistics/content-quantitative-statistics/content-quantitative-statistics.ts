@@ -70,7 +70,7 @@ export class ContentQuantitativeStatistics implements OnDestroy {
           .quantitativeStatistics(request)
           .subscribe((response: QuantitativeStatisticsResponse) => {
             this.quantitativeStatisticsResponse.set(response);
-          })
+          }),
       );
     });
   }
@@ -105,7 +105,7 @@ export class ContentQuantitativeStatistics implements OnDestroy {
       Object.keys(response.confusion_dict[actualClass]).forEach(
         (predictedClass) => {
           total += response.confusion_dict[actualClass][predictedClass];
-        }
+        },
       );
     });
     return total;
@@ -145,7 +145,7 @@ export class ContentQuantitativeStatistics implements OnDestroy {
           if (predictedClass !== className) {
             falseNegative += response.confusion_dict[className][predictedClass];
           }
-        }
+        },
       );
 
       result.set(className, falseNegative);
@@ -233,7 +233,7 @@ export class ContentQuantitativeStatistics implements OnDestroy {
       Object.keys(response.confusion_dict[className] || {}).forEach(
         (predictedClass) => {
           support += response.confusion_dict[className][predictedClass];
-        }
+        },
       );
 
       result.set(className, support);
@@ -351,7 +351,7 @@ export class ContentQuantitativeStatistics implements OnDestroy {
           if (predictedClass !== className) {
             falseNegative += response.confusion_dict[className][predictedClass];
           }
-        }
+        },
       );
 
       const accuracy =

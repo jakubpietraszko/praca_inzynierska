@@ -29,11 +29,11 @@ export class GeneratorUnsupervisedHeatmaps {
   http = inject(HttpClient);
 
   unsupervisedHeatmaps(
-    request: UnsupervisedHeatmapsRequest
+    request: UnsupervisedHeatmapsRequest,
   ): Observable<UnsupervisedHeatmapsResponse> {
     return this.http.post<UnsupervisedHeatmapsResponse>(
       `${environment.apiUrl}/heatmap/unsupervised-heatmaps`,
-      request
+      request,
     );
   }
 }

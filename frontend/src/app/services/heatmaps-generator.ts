@@ -24,16 +24,16 @@ export class HeatmapsGenerator {
   private http = inject(HttpClient);
 
   createDatasetsModelsDir(
-    request: ModelDatasetI
+    request: ModelDatasetI,
   ): Observable<{ success: boolean }> {
     return this.http.put<{ success: boolean }>(
       `${environment.apiUrl}/models-datasets`,
-      request
+      request,
     );
   }
 
   getNumeratorDenumerator(
-    request: ModelDatasetHeatmapI
+    request: ModelDatasetHeatmapI,
   ): Observable<NumeratorDenominatorI> {
     const params = new HttpParams()
       .set('model', request.model)
@@ -42,14 +42,14 @@ export class HeatmapsGenerator {
 
     return this.http.get<NumeratorDenominatorI>(
       `${environment.apiUrl}/numerator-denominator`,
-      { params }
+      { params },
     );
   }
 
   generateAllGradient(
     model: string,
     dataset: string,
-    label: string
+    label: string,
   ): Observable<{ success: boolean }> {
     const params = new HttpParams()
       .set('model', model)
@@ -58,7 +58,7 @@ export class HeatmapsGenerator {
 
     return this.http.get<{ success: boolean }>(
       `${environment.apiUrl}/heatmap/all-gradient`,
-      { params }
+      { params },
     );
   }
 
@@ -66,7 +66,7 @@ export class HeatmapsGenerator {
     model: string,
     dataset: string,
     label: string,
-    type: string
+    type: string,
   ): Observable<{ success: boolean }> {
     const params = new HttpParams()
       .set('model', model)
@@ -76,7 +76,7 @@ export class HeatmapsGenerator {
 
     return this.http.get<{ success: boolean }>(
       `${environment.apiUrl}/heatmap/all-heatmaps-type`,
-      { params }
+      { params },
     );
   }
 }

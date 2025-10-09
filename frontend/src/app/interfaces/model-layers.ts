@@ -1,7 +1,7 @@
 export interface ModelLayersRequest {
-    model: string;
+  model: string;
 }
 
 export interface ModelLayersResponse {
-    layers: string[];
+  layers: string[];
 }

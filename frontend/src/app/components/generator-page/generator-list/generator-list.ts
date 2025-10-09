@@ -61,7 +61,7 @@ export class GeneratorList implements OnInit, OnDestroy {
         dataset: this.dataset(),
         label: this.label(),
       },
-    })
+    }),
   );
 
   numeratorDenominatorData = computed<NumeratorDenominatorSignals | null>(
@@ -73,7 +73,7 @@ export class GeneratorList implements OnInit, OnDestroy {
         numerator: this.numeratorSignals,
         denominator: resourceValue.denominator,
       };
-    }
+    },
   );
 
   private initializeSignals() {
@@ -114,7 +114,7 @@ export class GeneratorList implements OnInit, OnDestroy {
 
           if (this.numeratorSignals[wsData.heatmap_type]) {
             this.numeratorSignals[wsData.heatmap_type].update(
-              (current) => current + 1
+              (current) => current + 1,
             );
           }
         }
@@ -130,10 +130,10 @@ export class GeneratorList implements OnInit, OnDestroy {
 
   generateHeatmapsByType(heatmapType: string) {
     const messagesToRemove = Array.from(this.processedMessages).filter(
-      (messageId) => messageId.includes(`-${heatmapType}-`)
+      (messageId) => messageId.includes(`-${heatmapType}-`),
     );
     messagesToRemove.forEach((messageId) =>
-      this.processedMessages.delete(messageId)
+      this.processedMessages.delete(messageId),
     );
 
     this.heatmapsGenerator
@@ -141,7 +141,7 @@ export class GeneratorList implements OnInit, OnDestroy {
         this.model(),
         this.dataset(),
         this.label(),
-        heatmapType
+        heatmapType,
       )
       .subscribe({
         next: () => {},

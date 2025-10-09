@@ -4,5 +4,5 @@ export interface AllImagesRequest {
 }
 
 export interface AllImagesResponse {
-    images: string[];
+  images: string[];
 }

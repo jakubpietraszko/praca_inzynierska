@@ -27,11 +27,11 @@ export class GeneratorCompareHeatmaps {
   http = inject(HttpClient);
 
   compareHeatmaps(
-    request: CompareHeatmapsRequest
+    request: CompareHeatmapsRequest,
   ): Observable<CompareHeatmapsResponse> {
     return this.http.post<CompareHeatmapsResponse>(
       `${environment.apiUrl}/heatmap/all-heatmaps`,
-      request
+      request,
     );
   }
 }

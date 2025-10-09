@@ -1,7 +1,3 @@
-export interface HeatmapsGenerationRequest {
-    
-}
+export interface HeatmapsGenerationRequest {}
 
-export interface HeatmapsGenerationResponse {
-
-}
+export interface HeatmapsGenerationResponse {}

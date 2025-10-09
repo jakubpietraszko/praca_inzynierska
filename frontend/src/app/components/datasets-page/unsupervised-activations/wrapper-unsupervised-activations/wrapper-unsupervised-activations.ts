@@ -1,4 +1,10 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { GenericSelector } from '../../../shared/generic-selector/generic-selector';
 import { ContentUnsupervisedActivations } from '../content-unsupervised-activations/content-unsupervised-activations';

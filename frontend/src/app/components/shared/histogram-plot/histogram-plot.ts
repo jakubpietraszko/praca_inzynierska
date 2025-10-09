@@ -65,12 +65,12 @@ export class HistogramPlot implements OnDestroy {
     const trace: any = {
       x: data,
       type: 'histogram',
-      marker: { 
+      marker: {
         color: this.color(),
         line: {
           color: 'white',
-          width: 1
-        }
+          width: 1,
+        },
       },
       nbinsx: this.nbins(),
     };

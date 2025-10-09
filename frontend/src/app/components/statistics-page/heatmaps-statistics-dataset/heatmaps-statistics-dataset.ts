@@ -35,20 +35,20 @@ export class HeatmapsStatisticsDataset {
   private http = inject(HttpClient);
 
   getScore(
-    request: GradientStatisticsRequest
+    request: GradientStatisticsRequest,
   ): Observable<GradientStatisticsResponse> {
     return this.http.post<GradientStatisticsResponse>(
       `${environment.apiUrl}/heatmap/heatmaps-statistics-dataset-many`,
-      request
+      request,
     );
   }
 
   getShapeScore(
-    request: ShapeMetricsDatasetRequest
+    request: ShapeMetricsDatasetRequest,
   ): Observable<ShapeMetricsDatasetResponse> {
     return this.http.post<ShapeMetricsDatasetResponse>(
       `${environment.apiUrl}/heatmap/heatmaps-statistics-dataset-shapes`,
-      request
+      request,
     );
   }
 }

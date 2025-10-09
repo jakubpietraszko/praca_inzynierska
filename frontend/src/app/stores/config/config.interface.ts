@@ -24,4 +24,3 @@ export interface ConfigState {
   loading: boolean;
   error: string | null;
 }
-

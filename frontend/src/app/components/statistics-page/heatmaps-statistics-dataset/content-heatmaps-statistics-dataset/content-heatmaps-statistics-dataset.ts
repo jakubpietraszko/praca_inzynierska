@@ -132,7 +132,7 @@ export class ContentHeatmapsStatisticsDataset implements OnDestroy {
           error: () => {
             this.gradientScores.set(null);
           },
-        })
+        }),
       );
     });
   }

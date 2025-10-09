@@ -1,19 +1,19 @@
 <app-generic-selector
-    [model]="true"
-    [dataset]="true"
-    [(selectedModel)]="selectedModel"
-    [(selectedDataset)]="selectedDataset"
+  [model]="true"
+  [dataset]="true"
+  [(selectedModel)]="selectedModel"
+  [(selectedDataset)]="selectedDataset"
 />
-@if(showLabelSelector()) {
-    <app-generic-label-selector
-        [dataset]="selectedDataset()!"
-        [(selectedLabel)]="selectedLabel"
-    />
+@if (showLabelSelector()) {
+  <app-generic-label-selector
+    [dataset]="selectedDataset()!"
+    [(selectedLabel)]="selectedLabel"
+  />
 }
-@if(showGeneratorList()) {
-    <app-generator-list
-        [model]="selectedModel()!"
-        [dataset]="selectedDataset()!"
-        [label]="selectedLabel()!"
-    />
+@if (showGeneratorList()) {
+  <app-generator-list
+    [model]="selectedModel()!"
+    [dataset]="selectedDataset()!"
+    [label]="selectedLabel()!"
+  />
 }

@@ -1,28 +1,27 @@
 .accordion-item {
-    display: block;
-    border: solid 1px #ccc;
+  display: block;
+  border: solid 1px #ccc;
 }
 
-.accordion-item+.accordion-item {
-    border-top: none;
+.accordion-item + .accordion-item {
+  border-top: none;
 }
 
 .accordion-item-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    background: none;
-    border: none;
-    padding: 16px;
-    text-align: left;
-
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 16px;
+  text-align: left;
 }
 
 .accordion-item-header:hover {
-    cursor: pointer;
+  cursor: pointer;
 }
 
 .generate-button {
-    margin: 8px 16px;
+  margin: 8px 16px;
 }

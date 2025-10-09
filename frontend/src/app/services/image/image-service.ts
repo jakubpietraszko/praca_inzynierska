@@ -4,13 +4,15 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ImageService {
-  private http =  inject(HttpClient);
+  private http = inject(HttpClient);
   private apiUrl = environment.apiUrl;
 
-  fetchImage(path: string): Observable<{image: string}> {
-    return this.http.post<{image: string}>(`${this.apiUrl}/load-image`, { path });
+  fetchImage(path: string): Observable<{ image: string }> {
+    return this.http.post<{ image: string }>(`${this.apiUrl}/load-image`, {
+      path,
+    });
   }
 }

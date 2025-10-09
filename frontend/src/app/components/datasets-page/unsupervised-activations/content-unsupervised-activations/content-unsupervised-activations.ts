@@ -50,7 +50,7 @@ export class ContentUnsupervisedActivations implements OnInit, OnDestroy {
         .unsupervisedActivations(request)
         .subscribe((response: UnsupervisedActivationsResponse) => {
           this.response.set(response);
-        })
+        }),
     );
   }
 

@@ -37,20 +37,20 @@ export class HeatmapsStatisticsLabel {
   private http = inject(HttpClient);
 
   getScore(
-    request: GradientStatisticsRequest
+    request: GradientStatisticsRequest,
   ): Observable<GradientStatisticsResponse> {
     return this.http.post<GradientStatisticsResponse>(
       `${environment.apiUrl}/heatmap/heatmaps-statistics-label-many`,
-      request
+      request,
     );
   }
 
   getShapeScore(
-    request: ShapeMetricsLabelRequest
+    request: ShapeMetricsLabelRequest,
   ): Observable<ShapeMetricsLabelResponse> {
     return this.http.post<ShapeMetricsLabelResponse>(
       `${environment.apiUrl}/heatmap/heatmaps-statistics-label-shapes`,
-      request
+      request,
     );
   }
 }

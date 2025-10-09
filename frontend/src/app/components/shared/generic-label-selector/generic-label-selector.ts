@@ -27,7 +27,7 @@ export class GenericLabelSelector {
   selectedLabel = model<string | null>(null);
 
   labels = httpResource<AllLabelsResponse>(
-    () => `${environment.apiUrl}/all-labels/${this.dataset()}`
+    () => `${environment.apiUrl}/all-labels/${this.dataset()}`,
   );
 
   constructor() {

@@ -1,19 +1,19 @@
 export interface FetchImageRequest {
-    dataset: string;
-    label: string;
-    filename: string;
+  dataset: string;
+  label: string;
+  filename: string;
 }
 
 export interface FetchImageResponse {
-    image: string;
+  image: string;
 }
 
 export interface FetchActivationRequest extends FetchImageRequest {
-    model: string;
-    image: string;
+  model: string;
+  image: string;
 }
 
 export interface FetchModelsDatasetsRequest extends FetchImageRequest {
-    model: string;
-    type: string;
+  model: string;
+  type: string;
 }

@@ -18,7 +18,6 @@ export interface HeatmapsStatisticsRequest {
   heatmap: string;
 }
 
-
 @Injectable({
   providedIn: 'root',
 })
@@ -28,7 +27,7 @@ export class GeneratorStatistics {
   quantitativeStatistics(request: QuantitativeStatisticsRequest) {
     return this.http.post<QuantitativeStatisticsResponse>(
       `${environment.apiUrl}/statistics/all-quantitative-statistics`,
-      request
+      request,
     );
   }
 }

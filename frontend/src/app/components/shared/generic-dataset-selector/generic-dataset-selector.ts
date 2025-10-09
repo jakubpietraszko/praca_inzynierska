@@ -20,7 +20,7 @@ export class GenericDatasetSelector {
   selectedDataset = model<string | null>(null);
 
   datasets = httpResource<AllDatasetsResponse>(
-    () => `${environment.apiUrl}/all-datasets`
+    () => `${environment.apiUrl}/all-datasets`,
   );
 
   constructor() {

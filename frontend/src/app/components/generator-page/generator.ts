@@ -52,7 +52,7 @@ export class Generator {
     () =>
       !!this.selectedModel() &&
       !!this.selectedDataset() &&
-      this.directoryCreated()
+      this.directoryCreated(),
   );
 
   showGeneratorList = computed(
@@ -60,6 +60,6 @@ export class Generator {
       !!this.selectedModel() &&
       !!this.selectedDataset() &&
       !!this.selectedLabel() &&
-      this.directoryCreated()
+      this.directoryCreated(),
   );
 }

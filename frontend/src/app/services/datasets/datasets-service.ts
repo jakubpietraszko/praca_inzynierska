@@ -18,7 +18,7 @@ export class DatasetsService {
   allDatasetsResource = resource({
     loader: () => {
       return firstValueFrom(
-        this.http.get<AllDatasetsResponse>(`${this.apiUrl}/all-datasets`)
+        this.http.get<AllDatasetsResponse>(`${this.apiUrl}/all-datasets`),
       );
     },
   });
