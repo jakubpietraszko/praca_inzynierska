@@ -4,46 +4,4 @@ export const constants = {
   DIALOG_WIDTH: '90vw',
   DIALOG_HEIGHT: '90vh',
   DIALOG_PANEL_CLASS: 'large-dialog',
-
-  heatmaps: {
-    gradient: { name: 'gradient', translation: 'Gradient' },
-    gradient_squared: {
-      name: 'gradient_squared',
-      translation: 'Gradient Squared',
-    },
-    deconvolution: { name: 'deconvolution', translation: 'Deconvolution' },
-    guided_backpropagation: {
-      name: 'guided_backpropagation',
-      translation: 'Guided Backpropagation',
-    },
-    input_gradient: { name: 'input_gradient', translation: 'Input x Gradient' },
-    integrated_gradient: {
-      name: 'integrated_gradient',
-      translation: 'Integrated Gradient',
-    },
-    smooth_gradient: { name: 'smooth_gradient', translation: 'SmoothGrad' },
-    smooth_gradient_square: {
-      name: 'smooth_gradient_square',
-      translation: 'SmoothGrad Squared',
-    },
-    var_gradient: { name: 'var_gradient', translation: 'VarGrad' },
-    grad_cam: { name: 'grad_cam', translation: 'Grad-CAM' },
-    grad_cam_plus_plus: {
-      name: 'grad_cam_plus_plus',
-      translation: 'Grad-CAM++',
-    },
-    group_cam: { name: 'group_cam', translation: 'Group-CAM' },
-    hires_cam: { name: 'hires_cam', translation: 'HiRes-CAM' },
-    wgrad_cam: { name: 'wgrad_cam', translation: 'Weight Grad-CAM' },
-    ablation_cam: { name: 'ablation_cam', translation: 'Ablation-CAM' },
-    xgrad_cam: { name: 'xgrad_cam', translation: 'XGrad-CAM' },
-    lime: { name: 'lime', translation: 'LIME' },
-    kernel_shap: { name: 'kernel_shap', translation: 'Kernel SHAP' },
-    xrai: { name: 'xrai', translation: 'XRAI' },
-    lrp_epsilon: { name: 'lrp_epsilon', translation: 'LRP-ε' },
-    lrp_gamma: { name: 'lrp_gamma', translation: 'LRP-γ' },
-    lrp_alpha_beta: { name: 'lrp_alpha_beta', translation: 'LRP-αβ' },
-    lrp_zplus: { name: 'lrp_zplus', translation: 'LRP-z⁺' },
-    lrp_w2: { name: 'lrp_w2', translation: 'LRP-w²' },
-  },
 };
