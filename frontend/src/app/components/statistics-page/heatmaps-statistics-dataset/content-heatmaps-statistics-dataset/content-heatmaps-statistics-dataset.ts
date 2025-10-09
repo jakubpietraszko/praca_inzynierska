@@ -133,7 +133,11 @@ export class ContentHeatmapsStatisticsDataset implements OnDestroy {
 
   rectangularitiesData = computed(() => {
     const scores = this.shapeScores();
-    if (!scores || !scores.rectangularities || scores.rectangularities.length === 0) {
+    if (
+      !scores ||
+      !scores.rectangularities ||
+      scores.rectangularities.length === 0
+    ) {
       return [];
     }
     return scores.rectangularities;

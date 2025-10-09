@@ -1,4 +1,9 @@
-import { ChangeDetectionStrategy, Component, input, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  input,
+  signal,
+} from '@angular/core';
 import { MatSliderModule } from '@angular/material/slider';
 import { CdkDrag, CdkDragHandle } from '@angular/cdk/drag-drop';
 import { LoadModelsDatasetsImage } from '../../../directives/load-models-datasets-image';

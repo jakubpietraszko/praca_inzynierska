@@ -1,14 +1,15 @@
-import { Pipe, PipeTransform } from '@angular/core';
-import { constants } from '../../constants';
+import { Pipe, PipeTransform, inject } from '@angular/core';
+import { ConstantStore } from '../stores/constants/constants.store';
 
 @Pipe({
   name: 'translateXaiMethods',
+  standalone: true,
 })
 export class TranslateXaiMethodsPipe implements PipeTransform {
+  private readonly constantStore = inject(ConstantStore);
+
   transform(value: unknown): unknown {
-    return (
-      constants.heatmaps[value as keyof typeof constants.heatmaps]
-        ?.translation || ''
-    );
+    const translations = this.constantStore.translations();
+    return translations[value as string] || '';
   }
 }

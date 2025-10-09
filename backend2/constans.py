@@ -65,6 +65,8 @@ class Constants:
 
     ALL_DIRS: list[str] = field(default_factory=lambda: [])
 
+    XAI_TRANSLATIONS: dict[str, str] = field(default_factory=dict)
+
     def __post_init__(self):
         self.AVAILABLE_HEATMAPS = [
             self.GRADIENT,
@@ -144,6 +146,60 @@ class Constants:
             self.RATE_OF_INCREASE_IN_SCORES,
             self.AVERAGE_DROP
         ]
+
+        if self.GRADIENT in self.AVAILABLE_HEATMAPS:
+            self.XAI_TRANSLATIONS[self.GRADIENT] = 'Gradient'
+        if self.GRADIENT_SQUARED in self.AVAILABLE_HEATMAPS:
+            self.XAI_TRANSLATIONS[self.GRADIENT_SQUARED] = 'Gradient Squared'
+        if self.DECONVOLUTION in self.AVAILABLE_HEATMAPS:
+            self.XAI_TRANSLATIONS[self.DECONVOLUTION] = 'Deconvolution'
+        if self.GUIDED_BACKPROPAGATION in self.AVAILABLE_HEATMAPS:
+            self.XAI_TRANSLATIONS[self.GUIDED_BACKPROPAGATION] = 'Guided Backpropagation'
+        if self.INPUT_GRADIENT in self.AVAILABLE_HEATMAPS:
+            self.XAI_TRANSLATIONS[self.INPUT_GRADIENT] = 'Input Gradient'
+        
+        if self.INTEGRATED_GRADIENT in self.AVAILABLE_HEATMAPS:
+            self.XAI_TRANSLATIONS[self.INTEGRATED_GRADIENT] = 'Integrated Gradient'
+
+        if self.SMOOTH_GRADIENT in self.AVAILABLE_HEATMAPS:
+            self.XAI_TRANSLATIONS[self.SMOOTH_GRADIENT] = 'Smooth Gradient'
+        if self.SMOOTH_GRADIENT_SQUARE in self.AVAILABLE_HEATMAPS:
+            self.XAI_TRANSLATIONS[self.SMOOTH_GRADIENT_SQUARE] = 'Smooth Gradient Squared'
+        if self.VAR_GRADIENT in self.AVAILABLE_HEATMAPS:
+            self.XAI_TRANSLATIONS[self.VAR_GRADIENT] = 'Var Gradient'
+
+        if self.GRAD_CAM in self.AVAILABLE_HEATMAPS:
+            self.XAI_TRANSLATIONS[self.GRAD_CAM] = 'Grad-CAM'
+        if self.GRAD_CAM_PLUS_PLUS in self.AVAILABLE_HEATMAPS:
+            self.XAI_TRANSLATIONS[self.GRAD_CAM_PLUS_PLUS] = 'Grad-CAM++'
+        if self.WGRAD_CAM in self.AVAILABLE_HEATMAPS:
+            self.XAI_TRANSLATIONS[self.WGRAD_CAM] = 'Weighted Grad-CAM'
+        if self.HIRES_CAM in self.AVAILABLE_HEATMAPS:
+            self.XAI_TRANSLATIONS[self.HIRES_CAM] = 'HiRes-CAM'
+        if self.ABLATION_CAM in self.AVAILABLE_HEATMAPS:
+            self.XAI_TRANSLATIONS[self.ABLATION_CAM] = 'Ablation-CAM'
+        if self.GROUP_CAM in self.AVAILABLE_HEATMAPS:
+            self.XAI_TRANSLATIONS[self.GROUP_CAM] = 'Group-CAM'
+        if self.XGRAD_CAM in self.AVAILABLE_HEATMAPS:
+            self.XAI_TRANSLATIONS[self.XGRAD_CAM] = 'XGrad-CAM'
+
+        if self.LIME in self.AVAILABLE_HEATMAPS:
+            self.XAI_TRANSLATIONS[self.LIME] = 'LIME'
+        if self.XRAI in self.AVAILABLE_HEATMAPS:
+            self.XAI_TRANSLATIONS[self.XRAI] = 'XRAI'
+        if self.KERNEL_SHAP in self.AVAILABLE_HEATMAPS:
+            self.XAI_TRANSLATIONS[self.KERNEL_SHAP] = 'Kernel SHAP'
+
+        if self.LRP_EPSILON in self.AVAILABLE_HEATMAPS:
+            self.XAI_TRANSLATIONS[self.LRP_EPSILON] = 'LRP Epsilon'
+        if self.LRP_GAMMA in self.AVAILABLE_HEATMAPS:
+            self.XAI_TRANSLATIONS[self.LRP_GAMMA] = 'LRP Gamma'
+        if self.LRP_ALPHA_BETA in self.AVAILABLE_HEATMAPS:
+            self.XAI_TRANSLATIONS[self.LRP_ALPHA_BETA] = 'LRP Alpha-Beta'
+        if self.LRP_ZPLUS in self.AVAILABLE_HEATMAPS:
+            self.XAI_TRANSLATIONS[self.LRP_ZPLUS] = 'LRP ZPlus'
+        if self.LRP_W2 in self.AVAILABLE_HEATMAPS:
+            self.XAI_TRANSLATIONS[self.LRP_W2] = 'LRP W2'
 
     CMAP: str = 'hot',
     EPSILON: float = 1e-8
