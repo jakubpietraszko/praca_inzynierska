@@ -337,23 +337,6 @@ export class ContentQuantitativeStatistics implements OnDestroy {
         }
       });
 
-      let falsePositive = 0;
-      classNames.forEach((actualClass) => {
-        if (actualClass !== className) {
-          falsePositive +=
-            response.confusion_dict[actualClass]?.[className] || 0;
-        }
-      });
-
-      let falseNegative = 0;
-      Object.keys(response.confusion_dict[className] || {}).forEach(
-        (predictedClass) => {
-          if (predictedClass !== className) {
-            falseNegative += response.confusion_dict[className][predictedClass];
-          }
-        },
-      );
-
       const accuracy =
         totalSamples > 0 ? (truePositive + trueNegative) / totalSamples : 0;
       result.set(className, accuracy);

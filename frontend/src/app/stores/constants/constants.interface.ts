@@ -1,5 +1,5 @@
 export interface ConstantModel {
-  translations: { [key: string]: string };
+  translations: Record<string, string>;
 }
 
 export interface ConstantState {

@@ -16,7 +16,7 @@ export interface XAIMethodConfig {
 }
 
 export interface ConfigModel {
-  methods: { [methodName: string]: XAIMethodConfig };
+  methods: Record<string, XAIMethodConfig>;
 }
 
 export interface ConfigState {

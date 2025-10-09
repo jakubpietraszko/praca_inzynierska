@@ -2,7 +2,6 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
-  effect,
   inject,
   signal,
 } from '@angular/core';
@@ -72,8 +71,6 @@ export class Datasets {
     const endIndex = startIndex + constants.imagesPerPage;
     return images.slice(startIndex, endIndex);
   });
-
-  constructor() {}
 
   onUnsupervisedHeatmapsOpen(dataset: string, label: string) {
     this.unsupervisedHeatmapsDialog.open(dataset, label);
