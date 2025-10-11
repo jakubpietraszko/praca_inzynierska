@@ -8,16 +8,18 @@ from interfaces.gradient import GradientRequest, GradientResponse
 class CAMService:
     def __init__(self):
         from services.container import get_config_service, get_websocket_service
+        from services.container import get_constants, Constants
         self.config_service = get_config_service()
         self.websocket_service = get_websocket_service()
+        self.constants: Constants = get_constants()
 
     async def grad_cam(self,
-                 request: GradientRequest,
-                 container,
-                 datasets_service,
-                 utilities_service,
-                 constants,
-                 models_service) -> GradientResponse:
+                       request: GradientRequest,
+                       container,
+                       datasets_service,
+                       utilities_service,
+                       constants,
+                       models_service) -> GradientResponse:
         root_path = os.path.join(
             container.models_datasets_path,
             await utilities_service.models_datasets_path(
@@ -51,7 +53,7 @@ class CAMService:
                 await utilities_service.add_png_extension(filename)
             )
 
-            if await utilities_service.skip_forward(save_path):
+            if self.constants.CACHE_ENABLED and await utilities_service.skip_forward(save_path):
                 continue
 
             image_path = os.path.join(
@@ -119,12 +121,12 @@ class CAMService:
         )
 
     async def grad_cam_plus_plus(self,
-                           request: GradientRequest,
-                           container,
-                           datasets_service,
-                           utilities_service,
-                           constants,
-                           models_service) -> GradientResponse:
+                                 request: GradientRequest,
+                                 container,
+                                 datasets_service,
+                                 utilities_service,
+                                 constants,
+                                 models_service) -> GradientResponse:
         root_path = os.path.join(
             container.models_datasets_path,
             await utilities_service.models_datasets_path(
@@ -155,7 +157,7 @@ class CAMService:
                 await utilities_service.add_png_extension(filename)
             )
 
-            if await utilities_service.skip_forward(save_path):
+            if self.constants.CACHE_ENABLED and await utilities_service.skip_forward(save_path):
                 continue
 
             image_path = os.path.join(
@@ -236,12 +238,12 @@ class CAMService:
         )
 
     async def group_cam(self,
-                  request: GradientRequest,
-                  container,
-                  datasets_service,
-                  utilities_service,
-                  constants,
-                  models_service) -> GradientResponse:
+                        request: GradientRequest,
+                        container,
+                        datasets_service,
+                        utilities_service,
+                        constants,
+                        models_service) -> GradientResponse:
         root_path = os.path.join(
             container.models_datasets_path,
             await utilities_service.models_datasets_path(
@@ -274,7 +276,7 @@ class CAMService:
                 await utilities_service.add_png_extension(filename)
             )
 
-            if await utilities_service.skip_forward(save_path):
+            if self.constants.CACHE_ENABLED and await utilities_service.skip_forward(save_path):
                 continue
 
             image_path = os.path.join(
@@ -286,7 +288,7 @@ class CAMService:
 
             image_np = await datasets_service.load_image(
                 image_path, model_info.input_shape)
-            image_tensor = await  utilities_service.convert_image_to_tensor(
+            image_tensor = await utilities_service.convert_image_to_tensor(
                 image_np, grad=True)
 
             model_info.model.eval()
@@ -409,12 +411,12 @@ class CAMService:
         )
 
     async def hires_cam(self,
-                  request: GradientRequest,
-                  container,
-                  datasets_service,
-                  utilities_service,
-                  constants,
-                  models_service) -> GradientResponse:
+                        request: GradientRequest,
+                        container,
+                        datasets_service,
+                        utilities_service,
+                        constants,
+                        models_service) -> GradientResponse:
         root_path = os.path.join(
             container.models_datasets_path,
             await utilities_service.models_datasets_path(
@@ -445,7 +447,7 @@ class CAMService:
                 await utilities_service.add_png_extension(filename)
             )
 
-            if await utilities_service.skip_forward(save_path):
+            if self.constants.CACHE_ENABLED and await utilities_service.skip_forward(save_path):
                 continue
 
             image_path = os.path.join(
@@ -515,12 +517,12 @@ class CAMService:
         )
 
     async def wgrad_cam(self,
-                  request: GradientRequest,
-                  container,
-                  datasets_service,
-                  utilities_service,
-                  constants,
-                  models_service) -> GradientResponse:
+                        request: GradientRequest,
+                        container,
+                        datasets_service,
+                        utilities_service,
+                        constants,
+                        models_service) -> GradientResponse:
         root_path = os.path.join(
             container.models_datasets_path,
             await utilities_service.models_datasets_path(
@@ -552,7 +554,7 @@ class CAMService:
                 await utilities_service.add_png_extension(filename)
             )
 
-            if await utilities_service.skip_forward(save_path):
+            if self.constants.CACHE_ENABLED and await utilities_service.skip_forward(save_path):
                 continue
 
             image_path = os.path.join(
@@ -638,12 +640,12 @@ class CAMService:
         )
 
     async def ablation_cam(self,
-                     request: GradientRequest,
-                     container,
-                     datasets_service,
-                     utilities_service,
-                     constants,
-                     models_service) -> GradientResponse:
+                           request: GradientRequest,
+                           container,
+                           datasets_service,
+                           utilities_service,
+                           constants,
+                           models_service) -> GradientResponse:
         root_path = os.path.join(
             container.models_datasets_path,
             await utilities_service.models_datasets_path(
@@ -674,7 +676,7 @@ class CAMService:
                 await utilities_service.add_png_extension(filename)
             )
 
-            if await utilities_service.skip_forward(save_path):
+            if self.constants.CACHE_ENABLED and await utilities_service.skip_forward(save_path):
                 continue
 
             image_path = os.path.join(
@@ -761,12 +763,12 @@ class CAMService:
         )
 
     async def xgrad_cam(self,
-                  request: GradientRequest,
-                  container,
-                  datasets_service,
-                  utilities_service,
-                  constants,
-                  models_service) -> GradientResponse:
+                        request: GradientRequest,
+                        container,
+                        datasets_service,
+                        utilities_service,
+                        constants,
+                        models_service) -> GradientResponse:
         root_path = os.path.join(
             container.models_datasets_path,
             await utilities_service.models_datasets_path(
@@ -798,7 +800,7 @@ class CAMService:
                 await utilities_service.add_png_extension(filename)
             )
 
-            if await utilities_service.skip_forward(save_path):
+            if self.constants.CACHE_ENABLED and await utilities_service.skip_forward(save_path):
                 continue
 
             image_path = os.path.join(

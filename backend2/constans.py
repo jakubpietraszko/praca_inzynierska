@@ -70,7 +70,7 @@ class Constants:
     def __post_init__(self):
         self.AVAILABLE_HEATMAPS = [
             self.GRADIENT,
-            self.GRADIENT_SQUARED,
+            # self.GRADIENT_SQUARED,
             self.DECONVOLUTION,
             self.GUIDED_BACKPROPAGATION,
             self.INPUT_GRADIENT,
@@ -78,7 +78,7 @@ class Constants:
             self.INTEGRATED_GRADIENT,
 
             self.SMOOTH_GRADIENT,
-            self.SMOOTH_GRADIENT_SQUARE,
+            # self.SMOOTH_GRADIENT_SQUARE,
             self.VAR_GRADIENT,
 
             self.GRAD_CAM,
@@ -208,3 +208,4 @@ class Constants:
     NOISE_LEVEL: float = 0.1
     NUM_SAMPLES: int = 50
     AGGREGATION: str = 'max'  # mean, sum, max
+    CACHE_ENABLED: bool = True

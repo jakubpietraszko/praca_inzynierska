@@ -59,7 +59,7 @@ class GradientService:
                 await self.utilities_service.add_png_extension(filename)
             )
 
-            if await self.utilities_service.skip_forward(save_path):
+            if self.constants.CACHE_ENABLED and await self.utilities_service.skip_forward(save_path):
                 # print(f"Skipping {save_path}")
                 continue
             image_path = os.path.join(
@@ -145,7 +145,7 @@ class GradientService:
                 await utilities_service.add_png_extension(filename)
             )
 
-            if await utilities_service.skip_forward(save_path):
+            if self.constants.CACHE_ENABLED and await utilities_service.skip_forward(save_path):
                 continue
             image_path = os.path.join(
                 container.datasets_path,
@@ -249,7 +249,7 @@ class GradientService:
                 await utilities_service.add_png_extension(filename)
             )
 
-            if await utilities_service.skip_forward(save_path):
+            if self.constants.CACHE_ENABLED and await utilities_service.skip_forward(save_path):
                 continue
 
             image_path = os.path.join(
@@ -377,7 +377,7 @@ class GradientService:
                 await utilities_service.add_png_extension(filename)
             )
 
-            if await utilities_service.skip_forward(save_path):
+            if self.constants.CACHE_ENABLED and await utilities_service.skip_forward(save_path):
                 continue
             image_path = os.path.join(
                 container.datasets_path,
@@ -469,7 +469,7 @@ class GradientService:
                 await utilities_service.add_png_extension(filename)
             )
 
-            if await utilities_service.skip_forward(save_path):
+            if self.constants.CACHE_ENABLED and await utilities_service.skip_forward(save_path):
                 continue
             image_path = os.path.join(
                 container.datasets_path,

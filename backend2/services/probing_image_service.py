@@ -23,10 +23,12 @@ class ProbingImageService:
     def __init__(self):
         from services.container import MasksService, get_masks_service, get_websocket_service
         from services.container import get_config_service
+        from services.container import get_constants, Constants
 
         self.config_service = get_config_service()
         self.get_masks_service = get_masks_service()
         self.websocket_service = get_websocket_service()
+        self.constants: Constants = get_constants()
 
     async def xrai(self, request: GradientRequest,
                    container,
@@ -71,7 +73,7 @@ class ProbingImageService:
                 label_path,
                 await utilities_service.add_png_extension(filename)
             )
-            if await utilities_service.skip_forward(save_path):
+            if self.constants.CACHE_ENABLED and await utilities_service.skip_forward(save_path):
                 continue
 
             image_path = os.path.join(
@@ -232,7 +234,7 @@ class ProbingImageService:
                 await utilities_service.add_png_extension(filename)
             )
 
-            if await utilities_service.skip_forward(save_path):
+            if self.constants.CACHE_ENABLED and await utilities_service.skip_forward(save_path):
                 continue
 
             image_path = os.path.join(
@@ -387,7 +389,7 @@ class ProbingImageService:
                 await utilities_service.add_png_extension(filename)
             )
 
-            if await utilities_service.skip_forward(save_path):
+            if self.constants.CACHE_ENABLED and await utilities_service.skip_forward(save_path):
                 continue
 
             image_path = os.path.join(
