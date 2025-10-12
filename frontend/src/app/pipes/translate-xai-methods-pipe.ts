@@ -4,6 +4,7 @@ import { ConstantStore } from '../stores/constants/constants.store';
 @Pipe({
   name: 'translateXaiMethods',
   standalone: true,
+  pure: false,
 })
 export class TranslateXaiMethodsPipe implements PipeTransform {
   private readonly constantStore = inject(ConstantStore);
