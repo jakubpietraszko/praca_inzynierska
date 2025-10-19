@@ -1,33 +1,50 @@
 import os
-from interfaces.gradient import GradientRequest, GradientResponse
+
+import cv2
 import torch
 import torch.nn as nn
-import cv2
+
+from interfaces.gradient import GradientRequest, GradientResponse
+import contextlib
+import builtins
 
 
 class LRPService:
     def __init__(self):
-        from services.container import get_config_service, get_websocket_service
-        from services.container import get_constants, Constants
-        self.config_service = get_config_service()
-        self.websocket_service = get_websocket_service()
+        from services.container import (
+            ConfigService,
+            Constants,
+            DatasetsService,
+            ModelsService,
+            ServiceContainer,
+            UtilitiesService,
+            WebSocketService,
+            get_config_service,
+            get_constants,
+            get_container,
+            get_datasets_service,
+            get_models_service,
+            get_utilities_service,
+            get_websocket_service,
+        )
+        self.config_service: ConfigService = get_config_service()
+        self.websocket_service: WebSocketService = get_websocket_service()
         self.constants: Constants = get_constants()
+        self.utilities_service: UtilitiesService = get_utilities_service()
+        self.datasets_service: DatasetsService = get_datasets_service()
+        self.models_service: ModelsService = get_models_service()
+        self.container: ServiceContainer = get_container()
 
-    async def lrp_epsilon(self, request: GradientRequest,
-                          container,
-                          datasets_service,
-                          utilities_service,
-                          models_service,
-                          constants):
+    async def lrp_epsilon(self, request: GradientRequest):
         root_path = os.path.join(
-            container.models_datasets_path,
-            await utilities_service.models_datasets_path(
+            self.container.models_datasets_path,
+            await self.utilities_service.models_datasets_path(
                 request.model, request.dataset),
-            constants.LRP_EPSILON
+            self.constants.LRP_EPSILON
         )
         os.makedirs(root_path, exist_ok=True)
 
-        model_info = await models_service.load_model(request.model)
+        model_info = await self.models_service.load_model(request.model)
         model = model_info.model
         model.eval()
 
@@ -35,9 +52,9 @@ class LRPService:
         EPSILON = config.epsilon or 1e-6
         AGGREGATION = config.aggregation or 'max'
 
-        hooks = list()
-        original_inplace_states = dict()
-        stack_modules = list()
+        hooks = []
+        original_inplace_states = {}
+        stack_modules = []
         R = None
 
         for name, module in model_info.model.named_modules():
@@ -45,8 +62,8 @@ class LRPService:
                 original_inplace_states[name] = module.inplace
                 module.inplace = False
 
-        stack_inputs = list()
-        stack_outputs = list()
+        stack_inputs = []
+        stack_outputs = []
 
         def forward_hook(name):
             def hook(module, input, output):
@@ -70,28 +87,28 @@ class LRPService:
             target = image_info.target
 
             if target is None:
-                target = await utilities_service.fill_target(model_info, label)
+                target = await self.utilities_service.fill_target(model_info, label)
 
             label_path = os.path.join(root_path, label)
             os.makedirs(label_path, exist_ok=True)
             save_path = os.path.join(
                 label_path,
-                await utilities_service.add_png_extension(filename)
+                await self.utilities_service.add_png_extension(filename)
             )
 
-            if self.constants.CACHE_ENABLED and await utilities_service.skip_forward(save_path):
+            if self.constants.CACHE_ENABLED and await self.utilities_service.skip_forward(save_path):
                 continue
 
             image_path = os.path.join(
-                container.datasets_path,
+                self.container.datasets_path,
                 request.dataset,
                 label,
                 filename
             )
 
-            image_np = await datasets_service.load_image(
+            image_np = await self.datasets_service.load_image(
                 image_path, model_info.input_shape)
-            image_tensor = await utilities_service.convert_image_to_tensor(
+            image_tensor = await self.utilities_service.convert_image_to_tensor(
                 image_np, grad=True)
 
             stack_modules.clear()
@@ -135,16 +152,16 @@ class LRPService:
             result = R.squeeze().cpu().detach().numpy()
 
             if len(result.shape) == 3 and result.shape[0] == 3:
-                result = await utilities_service.aggregate_channels(
+                result = await self.utilities_service.aggregate_channels(
                     result, AGGREGATION)
 
-            result = await utilities_service.relu_normalize(
+            result = await self.utilities_service.relu_normalize(
                 result, model_info.input_shape, epsilon=EPSILON
             )
 
             cv2.imwrite(save_path, result)
 
-            try:
+            with contextlib.suppress(builtins.BaseException):
                 await self.websocket_service.send_heatmap_notification_sync(
                     dataset=request.dataset,
                     model=request.model,
@@ -152,8 +169,6 @@ class LRPService:
                     filename=filename,
                     heatmap_type="lrp_epsilon",
                 )
-            except:
-                pass
 
         for hook in hooks:
             hook.remove()
@@ -166,21 +181,16 @@ class LRPService:
             success=True
         )
 
-    async def lrp_gamma(self, request: GradientRequest,
-                        container,
-                        datasets_service,
-                        utilities_service,
-                        models_service,
-                        constants):
+    async def lrp_gamma(self, request: GradientRequest):
         root_path = os.path.join(
-            container.models_datasets_path,
-            await utilities_service.models_datasets_path(
+            self.container.models_datasets_path,
+            await self.utilities_service.models_datasets_path(
                 request.model, request.dataset),
-            constants.LRP_GAMMA
+            self.constants.LRP_GAMMA
         )
         os.makedirs(root_path, exist_ok=True)
 
-        model_info = await models_service.load_model(request.model)
+        model_info = await self.models_service.load_model(request.model)
         model = model_info.model
         model.eval()
 
@@ -189,9 +199,9 @@ class LRPService:
         AGGREGATION = config.aggregation or 'max'
         GAMMA = config.gamma or 0.25
 
-        hooks = list()
-        original_inplace_states = dict()
-        stack_modules = list()
+        hooks = []
+        original_inplace_states = {}
+        stack_modules = []
         R = None
 
         for name, module in model_info.model.named_modules():
@@ -199,8 +209,8 @@ class LRPService:
                 original_inplace_states[name] = module.inplace
                 module.inplace = False
 
-        stack_inputs = list()
-        stack_outputs = list()
+        stack_inputs = []
+        stack_outputs = []
 
         def forward_hook(name):
             def hook(module, input, output):
@@ -224,28 +234,28 @@ class LRPService:
             target = image_info.target
 
             if target is None:
-                target = await utilities_service.fill_target(model_info, label)
+                target = await self.utilities_service.fill_target(model_info, label)
 
             label_path = os.path.join(root_path, label)
             os.makedirs(label_path, exist_ok=True)
             save_path = os.path.join(
                 label_path,
-                await utilities_service.add_png_extension(filename)
+                await self.utilities_service.add_png_extension(filename)
             )
 
-            if self.constants.CACHE_ENABLED and await utilities_service.skip_forward(save_path):
+            if self.constants.CACHE_ENABLED and await self.utilities_service.skip_forward(save_path):
                 continue
 
             image_path = os.path.join(
-                container.datasets_path,
+                self.container.datasets_path,
                 request.dataset,
                 label,
                 filename
             )
 
-            image_np = await datasets_service.load_image(
+            image_np = await self.datasets_service.load_image(
                 image_path, model_info.input_shape)
-            image_tensor = await utilities_service.convert_image_to_tensor(
+            image_tensor = await self.utilities_service.convert_image_to_tensor(
                 image_np, grad=True)
 
             stack_modules.clear()
@@ -310,16 +320,16 @@ class LRPService:
             result = R.squeeze().cpu().detach().numpy()
 
             if len(result.shape) == 3 and result.shape[0] == 3:
-                result = await utilities_service.aggregate_channels(
+                result = await self.utilities_service.aggregate_channels(
                     result, AGGREGATION)
 
-            result = await utilities_service.relu_normalize(
+            result = await self.utilities_service.relu_normalize(
                 result, model_info.input_shape, epsilon=EPSILON
             )
 
             cv2.imwrite(save_path, result)
 
-            try:
+            with contextlib.suppress(builtins.BaseException):
                 await self.websocket_service.send_heatmap_notification_sync(
                     dataset=request.dataset,
                     model=request.model,
@@ -327,8 +337,6 @@ class LRPService:
                     filename=filename,
                     heatmap_type="lrp_gamma",
                 )
-            except:
-                pass
 
         for hook in hooks:
             hook.remove()
@@ -341,21 +349,16 @@ class LRPService:
             success=True
         )
 
-    async def lrp_alpha_beta(self, request: GradientRequest,
-                             container,
-                             datasets_service,
-                             utilities_service,
-                             models_service,
-                             constants):
+    async def lrp_alpha_beta(self, request: GradientRequest):
         root_path = os.path.join(
-            container.models_datasets_path,
-            await utilities_service.models_datasets_path(
+            self.container.models_datasets_path,
+            await self.utilities_service.models_datasets_path(
                 request.model, request.dataset),
-            constants.LRP_ALPHA_BETA
+            self.constants.LRP_ALPHA_BETA
         )
         os.makedirs(root_path, exist_ok=True)
 
-        model_info = await models_service.load_model(request.model)
+        model_info = await self.models_service.load_model(request.model)
         model = model_info.model
         model.eval()
 
@@ -365,9 +368,9 @@ class LRPService:
         ALPHA = config.alpha or 1.5
         BETA = config.beta or 0.5
 
-        hooks = list()
-        original_inplace_states = dict()
-        stack_modules = list()
+        hooks = []
+        original_inplace_states = {}
+        stack_modules = []
         R = None
 
         for name, module in model_info.model.named_modules():
@@ -400,28 +403,28 @@ class LRPService:
             target = image_info.target
 
             if target is None:
-                target = await utilities_service.fill_target(model_info, label)
+                target = await self.utilities_service.fill_target(model_info, label)
 
             label_path = os.path.join(root_path, label)
             os.makedirs(label_path, exist_ok=True)
             save_path = os.path.join(
                 label_path,
-                await utilities_service.add_png_extension(filename)
+                await self.utilities_service.add_png_extension(filename)
             )
 
-            if self.constants.CACHE_ENABLED and await utilities_service.skip_forward(save_path):
+            if self.constants.CACHE_ENABLED and await self.utilities_service.skip_forward(save_path):
                 continue
 
             image_path = os.path.join(
-                container.datasets_path,
+                self.container.datasets_path,
                 request.dataset,
                 label,
                 filename
             )
 
-            image_np = await datasets_service.load_image(
+            image_np = await self.datasets_service.load_image(
                 image_path, model_info.input_shape)
-            image_tensor = await utilities_service.convert_image_to_tensor(
+            image_tensor = await self.utilities_service.convert_image_to_tensor(
                 image_np, grad=True)
 
             stack_modules.clear()
@@ -515,16 +518,16 @@ class LRPService:
             result = R.squeeze().cpu().detach().numpy()
 
             if len(result.shape) == 3 and result.shape[0] == 3:
-                result = await utilities_service.aggregate_channels(
+                result = await self.utilities_service.aggregate_channels(
                     result, AGGREGATION)
 
-            result = await utilities_service.relu_normalize(
+            result = await self.utilities_service.relu_normalize(
                 result, model_info.input_shape, epsilon=EPSILON
             )
 
             cv2.imwrite(save_path, result)
 
-            try:
+            with contextlib.suppress(builtins.BaseException):
                 await self.websocket_service.send_heatmap_notification_sync(
                     dataset=request.dataset,
                     model=request.model,
@@ -532,8 +535,6 @@ class LRPService:
                     filename=filename,
                     heatmap_type="lrp_alpha_beta",
                 )
-            except:
-                pass
 
         for hook in hooks:
             hook.remove()
@@ -546,21 +547,16 @@ class LRPService:
             success=True
         )
 
-    async def lrp_zplus(self, request: GradientRequest,
-                        container,
-                        datasets_service,
-                        utilities_service,
-                        models_service,
-                        constants):
+    async def lrp_zplus(self, request: GradientRequest):
         root_path = os.path.join(
-            container.models_datasets_path,
-            await utilities_service.models_datasets_path(
+            self.container.models_datasets_path,
+            await self.utilities_service.models_datasets_path(
                 request.model, request.dataset),
-            constants.LRP_ZPLUS
+            self.constants.LRP_ZPLUS
         )
         os.makedirs(root_path, exist_ok=True)
 
-        model_info = await models_service.load_model(request.model)
+        model_info = await self.models_service.load_model(request.model)
         model = model_info.model
         model.eval()
 
@@ -568,9 +564,9 @@ class LRPService:
         EPSILON = config.epsilon or 1e-6
         AGGREGATION = config.aggregation or 'max'
 
-        hooks = list()
-        original_inplace_states = dict()
-        stack_modules = list()
+        hooks = []
+        original_inplace_states = {}
+        stack_modules = []
         R = None
 
         for name, module in model_info.model.named_modules():
@@ -578,8 +574,8 @@ class LRPService:
                 original_inplace_states[name] = module.inplace
                 module.inplace = False
 
-        stack_inputs = list()
-        stack_outputs = list()
+        stack_inputs = []
+        stack_outputs = []
 
         def forward_hook(name):
             def hook(module, input, output):
@@ -603,28 +599,28 @@ class LRPService:
             target = image_info.target
 
             if target is None:
-                target = await utilities_service.fill_target(model_info, label)
+                target = await self.utilities_service.fill_target(model_info, label)
 
             label_path = os.path.join(root_path, label)
             os.makedirs(label_path, exist_ok=True)
             save_path = os.path.join(
                 label_path,
-                await utilities_service.add_png_extension(filename)
+                await self.utilities_service.add_png_extension(filename)
             )
 
-            if self.constants.CACHE_ENABLED and await utilities_service.skip_forward(save_path):
+            if self.constants.CACHE_ENABLED and await self.utilities_service.skip_forward(save_path):
                 continue
 
             image_path = os.path.join(
-                container.datasets_path,
+                self.container.datasets_path,
                 request.dataset,
                 label,
                 filename
             )
 
-            image_np = await datasets_service.load_image(
+            image_np = await self.datasets_service.load_image(
                 image_path, model_info.input_shape)
-            image_tensor = await utilities_service.convert_image_to_tensor(
+            image_tensor = await self.utilities_service.convert_image_to_tensor(
                 image_np, grad=True)
 
             stack_modules.clear()
@@ -694,16 +690,16 @@ class LRPService:
             result = R.squeeze().cpu().detach().numpy()
 
             if len(result.shape) == 3 and result.shape[0] == 3:
-                result = await utilities_service.aggregate_channels(
+                result = await self.utilities_service.aggregate_channels(
                     result, AGGREGATION)
 
-            result = await utilities_service.relu_normalize(
+            result = await self.utilities_service.relu_normalize(
                 result, model_info.input_shape, epsilon=EPSILON
             )
 
             cv2.imwrite(save_path, result)
 
-            try:
+            with contextlib.suppress(builtins.BaseException):
                 await self.websocket_service.send_heatmap_notification_sync(
                     dataset=request.dataset,
                     model=request.model,
@@ -711,8 +707,6 @@ class LRPService:
                     filename=filename,
                     heatmap_type="lrp_zplus",
                 )
-            except:
-                pass
 
         for hook in hooks:
             hook.remove()
@@ -725,21 +719,16 @@ class LRPService:
             success=True
         )
 
-    async def lrp_w2(self, request: GradientRequest,
-                     container,
-                     datasets_service,
-                     utilities_service,
-                     models_service,
-                     constants):
+    async def lrp_w2(self, request: GradientRequest):
         root_path = os.path.join(
-            container.models_datasets_path,
-            await utilities_service.models_datasets_path(
+            self.container.models_datasets_path,
+            await self.utilities_service.models_datasets_path(
                 request.model, request.dataset),
-            constants.LRP_W2
+            self.constants.LRP_W2
         )
         os.makedirs(root_path, exist_ok=True)
 
-        model_info = await models_service.load_model(request.model)
+        model_info = await self.models_service.load_model(request.model)
         model = model_info.model
         model.eval()
 
@@ -747,9 +736,9 @@ class LRPService:
         EPSILON = config.epsilon or 1e-6
         AGGREGATION = config.aggregation or 'max'
 
-        hooks = list()
-        original_inplace_states = dict()
-        stack_modules = list()
+        hooks = []
+        original_inplace_states = {}
+        stack_modules = []
         R = None
 
         for name, module in model_info.model.named_modules():
@@ -757,8 +746,8 @@ class LRPService:
                 original_inplace_states[name] = module.inplace
                 module.inplace = False
 
-        stack_inputs = list()
-        stack_outputs = list()
+        stack_inputs = []
+        stack_outputs = []
 
         def forward_hook(name):
             def hook(module, input, output):
@@ -782,28 +771,28 @@ class LRPService:
             target = image_info.target
 
             if target is None:
-                target = await utilities_service.fill_target(model_info, label)
+                target = await self.utilities_service.fill_target(model_info, label)
 
             label_path = os.path.join(root_path, label)
             os.makedirs(label_path, exist_ok=True)
             save_path = os.path.join(
                 label_path,
-                await utilities_service.add_png_extension(filename)
+                await self.utilities_service.add_png_extension(filename)
             )
 
-            if self.constants.CACHE_ENABLED and await utilities_service.skip_forward(save_path):
+            if self.constants.CACHE_ENABLED and await self.utilities_service.skip_forward(save_path):
                 continue
 
             image_path = os.path.join(
-                container.datasets_path,
+                self.container.datasets_path,
                 request.dataset,
                 label,
                 filename
             )
 
-            image_np = await datasets_service.load_image(
+            image_np = await self.datasets_service.load_image(
                 image_path, model_info.input_shape)
-            image_tensor = await utilities_service.convert_image_to_tensor(
+            image_tensor = await self.utilities_service.convert_image_to_tensor(
                 image_np, grad=True)
 
             stack_modules.clear()
@@ -878,16 +867,16 @@ class LRPService:
             result = R.squeeze().cpu().detach().numpy()
 
             if len(result.shape) == 3 and result.shape[0] == 3:
-                result = await utilities_service.aggregate_channels(
+                result = await self.utilities_service.aggregate_channels(
                     result, AGGREGATION)
 
-            result = await utilities_service.relu_normalize(
+            result = await self.utilities_service.relu_normalize(
                 result, model_info.input_shape, epsilon=EPSILON
             )
 
             cv2.imwrite(save_path, result)
 
-            try:
+            with contextlib.suppress(builtins.BaseException):
                 await self.websocket_service.send_heatmap_notification_sync(
                     dataset=request.dataset,
                     model=request.model,
@@ -895,8 +884,6 @@ class LRPService:
                     filename=filename,
                     heatmap_type="lrp_w2",
                 )
-            except:
-                pass
 
         for hook in hooks:
             hook.remove()

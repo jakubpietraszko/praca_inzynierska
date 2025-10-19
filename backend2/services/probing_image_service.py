@@ -1,51 +1,60 @@
+import builtins
+import contextlib
 import os
-import cv2
-import numpy as np
-import torch
-import math
-from PIL import Image
-from sklearn.linear_model import Ridge
-from sklearn.metrics import r2_score
-import asyncio
-import time
-import os
-import numpy as np
-import cv2
-import torch
 import traceback
 
+import cv2
+import numpy as np
+import torch
+from PIL import Image
+from sklearn.linear_model import Ridge
+
 from interfaces.gradient import GradientRequest, GradientResponse
-from interfaces.super_pixels import SuperPixelsRequest, SuperPixelsResponse
 from interfaces.label_filename import LabelFilename
+from interfaces.super_pixels import SuperPixelsRequest
 
 
 class ProbingImageService:
     def __init__(self):
-        from services.container import MasksService, get_masks_service, get_websocket_service
-        from services.container import get_config_service
-        from services.container import get_constants, Constants
+        from services.container import (
+            ConfigService,
+            Constants,
+            DatasetsService,
+            MasksService,
+            ModelsService,
+            ServiceContainer,
+            UtilitiesService,
+            WebSocketService,
+            get_config_service,
+            get_constants,
+            get_container,
+            get_datasets_service,
+            get_masks_service,
+            get_models_service,
+            get_utilities_service,
+            get_websocket_service,
+        )
 
-        self.config_service = get_config_service()
-        self.get_masks_service = get_masks_service()
-        self.websocket_service = get_websocket_service()
+        self.config_service: ConfigService = get_config_service()
+        self.get_masks_service: MasksService = get_masks_service()
+        self.websocket_service: WebSocketService = get_websocket_service()
         self.constants: Constants = get_constants()
+        self.container: ServiceContainer = get_container()
+        self.datasets_service: DatasetsService = get_datasets_service()
+        self.utilities_service: UtilitiesService = get_utilities_service()
+        self.models_service: ModelsService = get_models_service()
 
-    async def xrai(self, request: GradientRequest,
-                   container,
-                   datasets_service,
-                   utilities_service,
-                   constants,
-                   models_service) -> GradientResponse:
+    async def xrai(self, request: GradientRequest) -> GradientResponse:
 
         root_path = os.path.join(
-            container.models_datasets_path,
-            await utilities_service.models_datasets_path(
+            self.container.models_datasets_path,
+            await self.utilities_service.models_datasets_path(
                 request.model, request.dataset),
-            constants.XRAI
+            self.constants.XRAI
         )
         os.makedirs(root_path, exist_ok=True)
 
-        model_info = await models_service.load_model(request.model)
+        model_info = await self.models_service.load_model(request.model)
 
         config = await self.config_service.get_method_config('xrai')
         EPSILON = config.epsilon
@@ -62,7 +71,7 @@ class ProbingImageService:
             target = image.target
 
             if target is None:
-                target = await utilities_service.fill_target(model_info, label)
+                target = await self.utilities_service.fill_target(model_info, label)
 
             label_path = os.path.join(
                 root_path,
@@ -71,19 +80,19 @@ class ProbingImageService:
             os.makedirs(label_path, exist_ok=True)
             save_path = os.path.join(
                 label_path,
-                await utilities_service.add_png_extension(filename)
+                await self.utilities_service.add_png_extension(filename)
             )
-            if self.constants.CACHE_ENABLED and await utilities_service.skip_forward(save_path):
+            if self.constants.CACHE_ENABLED and await self.utilities_service.skip_forward(save_path):
                 continue
 
             image_path = os.path.join(
-                container.datasets_path,
+                self.container.datasets_path,
                 request.dataset,
                 label,
                 filename
             )
 
-            image_np = await datasets_service.load_image(
+            image_np = await self.datasets_service.load_image(
                 image_path, model_info.input_shape)
             request_superpixels: SuperPixelsRequest = SuperPixelsRequest(
                 model=request.model,
@@ -103,11 +112,11 @@ class ProbingImageService:
             )
 
             super_pixels_path = os.path.join(
-                container.models_datasets_path,
-                await utilities_service.models_datasets_path(
+                self.container.models_datasets_path,
+                await self.utilities_service.models_datasets_path(
                     request.model,
                     request.dataset),
-                constants.MASK_SEED,
+                self.constants.MASK_SEED,
                 label,
                 filename
             )
@@ -126,7 +135,7 @@ class ProbingImageService:
             else:
                 image_np_hwc = image_np
 
-            image_tensor = await utilities_service.convert_image_to_tensor(
+            image_tensor = await self.utilities_service.convert_image_to_tensor(
                 image_np, grad=True)
             model_info.model.eval()
             output = model_info.model(image_tensor)
@@ -135,7 +144,7 @@ class ProbingImageService:
             attribution_map = grad.squeeze().cpu().detach().numpy()
 
             if len(attribution_map.shape) == 3 and attribution_map.shape[0] == 3:
-                attribution_map = await utilities_service.aggregate_channels(
+                attribution_map = await self.utilities_service.aggregate_channels(
                     attribution_map, AGGREGATION)
 
             attribution_map = np.abs(attribution_map)
@@ -171,7 +180,7 @@ class ProbingImageService:
                 xrai_final = xrai_final.astype(np.uint8)
 
                 cv2.imwrite(save_path, xrai_final)
-                try:
+                with contextlib.suppress(builtins.BaseException):
                     await self.websocket_service.send_heatmap_notification_sync(
                         dataset=request.dataset,
                         model=request.model,
@@ -179,10 +188,8 @@ class ProbingImageService:
                         filename=filename,
                         heatmap_type="xrai",
                     )
-                except:
-                    pass
 
-            except Exception as e:
+            except Exception:
                 traceback.print_exc()
                 xrai_final = np.zeros(
                     (model_info.input_shape[1], model_info.input_shape[2]), dtype=np.uint8)
@@ -192,21 +199,16 @@ class ProbingImageService:
             success=True
         )
 
-    async def kernel_shap(self, request: GradientRequest,
-                          container,
-                          datasets_service,
-                          utilities_service,
-                          constants,
-                          models_service) -> GradientResponse:
+    async def kernel_shap(self, request: GradientRequest) -> GradientResponse:
         root_path = os.path.join(
-            container.models_datasets_path,
-            await utilities_service.models_datasets_path(
+            self.container.models_datasets_path,
+            await self.utilities_service.models_datasets_path(
                 request.model, request.dataset),
-            constants.KERNEL_SHAP
+            self.constants.KERNEL_SHAP
         )
         os.makedirs(root_path, exist_ok=True)
 
-        model_info = await models_service.load_model(request.model)
+        model_info = await self.models_service.load_model(request.model)
 
         config = await self.config_service.get_method_config('kernel_shap')
         EPSILON = config.epsilon
@@ -225,26 +227,26 @@ class ProbingImageService:
             target = image.target
 
             if target is None:
-                target = await utilities_service.fill_target(model_info, label)
+                target = await self.utilities_service.fill_target(model_info, label)
 
             label_path = os.path.join(root_path, label)
             os.makedirs(label_path, exist_ok=True)
             save_path = os.path.join(
                 label_path,
-                await utilities_service.add_png_extension(filename)
+                await self.utilities_service.add_png_extension(filename)
             )
 
-            if self.constants.CACHE_ENABLED and await utilities_service.skip_forward(save_path):
+            if self.constants.CACHE_ENABLED and await self.utilities_service.skip_forward(save_path):
                 continue
 
             image_path = os.path.join(
-                container.datasets_path,
+                self.container.datasets_path,
                 request.dataset,
                 label,
                 filename
             )
 
-            image_np = await datasets_service.load_image(
+            image_np = await self.datasets_service.load_image(
                 image_path, model_info.input_shape)
 
             request_superpixels: SuperPixelsRequest = SuperPixelsRequest(
@@ -265,11 +267,11 @@ class ProbingImageService:
             )
 
             super_pixels_path = os.path.join(
-                container.models_datasets_path,
-                await utilities_service.models_datasets_path(
+                self.container.models_datasets_path,
+                await self.utilities_service.models_datasets_path(
                     request.model,
                     request.dataset),
-                constants.MASK_SEED,
+                self.constants.MASK_SEED,
                 label,
                 filename
             )
@@ -291,7 +293,7 @@ class ProbingImageService:
                     super_pixels=super_pixels_segments,
                     model=model_info.model,
                     target=target,
-                    utilities_service=utilities_service,
+                    utilities_service=self.utilities_service,
                     num_samples=N_SAMPLES
                 )
 
@@ -312,7 +314,7 @@ class ProbingImageService:
                 shap_final = shap_final.astype(np.uint8)
 
                 cv2.imwrite(save_path, shap_final)
-                try:
+                with contextlib.suppress(builtins.BaseException):
                     await self.websocket_service.send_heatmap_notification_sync(
                         dataset=request.dataset,
                         model=request.model,
@@ -320,15 +322,13 @@ class ProbingImageService:
                         filename=filename,
                         heatmap_type="kernel_shap",
                     )
-                except:
-                    pass
 
-            except Exception as e:
+            except Exception:
                 traceback.print_exc()
                 shap_final = np.zeros(
                     (model_info.input_shape[1], model_info.input_shape[2]), dtype=np.uint8)
                 cv2.imwrite(save_path, shap_final)
-                try:
+                with contextlib.suppress(builtins.BaseException):
                     await self.websocket_service.send_heatmap_notification_sync(
                         dataset=request.dataset,
                         model=request.model,
@@ -336,29 +336,22 @@ class ProbingImageService:
                         filename=filename,
                         heatmap_type="kernel_shap",
                     )
-                except:
-                    pass
 
         return GradientResponse(
             success=True
         )
 
-    async def lime(self, request: GradientRequest,
-                   container,
-                   datasets_service,
-                   utilities_service,
-                   constants,
-                   models_service) -> GradientResponse:
+    async def lime(self, request: GradientRequest) -> GradientResponse:
 
         root_path = os.path.join(
-            container.models_datasets_path,
-            await utilities_service.models_datasets_path(
+            self.container.models_datasets_path,
+            await self.utilities_service.models_datasets_path(
                 request.model, request.dataset),
-            constants.LIME
+            self.constants.LIME
         )
         os.makedirs(root_path, exist_ok=True)
 
-        model_info = await models_service.load_model(request.model)
+        model_info = await self.models_service.load_model(request.model)
 
         config = await self.config_service.get_method_config('lime')
         EPSILON = config.epsilon
@@ -377,7 +370,7 @@ class ProbingImageService:
             target = image.target
 
             if target is None:
-                target = await utilities_service.fill_target(model_info, label)
+                target = await self.utilities_service.fill_target(model_info, label)
 
             label_path = os.path.join(
                 root_path,
@@ -386,20 +379,20 @@ class ProbingImageService:
             os.makedirs(label_path, exist_ok=True)
             save_path = os.path.join(
                 label_path,
-                await utilities_service.add_png_extension(filename)
+                await self.utilities_service.add_png_extension(filename)
             )
 
-            if self.constants.CACHE_ENABLED and await utilities_service.skip_forward(save_path):
+            if self.constants.CACHE_ENABLED and await self.utilities_service.skip_forward(save_path):
                 continue
 
             image_path = os.path.join(
-                container.datasets_path,
+                self.container.datasets_path,
                 request.dataset,
                 label,
                 filename
             )
 
-            image_np = await datasets_service.load_image(
+            image_np = await self.datasets_service.load_image(
                 image_path, model_info.input_shape)
 
             request: SuperPixelsRequest = SuperPixelsRequest(
@@ -420,11 +413,11 @@ class ProbingImageService:
             )
 
             super_pixels_path = os.path.join(
-                container.models_datasets_path,
-                await utilities_service.models_datasets_path(
+                self.container.models_datasets_path,
+                await self.utilities_service.models_datasets_path(
                     request.model,
                     request.dataset),
-                constants.MASK_SEED,
+                self.constants.MASK_SEED,
                 label,
                 filename
             )
@@ -448,7 +441,7 @@ class ProbingImageService:
                 super_pixels=super_pixels_segments,
                 model=model_info.model,
                 target=target,
-                utilities_service=utilities_service,
+                utilities_service=self.utilities_service,
                 num_samples=N_SAMPLES
             )
 
@@ -468,7 +461,7 @@ class ProbingImageService:
             attribution_final = attribution_final.astype(np.uint8)
 
             cv2.imwrite(save_path, attribution_final)
-            try:
+            with contextlib.suppress(builtins.BaseException):
                 await self.websocket_service.send_heatmap_notification_sync(
                     dataset=request.dataset,
                     model=request.model,
@@ -476,8 +469,6 @@ class ProbingImageService:
                     filename=filename,
                     heatmap_type="lime",
                 )
-            except:
-                pass
 
         return GradientResponse(
             success=True
@@ -566,10 +557,7 @@ class ProbingImageService:
         perturbation_mask = (segment_mask_values == 0)
 
         if len(image.shape) == 3:
-            if image.shape[2] == 3:
-                perturbed_image = np.where(
-                    perturbation_mask[..., np.newaxis], BASELINE, perturbed_image)
-            elif image.shape[2] == 1:
+            if image.shape[2] == 3 or image.shape[2] == 1:
                 perturbed_image = np.where(
                     perturbation_mask[..., np.newaxis], BASELINE, perturbed_image)
         else:
@@ -726,7 +714,7 @@ class ProbingImageService:
 
             coefficients = ridge.coef_
 
-        except Exception as e:
+        except Exception:
             ridge = Ridge(alpha=0.1, fit_intercept=True)
             ridge.fit(coalitions, predictions)
             coefficients = ridge.coef_

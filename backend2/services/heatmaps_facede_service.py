@@ -1,31 +1,57 @@
-from interfaces.gradient import GradientRequest, GradientResponse, GradientStatisticRequest, GradientStatisticResponse, ListOfScores, GradientStatisticsDatasetRequest, GradientStatisticsDatasetResponse, LabelFilenameTarget, GradientStatisticsLabelRequest, GradientStatisticsLabelManyRequest, GradientStatisticsLabelManyResponse, GradientStatisticsDatasetManyRequest,  GradientStatisticsDatasetManyResponse
-from interfaces.shapes import ShapeMetricsDatasetRequest, ShapeMetricsDatasetResponse, ShapeMetricsLabelRequest, ShapeMetricsLabelResponse
-
-from services.models_service import ModelInfo
-import os
-import numpy as np
-from PIL import Image
-import cv2
-import torch
-import random
 import math
+import os
+import random
+
+import cv2
+import numpy as np
+import torch
+from PIL import Image
+
+from interfaces.gradient import (
+    GradientRequest,
+    GradientResponse,
+    GradientStatisticRequest,
+    GradientStatisticResponse,
+    GradientStatisticsDatasetManyRequest,
+    GradientStatisticsDatasetManyResponse,
+    GradientStatisticsDatasetRequest,
+    GradientStatisticsDatasetResponse,
+    GradientStatisticsLabelManyRequest,
+    GradientStatisticsLabelManyResponse,
+    GradientStatisticsLabelRequest,
+    LabelFilenameTarget,
+    ListOfScores,
+)
+from interfaces.shapes import (
+    ShapeMetricsDatasetRequest,
+    ShapeMetricsDatasetResponse,
+    ShapeMetricsLabelRequest,
+    ShapeMetricsLabelResponse,
+)
+from services.models_service import ModelInfo
 
 
 class HeatmapsFacedeService:
 
     def __init__(self):
-        from services.container import GradientService, get_gradient_service
-        from services.container import IntegratedGradientsService, get_integrated_gradients_service
-        from services.container import GradientNoiseService, get_gradient_noise_service
-        from services.container import CAMService, get_cam_service
-
-        from services.container import ServiceContainer, get_container
-        from services.container import DatasetsService, get_datasets_service
-        from services.container import UtilitiesService, get_utilities_service
-        from services.container import Constants, get_constants
-        from services.container import ModelsService, get_models_service
-        from services.container import LRPService, get_lrp_service
-        from services.container import ProbingImageService, get_probing_image_service
+        from services.container import (
+            Constants,
+            DatasetsService,
+            ModelsService,
+            ServiceContainer,
+            UtilitiesService,
+            get_cam_service,
+            get_constants,
+            get_container,
+            get_datasets_service,
+            get_gradient_noise_service,
+            get_gradient_service,
+            get_integrated_gradients_service,
+            get_lrp_service,
+            get_models_service,
+            get_probing_image_service,
+            get_utilities_service,
+        )
         self.get_gradient_service = get_gradient_service
         self.get_integrated_gradients_service = get_integrated_gradients_service
         self.get_gradient_noise_service = get_gradient_noise_service
@@ -50,66 +76,59 @@ class HeatmapsFacedeService:
             type: str,
     ) -> GradientResponse:
 
-        args = {
-            'request': request,
-            'container': self.get_container(),
-            'datasets_service': self.get_datasets_service(),
-            'utilities_service': self.get_utilities_service(),
-            'constants': self.get_constants(),
-            'models_service': self.get_models_service()
-        }
-
         if type == self.get_constants().GRADIENT:
             return await self.get_gradient_service().gradient(request)
         elif type == self.get_constants().GRADIENT_SQUARED:
-            return await self.get_gradient_service().gradient_squared(**args)
+            return await self.get_gradient_service().gradient_squared(request)
         elif type == self.get_constants().DECONVOLUTION:
-            return await self.get_gradient_service().deconvolution(**args)
+            return await self.get_gradient_service().deconvolution(request)
         elif type == self.get_constants().GUIDED_BACKPROPAGATION:
-            return await self.get_gradient_service().guided_backpropagation(**args)
+            return await self.get_gradient_service().guided_backpropagation(request)
         elif type == self.get_constants().INPUT_GRADIENT:
-            return await self.get_gradient_service().input_gradient(**args)
+            return await self.get_gradient_service().input_gradient(request)
+
         elif type == self.get_constants().INTEGRATED_GRADIENT:
-            return await self.get_integrated_gradients_service().integrated_gradient(**args)
+            return await self.get_integrated_gradients_service().integrated_gradient(request)
+
         elif type == self.get_constants().SMOOTH_GRADIENT:
-            return await self.get_gradient_noise_service().smooth_grad(**args)
+            return await self.get_gradient_noise_service().smooth_grad(request)
         elif type == self.get_constants().SMOOTH_GRADIENT_SQUARE:
-            return await self.get_gradient_noise_service().smooth_grad_squared(**args)
+            return await self.get_gradient_noise_service().smooth_grad_squared(request)
         elif type == self.get_constants().VAR_GRADIENT:
-            return await self.get_gradient_noise_service().var_grad(**args)
+            return await self.get_gradient_noise_service().var_grad(request)
 
         elif type == self.get_constants().GRAD_CAM:
-            return await self.get_cam_service().grad_cam(**args)
+            return await self.get_cam_service().grad_cam(request)
         elif type == self.get_constants().GRAD_CAM_PLUS_PLUS:
-            return await self.get_cam_service().grad_cam_plus_plus(**args)
+            return await self.get_cam_service().grad_cam_plus_plus(request)
         elif type == self.get_constants().GROUP_CAM:
-            return await self.get_cam_service().group_cam(**args)
+            return await self.get_cam_service().group_cam(request)
         elif type == self.get_constants().HIRES_CAM:
-            return await self.get_cam_service().hires_cam(**args)
+            return await self.get_cam_service().hires_cam(request)
         elif type == self.get_constants().WGRAD_CAM:
-            return await self.get_cam_service().wgrad_cam(**args)
+            return await self.get_cam_service().wgrad_cam(request)
         elif type == self.get_constants().ABLATION_CAM:
-            return await self.get_cam_service().ablation_cam(**args)
+            return await self.get_cam_service().ablation_cam(request)
         elif type == self.get_constants().XGRAD_CAM:
-            return await self.get_cam_service().xgrad_cam(**args)
+            return await self.get_cam_service().xgrad_cam(request)
 
         elif type == self.get_constants().LIME:
-            return await self.get_probing_image_service().lime(**args)
+            return await self.get_probing_image_service().lime(request)
         elif type == self.get_constants().XRAI:
-            return await self.get_probing_image_service().xrai(**args)
+            return await self.get_probing_image_service().xrai(request)
         elif type == self.get_constants().KERNEL_SHAP:
-            return await self.get_probing_image_service().kernel_shap(**args)
+            return await self.get_probing_image_service().kernel_shap(request)
 
         elif type == self.get_constants().LRP_EPSILON:
-            return await self.get_lrp_service().lrp_epsilon(**args)
+            return await self.get_lrp_service().lrp_epsilon(request)
         elif type == self.get_constants().LRP_GAMMA:
-            return await self.get_lrp_service().lrp_gamma(**args)
+            return await self.get_lrp_service().lrp_gamma(request)
         elif type == self.get_constants().LRP_ALPHA_BETA:
-            return await self.get_lrp_service().lrp_alpha_beta(**args)
+            return await self.get_lrp_service().lrp_alpha_beta(request)
         elif type == self.get_constants().LRP_ZPLUS:
-            return await self.get_lrp_service().lrp_zplus(**args)
+            return await self.get_lrp_service().lrp_zplus(request)
         elif type == self.get_constants().LRP_W2:
-            return await self.get_lrp_service().lrp_w2(**args)
+            return await self.get_lrp_service().lrp_w2(request)
 
         return GradientResponse(
             success=True
@@ -295,13 +314,13 @@ class HeatmapsFacedeService:
                 original_softmax_scores.append(score_original)
 
         rate_of_increase_in_scores = sum(
-            1 for original, modified in zip(original_softmax_scores, modified_softmax_scores)
+            1 for original, modified in zip(original_softmax_scores, modified_softmax_scores, strict=False)
             if modified > original
         ) / len(original_softmax_scores)
 
         average_drop = sum(
             max(0, original - modified)
-            for original, modified in zip(original_softmax_scores, modified_softmax_scores)
+            for original, modified in zip(original_softmax_scores, modified_softmax_scores, strict=False)
         ) / len(original_softmax_scores)
 
         return GradientStatisticsDatasetResponse(
@@ -427,13 +446,13 @@ class HeatmapsFacedeService:
                 original_softmax_scores.append(score_original)
 
         rate_of_increase_in_scores = sum(
-            1 for original, modified in zip(original_softmax_scores, modified_softmax_scores)
+            1 for original, modified in zip(original_softmax_scores, modified_softmax_scores, strict=False)
             if modified > original
         ) / len(original_softmax_scores)
 
         average_drop = sum(
             max(0, original - modified)
-            for original, modified in zip(original_softmax_scores, modified_softmax_scores)
+            for original, modified in zip(original_softmax_scores, modified_softmax_scores, strict=False)
         ) / len(original_softmax_scores)
 
         return GradientStatisticsDatasetResponse(
@@ -519,7 +538,7 @@ class HeatmapsFacedeService:
 
             contours, _ = cv2.findContours(image_binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
             total_perimeter = sum(cv2.arcLength(contour, True) for contour in contours)
-            
+
             total_perimeter = max(0, total_perimeter)
             perimeters.append(total_perimeter)
 
@@ -533,7 +552,7 @@ class HeatmapsFacedeService:
                 all_points = np.vstack([contour for contour in contours])
                 mbr = cv2.minAreaRect(all_points)
                 mbr_area = mbr[1][0] * mbr[1][1]
-                
+
                 if mbr_area > 0:
                     rectangularity = area / mbr_area
                 else:
@@ -605,7 +624,7 @@ class HeatmapsFacedeService:
             image_binary_uint8 = image_binary.astype(np.uint8)
             contours, _ = cv2.findContours(image_binary_uint8, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
             total_perimeter = sum(cv2.arcLength(contour, True) for contour in contours)
-            
+
             total_perimeter = max(0, total_perimeter)
             perimeters.append(total_perimeter)
 
@@ -619,7 +638,7 @@ class HeatmapsFacedeService:
                 all_points = np.vstack([contour for contour in contours])
                 mbr = cv2.minAreaRect(all_points)
                 mbr_area = mbr[1][0] * mbr[1][1]
-                
+
                 if mbr_area > 0:
                     rectangularity = area / mbr_area
                 else:

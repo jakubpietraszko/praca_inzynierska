@@ -1,34 +1,51 @@
+import builtins
+import contextlib
 import os
+
 import cv2
 import numpy as np
 import torch
+
 from interfaces.gradient import GradientRequest, GradientResponse
 
 
 class CAMService:
     def __init__(self):
-        from services.container import get_config_service, get_websocket_service
-        from services.container import get_constants, Constants
-        self.config_service = get_config_service()
-        self.websocket_service = get_websocket_service()
+        from services.container import (
+            ConfigService,
+            Constants,
+            DatasetsService,
+            ModelsService,
+            ServiceContainer,
+            UtilitiesService,
+            WebSocketService,
+            get_config_service,
+            get_constants,
+            get_container,
+            get_datasets_service,
+            get_models_service,
+            get_utilities_service,
+            get_websocket_service,
+        )
+        self.config_service: ConfigService = get_config_service()
+        self.websocket_service: WebSocketService = get_websocket_service()
         self.constants: Constants = get_constants()
+        self.container: ServiceContainer = get_container()
+        self.datasets_service: DatasetsService = get_datasets_service()
+        self.utilities_service: UtilitiesService = get_utilities_service()
+        self.models_service: ModelsService = get_models_service()
 
-    async def grad_cam(self,
-                       request: GradientRequest,
-                       container,
-                       datasets_service,
-                       utilities_service,
-                       constants,
-                       models_service) -> GradientResponse:
+
+    async def grad_cam(self, request: GradientRequest) -> GradientResponse:
         root_path = os.path.join(
-            container.models_datasets_path,
-            await utilities_service.models_datasets_path(
+            self.container.models_datasets_path,
+            await self.utilities_service.models_datasets_path(
                 request.model, request.dataset),
-            constants.GRAD_CAM
+            self.constants.GRAD_CAM
         )
         os.makedirs(root_path, exist_ok=True)
 
-        model_info = await models_service.load_model(request.model)
+        model_info = await self.models_service.load_model(request.model)
 
         config = await self.config_service.get_method_config('grad_cam')
         EPSILON = config.epsilon
@@ -40,7 +57,7 @@ class CAMService:
             target = image.target
 
             if target is None:
-                target = await utilities_service.fill_target(model_info, label)
+                target = await self.utilities_service.fill_target(model_info, label)
 
             label_path = os.path.join(
                 root_path,
@@ -50,22 +67,22 @@ class CAMService:
 
             save_path = os.path.join(
                 label_path,
-                await utilities_service.add_png_extension(filename)
+                await self.utilities_service.add_png_extension(filename)
             )
 
-            if self.constants.CACHE_ENABLED and await utilities_service.skip_forward(save_path):
+            if self.constants.CACHE_ENABLED and await self.utilities_service.skip_forward(save_path):
                 continue
 
             image_path = os.path.join(
-                container.datasets_path,
+                self.container.datasets_path,
                 request.dataset,
                 label,
                 filename
             )
 
-            image_np = await datasets_service.load_image(
+            image_np = await self.datasets_service.load_image(
                 image_path, model_info.input_shape)
-            image_tensor = await utilities_service.convert_image_to_tensor(
+            image_tensor = await self.utilities_service.convert_image_to_tensor(
                 image_np, grad=True)
 
             model_info.model.eval()
@@ -103,14 +120,14 @@ class CAMService:
             print(cam.min(), cam.max())
             # cam (1, 1, h, w)
             cam = cam.squeeze().cpu().detach().numpy()
-            cam = await utilities_service.relu_normalize(
+            cam = await self.utilities_service.relu_normalize(
                 cam, model_info.input_shape, EPSILON
             )
             print(cam.min(), cam.max())
             # cam (H, W)
 
             cv2.imwrite(save_path, cam)
-            try:
+            with contextlib.suppress(builtins.BaseException):
                 await self.websocket_service.send_heatmap_notification_sync(
                     dataset=request.dataset,
                     model=request.model,
@@ -118,29 +135,21 @@ class CAMService:
                     filename=filename,
                     heatmap_type="grad_cam"
                 )
-            except:
-                pass
 
         return GradientResponse(
             success=True,
         )
 
-    async def grad_cam_plus_plus(self,
-                                 request: GradientRequest,
-                                 container,
-                                 datasets_service,
-                                 utilities_service,
-                                 constants,
-                                 models_service) -> GradientResponse:
+    async def grad_cam_plus_plus(self, request: GradientRequest) -> GradientResponse:
         root_path = os.path.join(
-            container.models_datasets_path,
-            await utilities_service.models_datasets_path(
+            self.container.models_datasets_path,
+            await self.utilities_service.models_datasets_path(
                 request.model, request.dataset),
-            constants.GRAD_CAM_PLUS_PLUS
+            self.constants.GRAD_CAM_PLUS_PLUS
         )
         os.makedirs(root_path, exist_ok=True)
 
-        model_info = await models_service.load_model(request.model)
+        model_info = await self.models_service.load_model(request.model)
 
         EPSILON = (await self.config_service.get_method_config(
             'grad_cam_plus_plus')).epsilon
@@ -151,7 +160,7 @@ class CAMService:
             filename = image.filename
             target = image.target
             if target is None:
-                target = await utilities_service.fill_target(model_info, label)
+                target = await self.utilities_service.fill_target(model_info, label)
             label_path = os.path.join(
                 root_path,
                 label,
@@ -159,22 +168,22 @@ class CAMService:
             os.makedirs(label_path, exist_ok=True)
             save_path = os.path.join(
                 label_path,
-                await utilities_service.add_png_extension(filename)
+                await self.utilities_service.add_png_extension(filename)
             )
 
-            if self.constants.CACHE_ENABLED and await utilities_service.skip_forward(save_path):
+            if self.constants.CACHE_ENABLED and await self.utilities_service.skip_forward(save_path):
                 continue
 
             image_path = os.path.join(
-                container.datasets_path,
+                self.container.datasets_path,
                 request.dataset,
                 label,
                 filename
             )
 
-            image_np = await datasets_service.load_image(
+            image_np = await self.datasets_service.load_image(
                 image_path, model_info.input_shape)
-            image_tensor = await utilities_service.convert_image_to_tensor(
+            image_tensor = await self.utilities_service.convert_image_to_tensor(
                 image_np, grad=True)
 
             model_info.model.eval()
@@ -221,13 +230,13 @@ class CAMService:
             cam = (weights * activations).sum(dim=1, keepdim=True)
             # cam (1, 1, h, w)
             cam = cam.squeeze().cpu().detach().numpy()
-            cam = await utilities_service.relu_normalize(
+            cam = await self.utilities_service.relu_normalize(
                 cam, model_info.input_shape, EPSILON
             )
             # cam (H, W)
             cv2.imwrite(save_path, cam)
             cv2.imwrite(save_path, cam)
-            try:
+            with contextlib.suppress(builtins.BaseException):
                 await self.websocket_service.send_heatmap_notification_sync(
                     dataset=request.dataset,
                     model=request.model,
@@ -235,29 +244,21 @@ class CAMService:
                     filename=filename,
                     heatmap_type="grad_cam_plus_plus"
                 )
-            except:
-                pass
 
         return GradientResponse(
             success=True,
         )
 
-    async def group_cam(self,
-                        request: GradientRequest,
-                        container,
-                        datasets_service,
-                        utilities_service,
-                        constants,
-                        models_service) -> GradientResponse:
+    async def group_cam(self, request: GradientRequest) -> GradientResponse:
         root_path = os.path.join(
-            container.models_datasets_path,
-            await utilities_service.models_datasets_path(
+            self.container.models_datasets_path,
+            await self.utilities_service.models_datasets_path(
                 request.model, request.dataset),
-            constants.GROUP_CAM
+            self.constants.GROUP_CAM
         )
         os.makedirs(root_path, exist_ok=True)
 
-        model_info = await models_service.load_model(request.model)
+        model_info = await self.models_service.load_model(request.model)
 
         config = await self.config_service.get_method_config('group_cam')
         EPSILON = config.epsilon
@@ -272,28 +273,28 @@ class CAMService:
             filename = image.filename
             target = image.target
             if target is None:
-                target = await utilities_service.fill_target(model_info, label)
+                target = await self.utilities_service.fill_target(model_info, label)
 
             label_path = os.path.join(root_path, label)
             os.makedirs(label_path, exist_ok=True)
             save_path = os.path.join(
                 label_path,
-                await utilities_service.add_png_extension(filename)
+                await self.utilities_service.add_png_extension(filename)
             )
 
-            if self.constants.CACHE_ENABLED and await utilities_service.skip_forward(save_path):
+            if self.constants.CACHE_ENABLED and await self.utilities_service.skip_forward(save_path):
                 continue
 
             image_path = os.path.join(
-                container.datasets_path,
+                self.container.datasets_path,
                 request.dataset,
                 label,
                 filename
             )
 
-            image_np = await datasets_service.load_image(
+            image_np = await self.datasets_service.load_image(
                 image_path, model_info.input_shape)
-            image_tensor = await utilities_service.convert_image_to_tensor(
+            image_tensor = await self.utilities_service.convert_image_to_tensor(
                 image_np, grad=True)
 
             model_info.model.eval()
@@ -358,10 +359,10 @@ class CAMService:
                 M_l = torch.relu(
                     (group_weights * group_activations).sum(dim=1, keepdim=True))
 
-                M_l_processed = await utilities_service.relu_normalize(
+                M_l_processed = await self.utilities_service.relu_normalize(
                     M_l.squeeze().cpu().detach().numpy(),
                     model_info.input_shape,
-                    constants.EPSILON
+                    self.constants.EPSILON
                 )
 
                 M_l_prime = torch.from_numpy(
@@ -375,7 +376,7 @@ class CAMService:
                 )
 
                 M_l_prime = (M_l_prime - M_l_prime.min()) / \
-                    (M_l_prime.max() - M_l_prime.min() + constants.EPSILON)
+                    (M_l_prime.max() - M_l_prime.min() + self.constants.EPSILON)
 
                 I_l_prime = image_tensor * M_l_prime + \
                     blurred_image * (1 - M_l_prime)
@@ -400,7 +401,7 @@ class CAMService:
             ).astype(np.uint8)
 
             cv2.imwrite(save_path, group_cam_final)
-            try:
+            with contextlib.suppress(builtins.BaseException):
                 await self.websocket_service.send_heatmap_notification_sync(
                     dataset=request.dataset,
                     model=request.model,
@@ -408,29 +409,21 @@ class CAMService:
                     filename=filename,
                     heatmap_type="group_cam"
                 )
-            except:
-                pass
 
         return GradientResponse(
             success=True,
         )
 
-    async def hires_cam(self,
-                        request: GradientRequest,
-                        container,
-                        datasets_service,
-                        utilities_service,
-                        constants,
-                        models_service) -> GradientResponse:
+    async def hires_cam(self, request: GradientRequest) -> GradientResponse:
         root_path = os.path.join(
-            container.models_datasets_path,
-            await utilities_service.models_datasets_path(
+            self.container.models_datasets_path,
+            await self.utilities_service.models_datasets_path(
                 request.model, request.dataset),
-            constants.HIRES_CAM
+            self.constants.HIRES_CAM
         )
         os.makedirs(root_path, exist_ok=True)
 
-        model_info = await models_service.load_model(request.model)
+        model_info = await self.models_service.load_model(request.model)
 
         config = await self.config_service.get_method_config('hires_cam')
         EPSILON = config.epsilon
@@ -441,7 +434,7 @@ class CAMService:
             filename = image.filename
             target = image.target
             if target is None:
-                target = await utilities_service.fill_target(model_info, label)
+                target = await self.utilities_service.fill_target(model_info, label)
             label_path = os.path.join(
                 root_path,
                 label,
@@ -449,22 +442,22 @@ class CAMService:
             os.makedirs(label_path, exist_ok=True)
             save_path = os.path.join(
                 label_path,
-                await utilities_service.add_png_extension(filename)
+                await self.utilities_service.add_png_extension(filename)
             )
 
-            if self.constants.CACHE_ENABLED and await utilities_service.skip_forward(save_path):
+            if self.constants.CACHE_ENABLED and await self.utilities_service.skip_forward(save_path):
                 continue
 
             image_path = os.path.join(
-                container.datasets_path,
+                self.container.datasets_path,
                 request.dataset,
                 label,
                 filename
             )
 
-            image_np = await datasets_service.load_image(
+            image_np = await self.datasets_service.load_image(
                 image_path, model_info.input_shape)
-            image_tensor = await utilities_service.convert_image_to_tensor(
+            image_tensor = await self.utilities_service.convert_image_to_tensor(
                 image_np, grad=True)
 
             model_info.model.eval()
@@ -500,14 +493,14 @@ class CAMService:
             cam = cam.squeeze().cpu().detach().numpy()
             # cam (h, w)
 
-            cam = await utilities_service.relu_normalize(
+            cam = await self.utilities_service.relu_normalize(
                 cam, model_info.input_shape, EPSILON
             )
             # cam (H, W)
 
             cv2.imwrite(save_path, cam)
 
-            try:
+            with contextlib.suppress(builtins.BaseException):
                 await self.websocket_service.send_heatmap_notification_sync(
                     dataset=request.dataset,
                     model=request.model,
@@ -515,28 +508,20 @@ class CAMService:
                     filename=filename,
                     heatmap_type="hires_cam"
                 )
-            except:
-                pass
         return GradientResponse(
             success=True,
         )
 
-    async def wgrad_cam(self,
-                        request: GradientRequest,
-                        container,
-                        datasets_service,
-                        utilities_service,
-                        constants,
-                        models_service) -> GradientResponse:
+    async def wgrad_cam(self, request: GradientRequest) -> GradientResponse:
         root_path = os.path.join(
-            container.models_datasets_path,
-            await utilities_service.models_datasets_path(
+            self.container.models_datasets_path,
+            await self.utilities_service.models_datasets_path(
                 request.model, request.dataset),
-            constants.WGRAD_CAM
+            self.constants.WGRAD_CAM
         )
         os.makedirs(root_path, exist_ok=True)
 
-        model_info = await models_service.load_model(request.model)
+        model_info = await self.models_service.load_model(request.model)
 
         config = await self.config_service.get_method_config('wgrad_cam')
         EPSILON = config.epsilon
@@ -547,7 +532,7 @@ class CAMService:
             filename = image.filename
             target = image.target
             if target is None:
-                target = await utilities_service.fill_target(model_info, label)
+                target = await self.utilities_service.fill_target(model_info, label)
 
             label_path = os.path.join(
                 root_path,
@@ -556,22 +541,22 @@ class CAMService:
             os.makedirs(label_path, exist_ok=True)
             save_path = os.path.join(
                 label_path,
-                await utilities_service.add_png_extension(filename)
+                await self.utilities_service.add_png_extension(filename)
             )
 
-            if self.constants.CACHE_ENABLED and await utilities_service.skip_forward(save_path):
+            if self.constants.CACHE_ENABLED and await self.utilities_service.skip_forward(save_path):
                 continue
 
             image_path = os.path.join(
-                container.datasets_path,
+                self.container.datasets_path,
                 request.dataset,
                 label,
                 filename
             )
 
-            image_np = await datasets_service.load_image(
+            image_np = await self.datasets_service.load_image(
                 image_path, model_info.input_shape)
-            image_tensor = await utilities_service.convert_image_to_tensor(
+            image_tensor = await self.utilities_service.convert_image_to_tensor(
                 image_np, grad=True)
 
             model_info.model.eval()
@@ -622,14 +607,14 @@ class CAMService:
 
             cam = cam.cpu().detach().numpy()
 
-            cam = await utilities_service.relu_normalize(
+            cam = await self.utilities_service.relu_normalize(
                 cam, model_info.input_shape, EPSILON
             )
             # cam (H, W)
 
             cv2.imwrite(save_path, cam)
 
-            try:
+            with contextlib.suppress(builtins.BaseException):
                 await self.websocket_service.send_heatmap_notification_sync(
                     dataset=request.dataset,
                     model=request.model,
@@ -637,29 +622,21 @@ class CAMService:
                     filename=filename,
                     heatmap_type="wgrad_cam"
                 )
-            except:
-                pass
 
         return GradientResponse(
             success=True,
         )
 
-    async def ablation_cam(self,
-                           request: GradientRequest,
-                           container,
-                           datasets_service,
-                           utilities_service,
-                           constants,
-                           models_service) -> GradientResponse:
+    async def ablation_cam(self, request: GradientRequest) -> GradientResponse:
         root_path = os.path.join(
-            container.models_datasets_path,
-            await utilities_service.models_datasets_path(
+            self.container.models_datasets_path,
+            await self.utilities_service.models_datasets_path(
                 request.model, request.dataset),
-            constants.ABLATION_CAM
+            self.constants.ABLATION_CAM
         )
         os.makedirs(root_path, exist_ok=True)
 
-        model_info = await models_service.load_model(request.model)
+        model_info = await self.models_service.load_model(request.model)
 
         config = await self.config_service.get_method_config('ablation_cam')
         EPSILON = config.epsilon
@@ -670,7 +647,7 @@ class CAMService:
             filename = image.filename
             target = image.target
             if target is None:
-                target = await utilities_service.fill_target(model_info, label)
+                target = await self.utilities_service.fill_target(model_info, label)
             label_path = os.path.join(
                 root_path,
                 label,
@@ -678,22 +655,22 @@ class CAMService:
             os.makedirs(label_path, exist_ok=True)
             save_path = os.path.join(
                 label_path,
-                await utilities_service.add_png_extension(filename)
+                await self.utilities_service.add_png_extension(filename)
             )
 
-            if self.constants.CACHE_ENABLED and await utilities_service.skip_forward(save_path):
+            if self.constants.CACHE_ENABLED and await self.utilities_service.skip_forward(save_path):
                 continue
 
             image_path = os.path.join(
-                container.datasets_path,
+                self.container.datasets_path,
                 request.dataset,
                 label,
                 filename
             )
 
-            image_np = await datasets_service.load_image(
+            image_np = await self.datasets_service.load_image(
                 image_path, model_info.input_shape)
-            image_tensor = await utilities_service.convert_image_to_tensor(
+            image_tensor = await self.utilities_service.convert_image_to_tensor(
                 image_np, grad=True)
 
             model_info.model.eval()
@@ -753,7 +730,7 @@ class CAMService:
 
             cv2.imwrite(save_path, ablationcam)
 
-            try:
+            with contextlib.suppress(builtins.BaseException):
                 await self.websocket_service.send_heatmap_notification_sync(
                     dataset=request.dataset,
                     model=request.model,
@@ -761,28 +738,20 @@ class CAMService:
                     filename=filename,
                     heatmap_type="ablation_cam"
                 )
-            except:
-                pass
         return GradientResponse(
             success=True,
         )
 
-    async def xgrad_cam(self,
-                        request: GradientRequest,
-                        container,
-                        datasets_service,
-                        utilities_service,
-                        constants,
-                        models_service) -> GradientResponse:
+    async def xgrad_cam(self, request: GradientRequest) -> GradientResponse:
         root_path = os.path.join(
-            container.models_datasets_path,
-            await utilities_service.models_datasets_path(
+            self.container.models_datasets_path,
+            await self.utilities_service.models_datasets_path(
                 request.model, request.dataset),
-            constants.XGRAD_CAM
+            self.constants.XGRAD_CAM
         )
         os.makedirs(root_path, exist_ok=True)
 
-        model_info = await models_service.load_model(request.model)
+        model_info = await self.models_service.load_model(request.model)
 
         config = await self.config_service.get_method_config('xgrad_cam')
         EPSILON = config.epsilon
@@ -793,7 +762,7 @@ class CAMService:
             filename = image.filename
             target = image.target
             if target is None:
-                target = await utilities_service.fill_target(model_info, label)
+                target = await self.utilities_service.fill_target(model_info, label)
 
             label_path = os.path.join(
                 root_path,
@@ -802,22 +771,22 @@ class CAMService:
             os.makedirs(label_path, exist_ok=True)
             save_path = os.path.join(
                 label_path,
-                await utilities_service.add_png_extension(filename)
+                await self.utilities_service.add_png_extension(filename)
             )
 
-            if self.constants.CACHE_ENABLED and await utilities_service.skip_forward(save_path):
+            if self.constants.CACHE_ENABLED and await self.utilities_service.skip_forward(save_path):
                 continue
 
             image_path = os.path.join(
-                container.datasets_path,
+                self.container.datasets_path,
                 request.dataset,
                 label,
                 filename
             )
 
-            image_np = await datasets_service.load_image(
+            image_np = await self.datasets_service.load_image(
                 image_path, model_info.input_shape)
-            image_tensor = await utilities_service.convert_image_to_tensor(
+            image_tensor = await self.utilities_service.convert_image_to_tensor(
                 image_np, grad=True)
 
             model_info.model.eval()
@@ -860,14 +829,14 @@ class CAMService:
 
             cam = cam.squeeze().cpu().detach().numpy()
 
-            cam = await utilities_service.relu_normalize(
+            cam = await self.utilities_service.relu_normalize(
                 cam, model_info.input_shape, EPSILON
             )
             # cam (H, W)
 
             cv2.imwrite(save_path, cam)
 
-            try:
+            with contextlib.suppress(builtins.BaseException):
                 await self.websocket_service.send_heatmap_notification_sync(
                     dataset=request.dataset,
                     model=request.model,
@@ -875,8 +844,6 @@ class CAMService:
                     filename=filename,
                     heatmap_type="xgrad_cam"
                 )
-            except:
-                pass
         return GradientResponse(
             success=True,
         )
