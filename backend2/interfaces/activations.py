@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 
+
 class ActivationsRequest(BaseModel):
     model: str
     dataset: str

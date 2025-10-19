@@ -1,26 +1,26 @@
+
 from pydantic import BaseModel, Field
-from typing import Dict, Any, Optional
 
 
 class XAIMethodConfig(BaseModel):
-    epsilon: Optional[float] = None
-    aggregation: Optional[str] = None
-    group_size: Optional[int] = None
-    k_size: Optional[int] = None
-    sigma: Optional[float] = None
-    n_samples: Optional[int] = None
-    noise_level: Optional[float] = None
-    baseline: Optional[float] = None
-    steps: Optional[int] = None
-    super_pixels: Optional[int] = None
-    segmentation: Optional[str] = None
-    gamma: Optional[float] = None
-    alpha: Optional[float] = None
-    beta: Optional[float] = None
+    epsilon: float | None = None
+    aggregation: str | None = None
+    group_size: int | None = None
+    k_size: int | None = None
+    sigma: float | None = None
+    n_samples: int | None = None
+    noise_level: float | None = None
+    baseline: float | None = None
+    steps: int | None = None
+    super_pixels: int | None = None
+    segmentation: str | None = None
+    gamma: float | None = None
+    alpha: float | None = None
+    beta: float | None = None
 
 
 class ConfigModel(BaseModel):
-    methods: Dict[str, XAIMethodConfig] = Field(default_factory=dict)
+    methods: dict[str, XAIMethodConfig] = Field(default_factory=dict)
 
 
 class ConfigService:
@@ -36,14 +36,14 @@ class ConfigService:
         return self._config
 
     async def load_config(self) -> ConfigModel:
-        import os
         import json
+        import os
 
         path = os.path.join(self.base_dir, self.NAME)
         if not os.path.exists(path):
             return await self._get_default_config()
 
-        with open(path, 'r') as f:
+        with open(path) as f:
             data = json.load(f)
             methods = {}
             for method_name, method_params in data.get('methods', {}).items():
@@ -86,8 +86,8 @@ class ConfigService:
         return ConfigModel(methods=default_methods)
 
     async def save_config(self, config: ConfigModel):
-        import os
         import json
+        import os
 
         path = os.path.join(self.base_dir, self.NAME)
         config_dict = {

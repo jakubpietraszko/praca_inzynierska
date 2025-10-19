@@ -1,22 +1,28 @@
-import numpy as np
-import cv2
-from typing import Tuple
 import os
+
+import cv2
+import numpy as np
 from PIL import Image
 
-from services.models_service import ModelsService, ModelInfo
-from interfaces.masks import MasksResponse, MasksRequest
+from interfaces.masks import MasksRequest, MasksResponse
 from interfaces.super_pixels import SuperPixelsRequest, SuperPixelsResponse
+from services.models_service import ModelInfo
 
 
 class MasksService:
     def __init__(self,
                  dataset_path: str,
                  models_datasets_path: str):
-        from services.container import ServiceContainer, get_container
-        from services.container import get_constants, Constants
-        from services.container import get_models_service, ModelsService
-        from services.container import get_utilities_service, UtilitiesService
+        from services.container import (
+            Constants,
+            ModelsService,
+            ServiceContainer,
+            UtilitiesService,
+            get_constants,
+            get_container,
+            get_models_service,
+            get_utilities_service,
+        )
 
         self.dataset_path = dataset_path
         self.models_datasets_path = models_datasets_path
@@ -91,7 +97,7 @@ class MasksService:
              width: int,
              dim: int,
              super_pixels: int = 20
-             ) -> Tuple[np.ndarray, int]:
+             ) -> tuple[np.ndarray, int]:
         LEVELS = 2
         ITERATIONS = 5
 
@@ -177,7 +183,7 @@ class MasksService:
              width: int,
              dim: int,
              super_pixels: int = 20
-             ) -> Tuple[np.ndarray, int]:
+             ) -> tuple[np.ndarray, int]:
         region_size = np.sqrt((height * width) / super_pixels)
         region_size = int(region_size)
         ITERATIONS = 5

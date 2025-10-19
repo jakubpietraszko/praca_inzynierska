@@ -1,7 +1,7 @@
 {
     "methods": {
         "grad_cam": {
-            "epsilon": 2e-05
+            "epsilon": 2.4e-05
         },
         "grad_cam_plus_plus": {
             "epsilon": 1.7e-05
@@ -51,7 +51,7 @@
             "aggregation": "max"
         },
         "deconvolution": {
-            "epsilon": 1e-06,
+            "epsilon": 4e-06,
             "aggregation": "max"
         },
         "guided_backpropagation": {

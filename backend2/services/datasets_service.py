@@ -1,11 +1,12 @@
-import os
-import torchvision.transforms as transforms
-from torchvision.datasets import ImageFolder
-from dataclasses import dataclass
 import base64
-import numpy as np
-from PIL import Image
+import os
+from dataclasses import dataclass
+
 import cv2
+import numpy as np
+import torchvision.transforms as transforms
+from PIL import Image
+from torchvision.datasets import ImageFolder
 
 
 @dataclass

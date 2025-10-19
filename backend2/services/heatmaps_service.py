@@ -1,28 +1,29 @@
-import numpy as np
 import os
-from typing import Tuple
-from interfaces.all_heatmaps import AllHeatmapsResponse
-from interfaces.gradient import GradientRequest, GradientResponse
-from interfaces.label_filename import LabelFilenameTarget
-from interfaces.unsupervised_heatmaps import UnsupervisedHeatmapsResponse
-from interfaces.unsupervised_heatmaps import FilenameCoords
 
+import numpy as np
 from PIL import Image
 from sklearn.manifold import TSNE
-from sklearn.preprocessing import normalize, MinMaxScaler
+from sklearn.preprocessing import MinMaxScaler, normalize
+
+from interfaces.all_heatmaps import AllHeatmapsResponse
+from interfaces.gradient import GradientRequest
+from interfaces.label_filename import LabelFilenameTarget
+from interfaces.unsupervised_heatmaps import FilenameCoords, UnsupervisedHeatmapsResponse
 
 
 class HeatmapsService:
     def __init__(self,
                  dataset_path: str,
                  models_datasets_path: str):
+        from services.container import (
+            get_container,
+            get_datasets_service,
+            get_heatmaps_facede_service,
+            get_utilities_service,
+        )
         from services.datasets_service import DatasetsService
-        from services.container import get_datasets_service
         from services.heatmaps_facede_service import HeatmapsFacedeService
-        from services.container import get_heatmaps_facede_service
-        from services.container import get_container
         from services.utilities_service import UtilitiesService
-        from services.container import get_utilities_service
 
         self.dataset_service: DatasetsService = get_datasets_service()
         self.heatmaps_facede_service: HeatmapsFacedeService = get_heatmaps_facede_service()
@@ -32,7 +33,7 @@ class HeatmapsService:
         self.dataset_path = dataset_path
         self.models_datasets_path = models_datasets_path
 
-    async def activations(self) -> Tuple[np.ndarray, int]:
+    async def activations(self) -> tuple[np.ndarray, int]:
         pass
 
     async def all_available_heatmaps(self, constants):
@@ -99,7 +100,7 @@ class HeatmapsService:
         images_tsne = scaler.fit_transform(images_tsne)
         filenames_coords = list()
 
-        for image_path, coords in zip(image_paths, images_tsne):
+        for image_path, coords in zip(image_paths, images_tsne, strict=False):
             filenames_coords.append(
                 FilenameCoords(
                     filename=os.path.basename(image_path),

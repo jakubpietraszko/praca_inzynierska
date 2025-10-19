@@ -1,25 +1,26 @@
 import os
 
-from .datasets_service import DatasetsService
-from .heatmaps_service import HeatmapsService
-from .models_service import ModelsService
-from .masks_service import MasksService
-from .utilities_service import UtilitiesService
-from .models_datasets_service import ModelsDatasetsService
-from .gradient_service import GradientService
-from .activations_service import ActivationsService
-from .integrated_gradient_service import IntegratedGradientsService
-from .cam_service import CAMService
-from .probing_image_service import ProbingImageService
-from .gradient_noise_service import GradientNoiseService
-from .heatmaps_facede_service import HeatmapsFacedeService
-from .lrp_service import LRPService
-from .config_service import ConfigService
-from .websocket_service import WebSocketService
-from .statistics_service import StatisticsService
-from .constants_service import ConstantsService
-
 from constans import Constants
+
+from .activations_service import ActivationsService
+from .cam_service import CAMService
+from .config_service import ConfigService
+from .constants_service import ConstantsService
+from .datasets_service import DatasetsService
+from .gradient_noise_service import GradientNoiseService
+from .gradient_service import GradientService
+from .heatmaps_facede_service import HeatmapsFacedeService
+from .heatmaps_service import HeatmapsService
+from .integrated_gradient_service import IntegratedGradientsService
+from .lrp_service import LRPService
+from .masks_service import MasksService
+from .models_datasets_service import ModelsDatasetsService
+from .models_service import ModelsService
+from .probing_image_service import ProbingImageService
+from .statistics_service import StatisticsService
+from .utilities_service import UtilitiesService
+from .websocket_service import WebSocketService
+
 
 class ServiceContainer:
     def __init__(self, env: str = 'development'):
@@ -66,7 +67,7 @@ class ServiceContainer:
         if self._heatmaps_service is None:
             self._heatmaps_service = HeatmapsService(self.datasets_path, self.models_datasets_path)
         return self._heatmaps_service
-    
+
     @property
     def models_service(self) -> ModelsService:
         if self._models_service is None:
@@ -78,55 +79,55 @@ class ServiceContainer:
         if self._masks_service is None:
             self._masks_service = MasksService(self.datasets_path, self.models_datasets_path)
         return self._masks_service
-    
+
     @property
     def utilities_service(self) -> UtilitiesService:
         if self._utilities_service is None:
             self._utilities_service = UtilitiesService()
         return self._utilities_service
-    
+
     @property
     def models_datasets_service(self) -> ModelsDatasetsService:
         if self._models_datasets_service is None:
             self._models_datasets_service = ModelsDatasetsService(
                 self.models_datasets_path,
                 self.datasets_path,
-                self.utilities_service, 
+                self.utilities_service,
                 self.constants
             )
         return self._models_datasets_service
-    
+
     @property
     def gradient_service(self) -> GradientService:
         if self._gradient_service is None:
             self._gradient_service = GradientService()
         return self._gradient_service
-    
+
     @property
     def activations_service(self) -> ActivationsService:
         if self._activations_service is None:
             self._activations_service = ActivationsService()
         return self._activations_service
-    
+
     @property
     def integrated_gradient_service(self) -> IntegratedGradientsService:
         if self._integrated_gradients_service is None:
             self._integrated_gradients_service = IntegratedGradientsService()
         return self._integrated_gradients_service
-    
+
     @property
     def cam_service(self):
         if self._cam_service is None:
             from .cam_service import CAMService
             self._cam_service = CAMService()
         return self._cam_service
-    
+
     @property
     def probing_image_service(self):
         if self._probing_image_service is None:
             self._probing_image_service = ProbingImageService()
         return self._probing_image_service
-    
+
     @property
     def gradient_noise_service(self):
         if self._gradient_noise_service is None:
@@ -144,7 +145,7 @@ class ServiceContainer:
         if self._lrp_service is None:
             self._lrp_service = LRPService()
         return self._lrp_service
-    
+
     @property
     def config_service(self):
         if self._config_service is None:
@@ -156,7 +157,7 @@ class ServiceContainer:
         if self._websocket_service is None:
             self._websocket_service = WebSocketService()
         return self._websocket_service
-    
+
     @property
     def statistics_service(self):
         if self._statistics_service is None:
@@ -169,7 +170,7 @@ class ServiceContainer:
             self._constants_service = ConstantsService()
         return self._constants_service
 
-_container: ServiceContainer = None
+_container: ServiceContainer | None = None
 
 def get_container() -> ServiceContainer:
     global _container

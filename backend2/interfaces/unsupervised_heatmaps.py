@@ -1,11 +1,12 @@
 from pydantic import BaseModel
 
+
 class UnsupervisedHeatmapsRequest(BaseModel):
     model: str
     dataset: str
     label: str
     heatmap: str
-    type: str 
+    type: str
 
 
 class FilenameCoords(BaseModel):
@@ -16,4 +17,4 @@ class FilenameCoords(BaseModel):
 class UnsupervisedHeatmapsResponse(BaseModel):
     filenames_coords: list[FilenameCoords]
     success: bool
-    
+

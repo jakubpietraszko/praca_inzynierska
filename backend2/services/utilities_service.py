@@ -1,7 +1,8 @@
 import os
-import torch
-import numpy as np
+
 import cv2
+import numpy as np
+import torch
 
 
 class UtilitiesService:
@@ -23,14 +24,14 @@ class UtilitiesService:
         image = image.astype(np.float32)
         image = image / 255.0
 
-        image = torch.from_numpy(image)
-        image = image.unsqueeze(0)
-        image = image.float()
+        image_tensor: torch.Tensor = torch.from_numpy(image)
+        image_tensor = image_tensor.unsqueeze(0)
+        image_tensor = image_tensor.float()
 
         if grad:
-            image.requires_grad = True
+            image_tensor.requires_grad = True
 
-        return image
+        return image_tensor
 
     async def delete_extension(self, filename: str) -> str:
         base = filename.split('.')[0]
@@ -72,9 +73,7 @@ class UtilitiesService:
         return image
 
     async def skip_forward(self, path) -> bool:
-        if os.path.exists(path):
-            return True
-        return False
+        return bool(os.path.exists(path))
 
     async def fill_target(self, model_info, label) -> int:
         return model_info.label_to_idx[label]

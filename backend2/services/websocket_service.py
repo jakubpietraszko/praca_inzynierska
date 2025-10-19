@@ -1,13 +1,12 @@
+import contextlib
 import json
-import asyncio
-import threading
-from typing import Set
-from fastapi import WebSocket, WebSocketDisconnect
+
+from fastapi import WebSocket
 
 
 class WebSocketService:
     def __init__(self):
-        self.active_connections: Set[WebSocket] = set()
+        self.active_connections: set[WebSocket] = set()
 
     async def connect(self, websocket: WebSocket):
         await websocket.accept()
@@ -32,7 +31,7 @@ class WebSocketService:
         for connection in self.active_connections.copy():
             try:
                 await connection.send_text(json.dumps(notification))
-            except Exception as e:
+            except Exception:
                 disconnected.add(connection)
 
         for connection in disconnected:
@@ -42,9 +41,9 @@ class WebSocketService:
         if not self.active_connections:
             return
 
-        try:
+        with contextlib.suppress(Exception):
             await self.send_heatmap_notification(
                 dataset, model, label, heatmap_type, filename
             )
-        except Exception as e:
-            pass
+
+        return

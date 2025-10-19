@@ -209,3 +209,4 @@ class Constants:
     NUM_SAMPLES: int = 50
     AGGREGATION: str = 'max'  # mean, sum, max
     CACHE_ENABLED: bool = False
+    BATCH_SIZE: int = 16

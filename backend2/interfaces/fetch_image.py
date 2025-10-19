@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 
+
 class FetchImageRequest(BaseModel):
     dataset: str
     label: str

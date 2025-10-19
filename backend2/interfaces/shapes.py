@@ -1,5 +1,4 @@
 from pydantic import BaseModel
-from typing import List
 
 
 class ShapeMetricsLabelRequest(BaseModel):
@@ -12,10 +11,10 @@ class ShapeMetricsLabelRequest(BaseModel):
 
 class ShapeMetricsLabelResponse(BaseModel):
     success: bool
-    areas: List[float]
-    perimeters: List[float]
-    circularities: List[float]
-    rectangularities: List[float]
+    areas: list[float]
+    perimeters: list[float]
+    circularities: list[float]
+    rectangularities: list[float]
 
 
 class ShapeMetricsDatasetRequest(BaseModel):
@@ -27,7 +26,7 @@ class ShapeMetricsDatasetRequest(BaseModel):
 
 class ShapeMetricsDatasetResponse(BaseModel):
     success: bool
-    areas: List[float]
-    perimeters: List[float]
-    circularities: List[float]
-    rectangularities: List[float]
+    areas: list[float]
+    perimeters: list[float]
+    circularities: list[float]
+    rectangularities: list[float]

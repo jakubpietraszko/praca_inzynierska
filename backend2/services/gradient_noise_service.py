@@ -1,11 +1,11 @@
+import builtins
+import contextlib
 import os
 
 import cv2
 import torch
 
 from interfaces.gradient import GradientRequest, GradientResponse
-import contextlib
-import builtins
 
 
 class GradientNoiseService:

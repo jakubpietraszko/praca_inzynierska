@@ -1,5 +1,4 @@
 from pydantic import BaseModel
-from typing import List
 
 
 class HeatmapsStatisticsDatasetRequest(BaseModel):
@@ -8,6 +7,6 @@ class HeatmapsStatisticsDatasetRequest(BaseModel):
 
 
 class HeatmapsStatisticsDatasetResponse(BaseModel):
-    average_drop: List[float]
-    rate_of_increase: List[float]
+    average_drop: list[float]
+    rate_of_increase: list[float]
     success: bool

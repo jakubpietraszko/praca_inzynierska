@@ -1,11 +1,13 @@
+
 from pydantic import BaseModel
-from typing import List
+
 from .label_filename import LabelFilenameTarget
+
 
 class GradientRequest(BaseModel):
     model: str
     dataset: str
-    images: List[LabelFilenameTarget]
+    images: list[LabelFilenameTarget]
     overwrite: bool
 
 class GradientStatisticRequest(GradientRequest):
@@ -17,10 +19,10 @@ class GradientResponse(BaseModel):
     success: bool
 
 class ListOfScores(BaseModel):
-    scores: List[float]
+    scores: list[float]
 
 class GradientStatisticResponse(GradientResponse):
-    softmax_scores: List[ListOfScores]
+    softmax_scores: list[ListOfScores]
 
 class GradientStatisticsDatasetRequest(BaseModel):
     model: str
@@ -46,8 +48,8 @@ class GradientStatisticsLabelManyRequest(BaseModel):
 
 class GradientStatisticsLabelManyResponse(GradientResponse):
     success: bool
-    list_of_rate_of_increase_in_scores: List[float]
-    list_of_average_drop: List[float]
+    list_of_rate_of_increase_in_scores: list[float]
+    list_of_average_drop: list[float]
 
 class GradientStatisticsDatasetManyRequest(BaseModel):
     model: str
@@ -57,5 +59,5 @@ class GradientStatisticsDatasetManyRequest(BaseModel):
 
 class GradientStatisticsDatasetManyResponse(GradientResponse):
     success: bool
-    list_of_rate_of_increase_in_scores: List[float]
-    list_of_average_drop: List[float]
+    list_of_rate_of_increase_in_scores: list[float]
+    list_of_average_drop: list[float]

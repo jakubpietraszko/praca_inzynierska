@@ -1,3 +1,5 @@
+import builtins
+import contextlib
 import os
 
 import cv2
@@ -5,8 +7,6 @@ import torch
 import torch.nn as nn
 
 from interfaces.gradient import GradientRequest, GradientResponse
-import contextlib
-import builtins
 
 
 class LRPService:

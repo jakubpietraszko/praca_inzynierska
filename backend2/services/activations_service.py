@@ -1,25 +1,32 @@
-import numpy as np
-import cv2
 import os
-from interfaces.activations import ActivationsRequest, ActivationsResponse
-from interfaces.unsupervised_activations import UnsupervisedActivationsRequest, UnsupervisedActivationsResponse, LabelFilenameCoords
 
+import cv2
+import numpy as np
 from PIL import Image
 from sklearn.manifold import TSNE
-from sklearn.preprocessing import normalize, MinMaxScaler
+from sklearn.preprocessing import MinMaxScaler, normalize
+
+from interfaces.activations import ActivationsRequest, ActivationsResponse
+from interfaces.unsupervised_activations import (
+    LabelFilenameCoords,
+    UnsupervisedActivationsRequest,
+    UnsupervisedActivationsResponse,
+)
 
 
 class ActivationsService:
     def __init__(self):
-        from services.container import get_utilities_service
-        from services.utilities_service import UtilitiesService
-        from services.container import get_constants
         from constans import Constants
-        from services.container import get_container
-        from services.container import get_models_service
-        from services.models_service import ModelsService
+        from services.container import (
+            get_constants,
+            get_container,
+            get_datasets_service,
+            get_models_service,
+            get_utilities_service,
+        )
         from services.datasets_service import DatasetsService
-        from services.container import get_datasets_service
+        from services.models_service import ModelsService
+        from services.utilities_service import UtilitiesService
         self.utilities_service: UtilitiesService = get_utilities_service()
         self.container = get_container()
         self.constants: Constants = get_constants()
@@ -117,7 +124,7 @@ class ActivationsService:
         images_tsne = scaler.fit_transform(images_tsne)
         label_filenames_coords = list()
 
-        for img_path, coords in zip(image_path, images_tsne):
+        for img_path, coords in zip(image_path, images_tsne, strict=False):
             label_filenames_coords.append(
                 LabelFilenameCoords(
                     label=request.label,

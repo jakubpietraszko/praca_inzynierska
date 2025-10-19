@@ -1,11 +1,12 @@
 from pydantic import BaseModel
-from typing import List
+
 from .label_filename import LabelFilename
+
 
 class MasksRequest(BaseModel):
     model: str
     dataset: str
-    images: List[LabelFilename]
+    images: list[LabelFilename]
     count: int
     overwrite: bool
 

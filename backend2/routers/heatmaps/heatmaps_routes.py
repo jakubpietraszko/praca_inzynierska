@@ -1,19 +1,37 @@
 import os
 
 from fastapi import APIRouter, Depends
-from interfaces.gradient import GradientRequest, GradientResponse, GradientStatisticRequest, GradientStatisticResponse, GradientStatisticsDatasetRequest, GradientStatisticsDatasetResponse, GradientStatisticsLabelRequest, GradientStatisticsLabelManyRequest, GradientStatisticsLabelManyResponse, GradientStatisticsDatasetManyRequest, GradientStatisticsDatasetManyResponse
-from interfaces.shapes import ShapeMetricsLabelRequest, ShapeMetricsLabelResponse
-from interfaces.shapes import ShapeMetricsDatasetRequest, ShapeMetricsDatasetResponse
 
-from interfaces.all_heatmaps import AllHeatmapsResponse
 from constans import Constants
-from services.container import get_constants
-from services.container import get_container
-
-from services.container import HeatmapsService, get_heatmaps_service
-from services.container import HeatmapsFacedeService, get_heatmaps_facede_service
-
-from interfaces.unsupervised_heatmaps import UnsupervisedHeatmapsRequest, UnsupervisedHeatmapsResponse, FilenameCoords
+from interfaces.all_heatmaps import AllHeatmapsResponse
+from interfaces.gradient import (
+    GradientRequest,
+    GradientResponse,
+    GradientStatisticRequest,
+    GradientStatisticResponse,
+    GradientStatisticsDatasetManyRequest,
+    GradientStatisticsDatasetManyResponse,
+    GradientStatisticsDatasetRequest,
+    GradientStatisticsDatasetResponse,
+    GradientStatisticsLabelManyRequest,
+    GradientStatisticsLabelManyResponse,
+    GradientStatisticsLabelRequest,
+)
+from interfaces.shapes import (
+    ShapeMetricsDatasetRequest,
+    ShapeMetricsDatasetResponse,
+    ShapeMetricsLabelRequest,
+    ShapeMetricsLabelResponse,
+)
+from interfaces.unsupervised_heatmaps import UnsupervisedHeatmapsRequest, UnsupervisedHeatmapsResponse
+from services.container import (
+    HeatmapsFacedeService,
+    HeatmapsService,
+    get_constants,
+    get_container,
+    get_heatmaps_facede_service,
+    get_heatmaps_service,
+)
 
 router = APIRouter()
 

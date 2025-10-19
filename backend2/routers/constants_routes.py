@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends
+
 from services.constants_service import ConstantsService
 from services.container import get_constants_service
 

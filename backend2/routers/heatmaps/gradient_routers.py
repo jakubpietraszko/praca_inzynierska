@@ -1,11 +1,9 @@
 from fastapi import APIRouter, Depends
 
-from interfaces.gradient import GradientRequest, GradientResponse
-from services.container import get_constants
-from services.heatmaps_facede_service import HeatmapsFacedeService
-from services.container import get_heatmaps_facede_service
 from constans import Constants
-
+from interfaces.gradient import GradientRequest, GradientResponse
+from services.container import get_constants, get_heatmaps_facede_service
+from services.heatmaps_facede_service import HeatmapsFacedeService
 
 router = APIRouter()
 

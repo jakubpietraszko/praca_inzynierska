@@ -1,6 +1,6 @@
-from fastapi import APIRouter, HTTPException, Depends
-from pydantic import BaseModel
-from services.config_service import ConfigModel, ConfigService
+from fastapi import APIRouter, Depends
+
+from services.config_service import ConfigModel
 from services.container import get_config_service
 
 router = APIRouter()

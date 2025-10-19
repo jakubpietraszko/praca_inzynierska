@@ -1,9 +1,11 @@
+import importlib
 import os
 from dataclasses import dataclass
+
+import torch
 import torch.nn as nn
 import torchvision.transforms as transforms
-import importlib
-import torch
+
 
 @dataclass
 class ModelInfo:
@@ -21,14 +23,14 @@ class ModelsService:
     async def list_available_models(self) -> list[str]:
         models = os.listdir(self.models_path)
         return models
-    
+
     async def load_model(self, model_name: str) -> ModelInfo:
         path = os.path.join(self.models_path, model_name, 'model.py')
         spec = importlib.util.spec_from_file_location('loadModel', path)
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
 
-        model, last_conv_layer, transform, label_to_idx, input_shape = getattr(module, 'loadModel')()
+        model, last_conv_layer, transform, label_to_idx, input_shape = module.loadModel()
         model_info = ModelInfo(
             name=model_name,
             model=model,
@@ -50,7 +52,7 @@ class ModelsService:
             def hook(module, input, output):
                 layers.append((name, module))
             return hook
-        
+
         for name, module in model_info.model.named_modules():
             if name:
                 hook = module.register_forward_hook(hook_fn(name))

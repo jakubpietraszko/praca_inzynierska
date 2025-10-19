@@ -1,23 +1,19 @@
-import os
 import base64
-from typing import Dict
-import numpy as np
+import os
+
 import cv2
+import numpy as np
 from PIL import Image
-from interfaces.gradient import GradientRequest, GradientResponse, LabelFilenameTarget
+
+from interfaces.gradient import GradientRequest, LabelFilenameTarget
 
 
 class ModelsDatasetsService:
     def __init__(self, models_datasets_path: str, datasets_path: str, utilities_service, constants):
-        from services.container import get_constants
-
-        from services.container import get_datasets_service
+        from services.container import get_constants, get_datasets_service, get_heatmaps_facede_service
         from services.datasets_service import DatasetsService
-
-        from services.utilities_service import UtilitiesService
-
-        from services.container import get_heatmaps_facede_service
         from services.heatmaps_facede_service import HeatmapsFacedeService
+        from services.utilities_service import UtilitiesService
 
         self.models_datasets_path = models_datasets_path
         self.datasets_path = datasets_path
@@ -199,7 +195,7 @@ class ModelsDatasetsService:
             return False
         return True
 
-    async def numerator_denominator(self, model: str, dataset: str, label: str) -> tuple[Dict[str, int], int]:
+    async def numerator_denominator(self, model: str, dataset: str, label: str) -> tuple[dict[str, int], int]:
         dataset_dir_path = os.path.join(
             self.datasets_path, dataset, label
         )
