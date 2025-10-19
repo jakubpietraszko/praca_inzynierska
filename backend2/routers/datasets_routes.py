@@ -1,17 +1,25 @@
+
 from fastapi import APIRouter, Depends
-from services.container import get_datasets_service, get_models_datasets_service
+
 from interfaces.all_datasets import AllDatasetsResponse
+from interfaces.all_images import AllImagesResponse, AllsImagesRequest
 from interfaces.all_labels import AllLabelsRequest, AllLabelsResponse
-from interfaces.all_images import AllsImagesRequest, AllImagesResponse
-from interfaces.fetch_image import FetchImageRequest, FetchImageResponse, FetchActivationImageRequest, FetchModelsDatasetsRequest
+from interfaces.fetch_image import (
+    FetchActivationImageRequest,
+    FetchImageRequest,
+    FetchImageResponse,
+    FetchModelsDatasetsRequest,
+)
+from services.container import (
+    Constants,
+    get_constants,
+    get_datasets_service,
+    get_models_datasets_service,
+    get_utilities_service,
+)
 from services.datasets_service import DatasetsService
 from services.models_datasets_service import ModelsDatasetsService
-from services.container import get_container, ServiceContainer
 from services.utilities_service import UtilitiesService
-from services.container import get_utilities_service
-from services.container import get_constants, Constants
-import os
-
 
 router = APIRouter()
 

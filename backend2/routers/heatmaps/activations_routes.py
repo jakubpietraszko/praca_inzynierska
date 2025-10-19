@@ -1,10 +1,8 @@
-import numpy as np
 from fastapi import APIRouter, Depends
+
 from interfaces.activations import ActivationsRequest, ActivationsResponse
 from interfaces.unsupervised_activations import UnsupervisedActivationsRequest, UnsupervisedActivationsResponse
-from services.container import ActivationsService
-from services.container import get_activations_service
-
+from services.container import ActivationsService, get_activations_service
 
 router = APIRouter()
 

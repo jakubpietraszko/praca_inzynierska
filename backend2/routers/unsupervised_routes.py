@@ -1,38 +1,42 @@
+import os
+
+import numpy as np
 from fastapi import APIRouter, Depends
+from PIL import Image
+from sklearn.manifold import TSNE
+from sklearn.preprocessing import MinMaxScaler, normalize
 
 from constans import Constants
-from services.container import ServiceContainer, ModelsService, HeatmapsService, UtilitiesService, ModelsDatasetsService, DatasetsService
-from services.container import get_container, get_models_service, get_heatmaps_service, get_utilities_service, get_models_datasets_service, get_datasets_service, get_constants
-from interfaces.unsupervised_activations import LabelFilenameCoords, UnsupervisedActivationsRequest, UnsupervisedActivationsResponse
-from interfaces.unsupervised_heatmaps import UnsupervisedHeatmapsRequest, UnsupervisedHeatmapsResponse
-from interfaces.gradient import GradientRequest, GradientResponse
+from interfaces.gradient import GradientRequest
 from interfaces.label_filename import LabelFilenameTarget
-from services.container import HeatmapsFacedeService, get_heatmaps_facede_service
-from interfaces.unsupervised_heatmaps import FilenameCoords
-import numpy as np
-import os
-from PIL import Image
-
-from sklearn.manifold import TSNE
-from sklearn.preprocessing import normalize, MinMaxScaler
+from interfaces.unsupervised_activations import (
+    LabelFilenameCoords,
+    UnsupervisedActivationsRequest,
+    UnsupervisedActivationsResponse,
+)
+from interfaces.unsupervised_heatmaps import FilenameCoords, UnsupervisedHeatmapsRequest, UnsupervisedHeatmapsResponse
+from services.container import (
+    DatasetsService,
+    HeatmapsFacedeService,
+    ServiceContainer,
+    UtilitiesService,
+    get_constants,
+    get_container,
+    get_datasets_service,
+    get_heatmaps_facede_service,
+    get_utilities_service,
+)
 
 router = APIRouter()
 
 
 @router.post('/activations', response_model=UnsupervisedActivationsResponse)
-async def activations(request: UnsupervisedActivationsRequest,
-                      container: ServiceContainer = Depends(get_container),
-                      models_service: ModelsService = Depends(
-                          get_models_service),
-                      heatmaps_service: HeatmapsService = Depends(
-                          get_heatmaps_service),
-                      utilities_service: UtilitiesService = Depends(
-                          get_utilities_service),
-                      models_datasets_service: ModelsDatasetsService = Depends(
-                          get_models_datasets_service),
-                      datasets_service: DatasetsService = Depends(
-                          get_datasets_service),
-                      constants: Constants = Depends(get_constants)):
+async def activations(request: UnsupervisedActivationsRequest):
+
+    container: ServiceContainer = Depends(get_container)
+    utilities_service: UtilitiesService = Depends(get_utilities_service)
+    constants: Constants = Depends(get_constants)
+
     images_dir = os.path.join(
         container.models_datasets_path,
         await utilities_service.models_datasets_path(request.model, request.dataset),
@@ -43,7 +47,7 @@ async def activations(request: UnsupervisedActivationsRequest,
     image_paths = [
         os.path.join(images_dir, f) for f in os.listdir(images_dir)
     ]
-    images = list()
+    images = []
 
     for image_path in image_paths:
         img = np.array(Image.open(image_path))
@@ -60,9 +64,9 @@ async def activations(request: UnsupervisedActivationsRequest,
     scaler = MinMaxScaler()
     images_tsne = scaler.fit_transform(images_tsne)
 
-    label_filenames_coords = list()
+    label_filenames_coords = []
 
-    for image_path, coords in zip(image_paths, images_tsne):
+    for image_path, coords in zip(image_paths, images_tsne, strict=False):
         label_filenames_coords.append(
             LabelFilenameCoords(
                 label=request.label,
@@ -80,21 +84,13 @@ async def activations(request: UnsupervisedActivationsRequest,
 
 
 @router.post('/heatmaps', response_model=UnsupervisedHeatmapsResponse)
-async def heatmaps(request: UnsupervisedHeatmapsRequest,
-                   container: ServiceContainer = Depends(get_container),
-                   models_service: ModelsService = Depends(
-                       get_models_service),
-                   heatmaps_service: HeatmapsService = Depends(
-                       get_heatmaps_service),
-                   utilities_service: UtilitiesService = Depends(
-                       get_utilities_service),
-                   models_datasets_service: ModelsDatasetsService = Depends(
-                       get_models_datasets_service),
-                   datasets_service: DatasetsService = Depends(
-                       get_datasets_service),
-                   heatmaps_facede_service: HeatmapsFacedeService = Depends(
-                       get_heatmaps_facede_service),
-                   constants: Constants = Depends(get_constants)):
+async def heatmaps(request: UnsupervisedHeatmapsRequest):
+
+    container: ServiceContainer = Depends(get_container)
+    utilities_service: UtilitiesService = Depends(get_utilities_service)
+    datasets_service: DatasetsService = Depends(get_datasets_service)
+    heatmaps_facede_service: HeatmapsFacedeService = Depends(get_heatmaps_facede_service)
+
     filenames = await datasets_service.list_filenames_in_label(
         dataset_name=request.dataset,
         label=request.label
@@ -113,7 +109,7 @@ async def heatmaps(request: UnsupervisedHeatmapsRequest,
         overwrite=False
     )
 
-    res = await heatmaps_facede_service.generate_heatmap(
+    await heatmaps_facede_service.generate_heatmap(
         request=req,
         type=request.heatmap
     )
@@ -135,7 +131,7 @@ async def heatmaps(request: UnsupervisedHeatmapsRequest,
             success=False
         )
 
-    images = list()
+    images = []
 
     for image_path in image_paths:
         img = np.array(Image.open(image_path))
@@ -152,9 +148,9 @@ async def heatmaps(request: UnsupervisedHeatmapsRequest,
     scaler = MinMaxScaler()
     images_tsne = scaler.fit_transform(images_tsne)
 
-    filenames_coords = list()
+    filenames_coords = []
 
-    for image_path, coords in zip(image_paths, images_tsne):
+    for image_path, coords in zip(image_paths, images_tsne, strict=False):
         filenames_coords.append(
             FilenameCoords(
                 filename=os.path.basename(image_path),

@@ -1,30 +1,31 @@
 import os
-import numpy as np
-import cv2
-import torch
-from fastapi import APIRouter, Depends
-from interfaces.edge import EdgeRequest, EdgeResponse
-from interfaces.activations import ActivationsRequest, ActivationsResponse
-from interfaces.gradient import GradientRequest, GradientResponse
-from services.container import ServiceContainer, ModelsService, HeatmapsService, UtilitiesService, ModelsDatasetsService, DatasetsService
-from services.container import get_container, get_models_service, get_heatmaps_service, get_utilities_service, get_models_datasets_service, get_datasets_service, get_constants
-from constans import Constants
-from PIL import Image
-import matplotlib.pyplot as plt
 
+import cv2
+import numpy as np
+from fastapi import APIRouter, Depends
+from PIL import Image
+
+from constans import Constants
+from interfaces.edge import EdgeRequest, EdgeResponse
+from services.container import (
+    ModelsService,
+    ServiceContainer,
+    UtilitiesService,
+    get_constants,
+    get_container,
+    get_models_service,
+    get_utilities_service,
+)
 
 router = APIRouter()
 
 @router.post('/edge-canny')
-async def canny_edge(edge_request: EdgeRequest,
-                        container: ServiceContainer = Depends(get_container),
-                        models_service: ModelsService = Depends(get_models_service),
-                        heatmaps_service: HeatmapsService = Depends(get_heatmaps_service),
-                        utilities_service: UtilitiesService = Depends(get_utilities_service),
-                        models_datasets_service: ModelsDatasetsService = Depends(get_models_datasets_service),
-                        datasets_service: DatasetsService = Depends(get_datasets_service),
-                        constants: Constants = Depends(get_constants)
-                     ):
+async def canny_edge(edge_request: EdgeRequest):
+    container: ServiceContainer = Depends(get_container)
+    models_service: ModelsService = Depends(get_models_service)
+    utilities_service: UtilitiesService = Depends(get_utilities_service)
+    constants: Constants = Depends(get_constants)
+
     model_info = await models_service.load_model(edge_request.model)
 
     for label_filename in edge_request.images:

@@ -1,28 +1,28 @@
-from fastapi import FastAPI
-import uvicorn
-import asyncio
 from concurrent.futures import ThreadPoolExecutor
+
+import uvicorn
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from routers.config_routes import router as config_router
+from routers.constants_routes import router as constants_router
 from routers.datasets_routes import router as datasets_router
-from routers.utilities_routes import router as utilities_router
-from routers.models_routes import router as models_router
-from routers.models_datasets_routes import router as models_datasets_router
-from routers.masks_routes import router as masks_router
+from routers.edge_routes import router as edge_router
 from routers.heatmaps.activations_routes import router as activations_router
 from routers.heatmaps.cam_routes import router as cam_router
 from routers.heatmaps.gradient_noise_routes import router as gradient_noise_router
 from routers.heatmaps.gradient_routers import router as gradient_router
-from routers.heatmaps.probing_routes import router as probing_router
-from routers.heatmaps.integrated_gradient_routes import router as integrated_gradient_router
-from routers.edge_routes import router as edge_router
-from routers.unsupervised_routes import router as unsupervised_router
 from routers.heatmaps.heatmaps_routes import router as heatmaps_router
+from routers.heatmaps.integrated_gradient_routes import router as integrated_gradient_router
 from routers.heatmaps.lrp_routes import router as lrp_router
-from routers.config_routes import router as config_router
-from routers.websocket_routes import router as websocket_router
+from routers.heatmaps.probing_routes import router as probing_router
+from routers.masks_routes import router as masks_router
+from routers.models_datasets_routes import router as models_datasets_router
+from routers.models_routes import router as models_router
 from routers.statistics_routes import router as statistics_router
-from routers.constants_routes import router as constants_router
+from routers.unsupervised_routes import router as unsupervised_router
+from routers.utilities_routes import router as utilities_router
+from routers.websocket_routes import router as websocket_router
 
 app = FastAPI()
 
@@ -67,10 +67,6 @@ async def root():
     return {
         "message": "Welcome",
     }
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    app.state.executor.shutdown(wait=True)
 
 if __name__ == "__main__":
     uvicorn.run(

@@ -157,7 +157,7 @@ class Constants:
             self.XAI_TRANSLATIONS[self.GUIDED_BACKPROPAGATION] = 'Guided Backpropagation'
         if self.INPUT_GRADIENT in self.AVAILABLE_HEATMAPS:
             self.XAI_TRANSLATIONS[self.INPUT_GRADIENT] = 'Input Gradient'
-        
+
         if self.INTEGRATED_GRADIENT in self.AVAILABLE_HEATMAPS:
             self.XAI_TRANSLATIONS[self.INTEGRATED_GRADIENT] = 'Integrated Gradient'
 
@@ -201,7 +201,7 @@ class Constants:
         if self.LRP_W2 in self.AVAILABLE_HEATMAPS:
             self.XAI_TRANSLATIONS[self.LRP_W2] = 'LRP W2'
 
-    CMAP: str = 'hot',
+    CMAP: str = 'hot'
     EPSILON: float = 1e-8
     BASELINE: int = 0
     STEPS: int = 50
