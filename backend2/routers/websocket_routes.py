@@ -8,8 +8,8 @@ router = APIRouter()
 @router.websocket("/ws")
 async def websocket_endpoint(
     websocket: WebSocket,
+    container: ServiceContainer = Depends(get_container)  # noqa: B008
 ):
-    container: ServiceContainer = Depends(get_container)
     websocket_service = container.websocket_service
     await websocket_service.connect(websocket)
 

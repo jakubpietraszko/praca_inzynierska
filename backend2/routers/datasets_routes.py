@@ -25,7 +25,7 @@ router = APIRouter()
 
 
 @router.get('/all-datasets', response_model=AllDatasetsResponse)
-async def all_datasets(datasets_service: DatasetsService = Depends(get_datasets_service)):
+async def all_datasets(datasets_service: DatasetsService = Depends(get_datasets_service)):  # noqa: B008
     datasets = await datasets_service.list_available_datasets()
     return AllDatasetsResponse(datasets=datasets)
 
@@ -33,7 +33,7 @@ async def all_datasets(datasets_service: DatasetsService = Depends(get_datasets_
 @router.get('/all-labels/{dataset}', response_model=AllLabelsResponse)
 async def all_labels_get(
     dataset: str,
-    datasets_service: DatasetsService = Depends(get_datasets_service)
+    datasets_service: DatasetsService = Depends(get_datasets_service)  # noqa: B008
 ):
     labels = await datasets_service.list_labels_in_dataset(dataset)
     return AllLabelsResponse(labels=labels)
@@ -42,7 +42,7 @@ async def all_labels_get(
 @router.post('/all-labels', response_model=AllLabelsResponse)
 async def all_labels(
     request: AllLabelsRequest,
-    datasets_service: DatasetsService = Depends(get_datasets_service)
+    datasets_service: DatasetsService = Depends(get_datasets_service)  # noqa: B008
 ):
     labels = await datasets_service.list_labels_in_dataset(request.dataset)
     return AllLabelsResponse(labels=labels)
@@ -51,7 +51,7 @@ async def all_labels(
 @router.post('/all-images', response_model=AllImagesResponse)
 async def all_images(
     request: AllsImagesRequest,
-    datasets_service: DatasetsService = Depends(get_datasets_service)
+    datasets_service: DatasetsService = Depends(get_datasets_service)  # noqa: B008
 ):
     images = await datasets_service.list_filenames_in_label(
         request.dataset, request.label)
@@ -62,7 +62,7 @@ async def all_images(
 async def all_images_get(
     dataset: str,
     label: str,
-    datasets_service: DatasetsService = Depends(get_datasets_service)
+    datasets_service: DatasetsService = Depends(get_datasets_service)  # noqa: B008
 ):
     try:
         images = await datasets_service.list_filenames_in_label(
@@ -75,7 +75,7 @@ async def all_images_get(
 @router.post('/fetch-image', response_model=FetchImageResponse)
 async def fetch_image(
     request: FetchImageRequest,
-    datasets_service: DatasetsService = Depends(get_datasets_service)
+    datasets_service: DatasetsService = Depends(get_datasets_service)  # noqa: B008
 ):
     image = await datasets_service.fetch_image(
         dataset=request.dataset,
@@ -90,7 +90,7 @@ async def fetch_image(
     dataset: str,
     label: str,
     filename: str,
-    datasets_service: DatasetsService = Depends(get_datasets_service)
+    datasets_service: DatasetsService = Depends(get_datasets_service)  # noqa: B008
 ):
     image = await datasets_service.fetch_image(
         dataset=dataset,

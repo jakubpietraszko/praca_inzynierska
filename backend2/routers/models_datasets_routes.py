@@ -29,15 +29,17 @@ router = APIRouter()
 
 
 @router.post('/init-dir', response_model=InitDirResponse)
-async def init_dir(request: InitDirRequest):
-    models_datasets_service: ModelsDatasetsService = Depends(get_models_datasets_service)
+async def init_dir(request: InitDirRequest,
+                   models_datasets_service: ModelsDatasetsService = Depends(get_models_datasets_service)  # noqa: B008
+                   ):
     success = await models_datasets_service.init_dir(request.model, request.dataset)
     return InitDirResponse(success=success)
 
 
 @router.put('/models-datasets', response_model=Response)
-async def models_datasets(request: ModelDatasetI):
-    models_datasets_service: ModelsDatasetsService = Depends(get_models_datasets_service)
+async def models_datasets(request: ModelDatasetI,
+                           models_datasets_service: ModelsDatasetsService = Depends(get_models_datasets_service)  # noqa: B008
+                           ):
     success = await models_datasets_service.full_init_dir(
         request.model, request.dataset
     )
@@ -45,9 +47,9 @@ async def models_datasets(request: ModelDatasetI):
 
 
 @router.get('/numerator-denominator', response_model=NumeratorDenominator)
-async def numerator_denominator(model: str, dataset: str, label: str):
-    models_datasets_service: ModelsDatasetsService = Depends(
-                                    get_models_datasets_service)
+async def numerator_denominator(model: str, dataset: str, label: str,
+                                models_datasets_service: ModelsDatasetsService = Depends(get_models_datasets_service)  # noqa: B008
+                                ):
     numerator, denominator = await models_datasets_service.numerator_denominator(
         model, dataset, label
     )
