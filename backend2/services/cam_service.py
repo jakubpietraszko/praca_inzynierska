@@ -93,15 +93,20 @@ class CAMService:
             # activations (1, b, h, w)
             # gradients (1, b, h, w)
             weights = gradients.mean(dim=(2, 3), keepdim=True)
+            weights = torch.nn.functional.relu(weights)
+            print(weights.min(), weights.max())
             # weights (1, b, 1, 1)
             # normalize weights
             weights = weights / (torch.sum(weights) + EPSILON)
+            print(weights.min(), weights.max())
             cam = (weights * activations).sum(dim=1, keepdim=True)
+            print(cam.min(), cam.max())
             # cam (1, 1, h, w)
             cam = cam.squeeze().cpu().detach().numpy()
             cam = await utilities_service.relu_normalize(
                 cam, model_info.input_shape, EPSILON
             )
+            print(cam.min(), cam.max())
             # cam (H, W)
 
             cv2.imwrite(save_path, cam)

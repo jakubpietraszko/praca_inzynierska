@@ -16,27 +16,25 @@ TRANSFORM = Compose([
 
 
 class dogsVsCatsModel(nn.Module):
-    def __init__(self, weights='DEFAULT', freeze_features=True):
+    def __init__(self, pretrained=True, freeze_features=True):
         super(dogsVsCatsModel, self).__init__()
-        
-        self.mobilenet = models.mobilenet_v3_small(weights=weights)
-        
+
+        self.regnet = models.regnet_y_400mf(pretrained=pretrained)
         if freeze_features:
-            for param in self.mobilenet.features.parameters():
+            for param in self.regnet.parameters():
                 param.requires_grad = False
-        
-        self.mobilenet.classifier = nn.Sequential(
-            nn.Dropout(0.2),
-            nn.Linear(576, 2)
-        )
-    
+
+        self.regnet.fc = nn.Linear(440, 2)
+
     def forward(self, x):
-        return self.mobilenet(x)
+        x = self.regnet(x)
+        return x
+
 
 def loadModel():
     model = dogsVsCatsModel()
     model_path = os.path.join(
         os.path.dirname(__file__), 'best_model.pth'
     )
-    model.load_state_dict(torch.load(model_path))
-    return model, model.mobilenet.features[12][0], TRANSFORM, LABEL_TO_IDX, (3, 224, 224)
+    model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
+    return model, model.regnet.trunk_output.block4[-1].f.c[0], TRANSFORM, LABEL_TO_IDX, (3, 224, 224)

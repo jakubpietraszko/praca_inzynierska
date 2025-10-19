@@ -52,5 +52,5 @@ class mnistModel(nn.Module):
 def loadModel():
     model = mnistModel()
     model_path = os.path.join(os.path.dirname(__file__), 'best_model.pth')
-    model.load_state_dict(torch.load(model_path))
+    model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
     return model, list(model.modules())[0].conv2, TRANSFORM, LABEL_TO_IDX, (1, 28, 28)

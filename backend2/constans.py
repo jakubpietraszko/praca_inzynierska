@@ -208,4 +208,4 @@ class Constants:
     NOISE_LEVEL: float = 0.1
     NUM_SAMPLES: int = 50
     AGGREGATION: str = 'max'  # mean, sum, max
-    CACHE_ENABLED: bool = True
+    CACHE_ENABLED: bool = False
