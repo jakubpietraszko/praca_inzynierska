@@ -202,11 +202,17 @@ class Constants:
             self.XAI_TRANSLATIONS[self.LRP_W2] = 'LRP W2'
 
     CMAP: str = 'hot'
-    EPSILON: float = 1e-8
     BASELINE: int = 0
     STEPS: int = 50
     NOISE_LEVEL: float = 0.1
     NUM_SAMPLES: int = 50
-    AGGREGATION: str = 'max'  # mean, sum, max
     CACHE_ENABLED: bool = False
     BATCH_SIZE: int = 16
+
+    EPSILON: float = 1e-8
+    AGGREGATION: str = 'max'  # mean, sum, max
+
+    DEFAULT_EPSILON: float = 1e-6
+    DEFAULT_AGGREGATION: str = 'max'
+    DEFAULT_N_SAMPLES: int = 50
+    DEFAULT_NOISE_LEVEL: float = 0.1

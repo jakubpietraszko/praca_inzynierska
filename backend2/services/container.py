@@ -12,6 +12,7 @@ from .gradient_service import GradientService
 from .heatmaps_facede_service import HeatmapsFacedeService
 from .heatmaps_service import HeatmapsService
 from .integrated_gradient_service import IntegratedGradientsService
+from .logger_service import LoggerService
 from .lrp_service import LRPService
 from .masks_service import MasksService
 from .models_datasets_service import ModelsDatasetsService
@@ -55,6 +56,7 @@ class ServiceContainer:
         self._websocket_service = None
         self._statistics_service = None
         self._constants_service = None
+        self._logger_service = None
 
     @property
     def datasets_service(self) -> DatasetsService:
@@ -170,6 +172,12 @@ class ServiceContainer:
             self._constants_service = ConstantsService()
         return self._constants_service
 
+    @property
+    def logger_service(self):
+        if self._logger_service is None:
+            self._logger_service = LoggerService()
+        return self._logger_service
+
 _container: ServiceContainer | None = None
 
 def get_container() -> ServiceContainer:
@@ -235,3 +243,6 @@ def get_statistics_service() -> StatisticsService:
 
 def get_constants_service() -> ConstantsService:
     return get_container().constants_service
+
+def get_logger_service() -> LoggerService:
+    return get_container().logger_service
