@@ -7,6 +7,7 @@ import numpy as np
 import torch
 
 from interfaces.gradient import GradientRequest, GradientResponse
+from services.config_service import XAIMethodConfig
 
 
 class CAMService:
@@ -15,6 +16,7 @@ class CAMService:
             ConfigService,
             Constants,
             DatasetsService,
+            LoggerService,
             ModelsService,
             ServiceContainer,
             UtilitiesService,
@@ -23,10 +25,12 @@ class CAMService:
             get_constants,
             get_container,
             get_datasets_service,
+            get_logger_service,
             get_models_service,
             get_utilities_service,
             get_websocket_service,
         )
+
         self.config_service: ConfigService = get_config_service()
         self.websocket_service: WebSocketService = get_websocket_service()
         self.constants: Constants = get_constants()
@@ -34,22 +38,21 @@ class CAMService:
         self.datasets_service: DatasetsService = get_datasets_service()
         self.utilities_service: UtilitiesService = get_utilities_service()
         self.models_service: ModelsService = get_models_service()
-
+        self.logger_service: LoggerService = get_logger_service()
 
     async def grad_cam(self, request: GradientRequest) -> GradientResponse:
         root_path = os.path.join(
             self.container.models_datasets_path,
-            await self.utilities_service.models_datasets_path(
-                request.model, request.dataset),
-            self.constants.GRAD_CAM
+            await self.utilities_service.models_datasets_path(request.model, request.dataset),
+            self.constants.GRAD_CAM,
         )
         os.makedirs(root_path, exist_ok=True)
 
         model_info = await self.models_service.load_model(request.model)
 
-        config = await self.config_service.get_method_config('grad_cam')
-        EPSILON = config.epsilon
-        print(EPSILON)
+        config: XAIMethodConfig = await self.config_service.get_method_config(self.constants.GRAD_CAM)
+
+        self.logger_service.log(f"Grad-CAM config: EPSILON={config.epsilon}")
 
         for image in request.images:
             label = image.label
@@ -65,25 +68,15 @@ class CAMService:
             )
             os.makedirs(label_path, exist_ok=True)
 
-            save_path = os.path.join(
-                label_path,
-                await self.utilities_service.add_png_extension(filename)
-            )
+            save_path = os.path.join(label_path, await self.utilities_service.add_png_extension(filename))
 
             if self.constants.CACHE_ENABLED and await self.utilities_service.skip_forward(save_path):
                 continue
 
-            image_path = os.path.join(
-                self.container.datasets_path,
-                request.dataset,
-                label,
-                filename
-            )
+            image_path = os.path.join(self.container.datasets_path, request.dataset, label, filename)
 
-            image_np = await self.datasets_service.load_image(
-                image_path, model_info.input_shape)
-            image_tensor = await self.utilities_service.convert_image_to_tensor(
-                image_np, grad=True)
+            image_np = await self.datasets_service.load_image(image_path, model_info.input_shape)
+            image_tensor = await self.utilities_service.convert_image_to_tensor(image_np, grad=True)
 
             model_info.model.eval()
 
@@ -99,8 +92,7 @@ class CAMService:
                 gradients = o[0].clone().detach()
 
             h1 = model_info.last_conv_layer.register_forward_hook(forward_hook)
-            h2 = model_info.last_conv_layer.register_full_backward_hook(
-                backward_hook)
+            h2 = model_info.last_conv_layer.register_full_backward_hook(backward_hook)
             model_info.model.eval()
             image_tensor.requires_grad_(True)
             output = model_info.model(image_tensor)
@@ -114,14 +106,14 @@ class CAMService:
             print(weights.min(), weights.max())
             # weights (1, b, 1, 1)
             # normalize weights
-            weights = weights / (torch.sum(weights) + EPSILON)
+            weights = weights / (torch.sum(weights) + (config.epsilon or self.constants.DEFAULT_EPSILON))
             print(weights.min(), weights.max())
             cam = (weights * activations).sum(dim=1, keepdim=True)
             print(cam.min(), cam.max())
             # cam (1, 1, h, w)
             cam = cam.squeeze().cpu().detach().numpy()
             cam = await self.utilities_service.relu_normalize(
-                cam, model_info.input_shape, EPSILON
+                cam, model_info.input_shape, config.epsilon or self.constants.DEFAULT_EPSILON
             )
             print(cam.min(), cam.max())
             # cam (H, W)
@@ -133,7 +125,7 @@ class CAMService:
                     model=request.model,
                     label=label,
                     filename=filename,
-                    heatmap_type="grad_cam"
+                    heatmap_type=self.constants.GRAD_CAM,
                 )
 
         return GradientResponse(
@@ -143,17 +135,16 @@ class CAMService:
     async def grad_cam_plus_plus(self, request: GradientRequest) -> GradientResponse:
         root_path = os.path.join(
             self.container.models_datasets_path,
-            await self.utilities_service.models_datasets_path(
-                request.model, request.dataset),
-            self.constants.GRAD_CAM_PLUS_PLUS
+            await self.utilities_service.models_datasets_path(request.model, request.dataset),
+            self.constants.GRAD_CAM_PLUS_PLUS,
         )
         os.makedirs(root_path, exist_ok=True)
 
         model_info = await self.models_service.load_model(request.model)
 
-        EPSILON = (await self.config_service.get_method_config(
-            'grad_cam_plus_plus')).epsilon
-        print(EPSILON)
+        config: XAIMethodConfig = await self.config_service.get_method_config(self.constants.GRAD_CAM_PLUS_PLUS)
+
+        self.logger_service.log(f"Grad-CAM++ config: EPSILON={config.epsilon}")
 
         for image in request.images:
             label = image.label
@@ -166,25 +157,15 @@ class CAMService:
                 label,
             )
             os.makedirs(label_path, exist_ok=True)
-            save_path = os.path.join(
-                label_path,
-                await self.utilities_service.add_png_extension(filename)
-            )
+            save_path = os.path.join(label_path, await self.utilities_service.add_png_extension(filename))
 
             if self.constants.CACHE_ENABLED and await self.utilities_service.skip_forward(save_path):
                 continue
 
-            image_path = os.path.join(
-                self.container.datasets_path,
-                request.dataset,
-                label,
-                filename
-            )
+            image_path = os.path.join(self.container.datasets_path, request.dataset, label, filename)
 
-            image_np = await self.datasets_service.load_image(
-                image_path, model_info.input_shape)
-            image_tensor = await self.utilities_service.convert_image_to_tensor(
-                image_np, grad=True)
+            image_np = await self.datasets_service.load_image(image_path, model_info.input_shape)
+            image_tensor = await self.utilities_service.convert_image_to_tensor(image_np, grad=True)
 
             model_info.model.eval()
 
@@ -200,8 +181,7 @@ class CAMService:
                 gradients = o[0].clone().detach()
 
             h1 = model_info.last_conv_layer.register_forward_hook(forward_hook)
-            h2 = model_info.last_conv_layer.register_full_backward_hook(
-                backward_hook)
+            h2 = model_info.last_conv_layer.register_full_backward_hook(backward_hook)
 
             model_info.model.eval()
             image_tensor.requires_grad_(True)
@@ -218,11 +198,9 @@ class CAMService:
             # grads (1, b, h, w)
             # grads_2 (1, b, h, w)
             # grads_3 (1, b, h, w)
-            spatial_sums = (
-                activations * grads_3).sum(dim=(2, 3), keepdim=True)
+            spatial_sums = (activations * grads_3).sum(dim=(2, 3), keepdim=True)
             # spatial_sums (1, b, 1, 1)
-            epsilon = EPSILON
-            alphas = grads_2 / (2 * grads_2 + spatial_sums + epsilon)
+            alphas = grads_2 / (2 * grads_2 + spatial_sums + (config.epsilon or self.constants.DEFAULT_EPSILON))
             # alphas (1, b, h, w)
             relu_grads = torch.relu(grads)
             weights = (alphas * relu_grads).sum(dim=(2, 3), keepdim=True)
@@ -231,7 +209,7 @@ class CAMService:
             # cam (1, 1, h, w)
             cam = cam.squeeze().cpu().detach().numpy()
             cam = await self.utilities_service.relu_normalize(
-                cam, model_info.input_shape, EPSILON
+                cam, model_info.input_shape, (config.epsilon or self.constants.DEFAULT_EPSILON)
             )
             # cam (H, W)
             cv2.imwrite(save_path, cam)
@@ -242,7 +220,7 @@ class CAMService:
                     model=request.model,
                     label=label,
                     filename=filename,
-                    heatmap_type="grad_cam_plus_plus"
+                    heatmap_type=self.constants.GRAD_CAM_PLUS_PLUS,
                 )
 
         return GradientResponse(
@@ -252,21 +230,18 @@ class CAMService:
     async def group_cam(self, request: GradientRequest) -> GradientResponse:
         root_path = os.path.join(
             self.container.models_datasets_path,
-            await self.utilities_service.models_datasets_path(
-                request.model, request.dataset),
-            self.constants.GROUP_CAM
+            await self.utilities_service.models_datasets_path(request.model, request.dataset),
+            self.constants.GROUP_CAM,
         )
         os.makedirs(root_path, exist_ok=True)
 
         model_info = await self.models_service.load_model(request.model)
 
-        config = await self.config_service.get_method_config('group_cam')
-        EPSILON = config.epsilon
-        G = config.group_size
-        ksize = config.k_size
-        sigma = config.sigma
+        config: XAIMethodConfig = await self.config_service.get_method_config(self.constants.GROUP_CAM)
 
-        print(EPSILON, G, ksize, sigma)
+        self.logger_service.log(
+            f"Group-CAM config: EPSILON={config.epsilon}, G={config.group_size}, ksize={config.k_size}, sigma={config.sigma}"
+        )
 
         for image in request.images:
             label = image.label
@@ -277,25 +252,15 @@ class CAMService:
 
             label_path = os.path.join(root_path, label)
             os.makedirs(label_path, exist_ok=True)
-            save_path = os.path.join(
-                label_path,
-                await self.utilities_service.add_png_extension(filename)
-            )
+            save_path = os.path.join(label_path, await self.utilities_service.add_png_extension(filename))
 
             if self.constants.CACHE_ENABLED and await self.utilities_service.skip_forward(save_path):
                 continue
 
-            image_path = os.path.join(
-                self.container.datasets_path,
-                request.dataset,
-                label,
-                filename
-            )
+            image_path = os.path.join(self.container.datasets_path, request.dataset, label, filename)
 
-            image_np = await self.datasets_service.load_image(
-                image_path, model_info.input_shape)
-            image_tensor = await self.utilities_service.convert_image_to_tensor(
-                image_np, grad=True)
+            image_np = await self.datasets_service.load_image(image_path, model_info.input_shape)
+            image_tensor = await self.utilities_service.convert_image_to_tensor(image_np, grad=True)
 
             model_info.model.eval()
 
@@ -304,12 +269,15 @@ class CAMService:
                 image_np_for_blur = np.transpose(image_np_for_blur, (1, 2, 0))
 
             blurred_np = cv2.GaussianBlur(
-                image_np_for_blur, (ksize, ksize), sigma)
+                image_np_for_blur,
+                (config.k_size or self.constants.DEFAULT_KSIZE, config.k_size or self.constants.DEFAULT_KSIZE),
+                config.sigma or self.constants.DEFAULT_SIGMA,
+            )
 
             if blurred_np.ndim == 3:
                 blurred_np = np.transpose(blurred_np, (2, 0, 1))
             blurred_image = torch.from_numpy(blurred_np).unsqueeze(0).float()
-            if image_tensor.device.type == 'cuda':
+            if image_tensor.device.type == "cuda":
                 blurred_image = blurred_image.cuda()
 
             activations = None
@@ -324,8 +292,7 @@ class CAMService:
                 gradients = o[0].clone().detach()
 
             h1 = model_info.last_conv_layer.register_forward_hook(forward_hook)
-            h2 = model_info.last_conv_layer.register_full_backward_hook(
-                backward_hook)
+            h2 = model_info.last_conv_layer.register_full_backward_hook(backward_hook)
 
             image_tensor.requires_grad_(True)
             output = model_info.model(image_tensor)
@@ -340,51 +307,46 @@ class CAMService:
             # weights (1, b, 1, 1)
 
             K = activations.shape[1]
-            g = K // G
+            g = K // (config.group_size or self.constants.DEFAULT_GROUP_SIZE)
 
             group_cam_result = torch.zeros_like(image_tensor)
 
             with torch.no_grad():
                 baseline_output = model_info.model(blurred_image)
-                baseline_confidence = torch.softmax(baseline_output, dim=1)[
-                    0, target].item()
+                baseline_confidence = torch.softmax(baseline_output, dim=1)[0, target].item()
 
-            for l in range(G):
+            for l in range(config.group_size or self.constants.DEFAULT_GROUP_SIZE):
                 start_idx = l * g
                 end_idx = min((l + 1) * g, K)
 
                 group_activations = activations[:, start_idx:end_idx, :, :]
                 group_weights = weights[:, start_idx:end_idx, :, :]
 
-                M_l = torch.relu(
-                    (group_weights * group_activations).sum(dim=1, keepdim=True))
+                M_l = torch.relu((group_weights * group_activations).sum(dim=1, keepdim=True))
 
                 M_l_processed = await self.utilities_service.relu_normalize(
                     M_l.squeeze().cpu().detach().numpy(),
                     model_info.input_shape,
-                    self.constants.EPSILON
+                    config.epsilon or self.constants.DEFAULT_EPSILON,
                 )
 
-                M_l_prime = torch.from_numpy(
-                    M_l_processed).unsqueeze(0).unsqueeze(0).float()
+                M_l_prime = torch.from_numpy(M_l_processed).unsqueeze(0).unsqueeze(0).float()
                 M_l_prime = torch.nn.functional.interpolate(
                     M_l_prime,
-                    size=(model_info.input_shape[1],
-                          model_info.input_shape[2]),
-                    mode='bilinear',
-                    align_corners=False
+                    size=(model_info.input_shape[1], model_info.input_shape[2]),
+                    mode="bilinear",
+                    align_corners=False,
                 )
 
-                M_l_prime = (M_l_prime - M_l_prime.min()) / \
-                    (M_l_prime.max() - M_l_prime.min() + self.constants.EPSILON)
+                M_l_prime = (M_l_prime - M_l_prime.min()) / (
+                    M_l_prime.max() - M_l_prime.min() + (config.epsilon or self.constants.DEFAULT_EPSILON)
+                )
 
-                I_l_prime = image_tensor * M_l_prime + \
-                    blurred_image * (1 - M_l_prime)
+                I_l_prime = image_tensor * M_l_prime + blurred_image * (1 - M_l_prime)
 
                 with torch.no_grad():
                     perturbed_output = model_info.model(I_l_prime)
-                    perturbed_confidence = torch.softmax(perturbed_output, dim=1)[
-                        0, target].item()
+                    perturbed_confidence = torch.softmax(perturbed_output, dim=1)[0, target].item()
 
                 alpha_l = perturbed_confidence - baseline_confidence
 
@@ -396,9 +358,7 @@ class CAMService:
             if group_cam_final.ndim == 3:
                 group_cam_final = np.mean(group_cam_final, axis=0)
 
-            group_cam_final = cv2.normalize(
-                group_cam_final, None, 0, 255, cv2.NORM_MINMAX
-            ).astype(np.uint8)
+            group_cam_final = cv2.normalize(group_cam_final, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8)
 
             cv2.imwrite(save_path, group_cam_final)
             with contextlib.suppress(builtins.BaseException):
@@ -407,7 +367,7 @@ class CAMService:
                     model=request.model,
                     label=label,
                     filename=filename,
-                    heatmap_type="group_cam"
+                    heatmap_type=self.constants.GROUP_CAM,
                 )
 
         return GradientResponse(
@@ -417,17 +377,16 @@ class CAMService:
     async def hires_cam(self, request: GradientRequest) -> GradientResponse:
         root_path = os.path.join(
             self.container.models_datasets_path,
-            await self.utilities_service.models_datasets_path(
-                request.model, request.dataset),
-            self.constants.HIRES_CAM
+            await self.utilities_service.models_datasets_path(request.model, request.dataset),
+            self.constants.HIRES_CAM,
         )
         os.makedirs(root_path, exist_ok=True)
 
         model_info = await self.models_service.load_model(request.model)
 
-        config = await self.config_service.get_method_config('hires_cam')
-        EPSILON = config.epsilon
-        print(EPSILON)
+        config: XAIMethodConfig = await self.config_service.get_method_config(self.constants.HIRES_CAM)
+
+        self.logger_service.log(f"HiRes-CAM config: EPSILON={config.epsilon}")
 
         for image in request.images:
             label = image.label
@@ -440,25 +399,15 @@ class CAMService:
                 label,
             )
             os.makedirs(label_path, exist_ok=True)
-            save_path = os.path.join(
-                label_path,
-                await self.utilities_service.add_png_extension(filename)
-            )
+            save_path = os.path.join(label_path, await self.utilities_service.add_png_extension(filename))
 
             if self.constants.CACHE_ENABLED and await self.utilities_service.skip_forward(save_path):
                 continue
 
-            image_path = os.path.join(
-                self.container.datasets_path,
-                request.dataset,
-                label,
-                filename
-            )
+            image_path = os.path.join(self.container.datasets_path, request.dataset, label, filename)
 
-            image_np = await self.datasets_service.load_image(
-                image_path, model_info.input_shape)
-            image_tensor = await self.utilities_service.convert_image_to_tensor(
-                image_np, grad=True)
+            image_np = await self.datasets_service.load_image(image_path, model_info.input_shape)
+            image_tensor = await self.utilities_service.convert_image_to_tensor(image_np, grad=True)
 
             model_info.model.eval()
 
@@ -474,8 +423,7 @@ class CAMService:
                 gradients = o[0].clone().detach()
 
             h1 = model_info.last_conv_layer.register_forward_hook(forward_hook)
-            h2 = model_info.last_conv_layer.register_full_backward_hook(
-                backward_hook)
+            h2 = model_info.last_conv_layer.register_full_backward_hook(backward_hook)
 
             output = model_info.model(image_tensor)
             output[0, target].backward()
@@ -494,7 +442,7 @@ class CAMService:
             # cam (h, w)
 
             cam = await self.utilities_service.relu_normalize(
-                cam, model_info.input_shape, EPSILON
+                cam, model_info.input_shape, config.epsilon or self.constants.DEFAULT_EPSILON
             )
             # cam (H, W)
 
@@ -506,7 +454,7 @@ class CAMService:
                     model=request.model,
                     label=label,
                     filename=filename,
-                    heatmap_type="hires_cam"
+                    heatmap_type=self.constants.HIRES_CAM,
                 )
         return GradientResponse(
             success=True,
@@ -515,17 +463,16 @@ class CAMService:
     async def wgrad_cam(self, request: GradientRequest) -> GradientResponse:
         root_path = os.path.join(
             self.container.models_datasets_path,
-            await self.utilities_service.models_datasets_path(
-                request.model, request.dataset),
-            self.constants.WGRAD_CAM
+            await self.utilities_service.models_datasets_path(request.model, request.dataset),
+            self.constants.WGRAD_CAM,
         )
         os.makedirs(root_path, exist_ok=True)
 
         model_info = await self.models_service.load_model(request.model)
 
-        config = await self.config_service.get_method_config('wgrad_cam')
-        EPSILON = config.epsilon
-        print(EPSILON)
+        config = await self.config_service.get_method_config(self.constants.WGRAD_CAM)
+
+        self.logger_service.log(f"WGrad-CAM config: EPSILON={config.epsilon}")
 
         for image in request.images:
             label = image.label
@@ -539,25 +486,15 @@ class CAMService:
                 label,
             )
             os.makedirs(label_path, exist_ok=True)
-            save_path = os.path.join(
-                label_path,
-                await self.utilities_service.add_png_extension(filename)
-            )
+            save_path = os.path.join(label_path, await self.utilities_service.add_png_extension(filename))
 
             if self.constants.CACHE_ENABLED and await self.utilities_service.skip_forward(save_path):
                 continue
 
-            image_path = os.path.join(
-                self.container.datasets_path,
-                request.dataset,
-                label,
-                filename
-            )
+            image_path = os.path.join(self.container.datasets_path, request.dataset, label, filename)
 
-            image_np = await self.datasets_service.load_image(
-                image_path, model_info.input_shape)
-            image_tensor = await self.utilities_service.convert_image_to_tensor(
-                image_np, grad=True)
+            image_np = await self.datasets_service.load_image(image_path, model_info.input_shape)
+            image_tensor = await self.utilities_service.convert_image_to_tensor(image_np, grad=True)
 
             model_info.model.eval()
 
@@ -573,8 +510,7 @@ class CAMService:
                 gradients = o[0].clone().detach()
 
             h1 = model_info.last_conv_layer.register_forward_hook(forward_hook)
-            h2 = model_info.last_conv_layer.register_full_backward_hook(
-                backward_hook)
+            h2 = model_info.last_conv_layer.register_full_backward_hook(backward_hook)
 
             image_tensor.requires_grad_(True)
             output = model_info.model(image_tensor)
@@ -596,7 +532,7 @@ class CAMService:
                 G_k = gradients[0, k, :, :]
                 weights[k] = torch.mean(A_k * G_k)
 
-            weights = weights / (torch.sum(weights) + EPSILON)
+            weights = weights / (torch.sum(weights) + (config.epsilon or self.constants.DEFAULT_EPSILON))
 
             weights = weights.unsqueeze(-1).unsqueeze(-1)
             # weights (b, 1, 1)
@@ -608,7 +544,7 @@ class CAMService:
             cam = cam.cpu().detach().numpy()
 
             cam = await self.utilities_service.relu_normalize(
-                cam, model_info.input_shape, EPSILON
+                cam, model_info.input_shape, config.epsilon or self.constants.DEFAULT_EPSILON
             )
             # cam (H, W)
 
@@ -620,7 +556,7 @@ class CAMService:
                     model=request.model,
                     label=label,
                     filename=filename,
-                    heatmap_type="wgrad_cam"
+                    heatmap_type=self.constants.WGRAD_CAM,
                 )
 
         return GradientResponse(
@@ -630,17 +566,16 @@ class CAMService:
     async def ablation_cam(self, request: GradientRequest) -> GradientResponse:
         root_path = os.path.join(
             self.container.models_datasets_path,
-            await self.utilities_service.models_datasets_path(
-                request.model, request.dataset),
-            self.constants.ABLATION_CAM
+            await self.utilities_service.models_datasets_path(request.model, request.dataset),
+            self.constants.ABLATION_CAM,
         )
         os.makedirs(root_path, exist_ok=True)
 
         model_info = await self.models_service.load_model(request.model)
 
-        config = await self.config_service.get_method_config('ablation_cam')
-        EPSILON = config.epsilon
-        print(EPSILON)
+        config: XAIMethodConfig = await self.config_service.get_method_config(self.constants.ABLATION_CAM)
+
+        self.logger_service.log(f"Ablation-CAM config: EPSILON={config.epsilon}")
 
         for image in request.images:
             label = image.label
@@ -653,25 +588,15 @@ class CAMService:
                 label,
             )
             os.makedirs(label_path, exist_ok=True)
-            save_path = os.path.join(
-                label_path,
-                await self.utilities_service.add_png_extension(filename)
-            )
+            save_path = os.path.join(label_path, await self.utilities_service.add_png_extension(filename))
 
             if self.constants.CACHE_ENABLED and await self.utilities_service.skip_forward(save_path):
                 continue
 
-            image_path = os.path.join(
-                self.container.datasets_path,
-                request.dataset,
-                label,
-                filename
-            )
+            image_path = os.path.join(self.container.datasets_path, request.dataset, label, filename)
 
-            image_np = await self.datasets_service.load_image(
-                image_path, model_info.input_shape)
-            image_tensor = await self.utilities_service.convert_image_to_tensor(
-                image_np, grad=True)
+            image_np = await self.datasets_service.load_image(image_path, model_info.input_shape)
+            image_tensor = await self.utilities_service.convert_image_to_tensor(image_np, grad=True)
 
             model_info.model.eval()
 
@@ -694,13 +619,13 @@ class CAMService:
             # weights (b,)
 
             for i in range(activations.shape[1]):
+
                 def hook_zeros_k_map(module, inp, out):
                     modified_output = out.clone()
                     modified_output[:, i] = 0
                     return modified_output
 
-                hook = model_info.last_conv_layer.register_forward_hook(
-                    hook_zeros_k_map)
+                hook = model_info.last_conv_layer.register_forward_hook(hook_zeros_k_map)
 
                 pred_mod = model_info.model(image_tensor)
                 y_k = pred_mod[0, target].item()
@@ -715,17 +640,15 @@ class CAMService:
             # ablationcam (h, w)
 
             # normalize weights
-            weights = weights / (np.sum(weights) + EPSILON)
+            weights = weights / (np.sum(weights) + (config.epsilon or self.constants.DEFAULT_EPSILON))
 
             for i, w in enumerate(weights):
                 ablationcam += float(w) * activations[i, :, :]
 
             ablationcam = np.maximum(ablationcam, 0)
-            ablationcam = cv2.normalize(
-                ablationcam, None, 0, 255, cv2.NORM_MINMAX)
+            ablationcam = cv2.normalize(ablationcam, None, 0, 255, cv2.NORM_MINMAX)
 
-            ablationcam = cv2.resize(
-                ablationcam, (model_info.input_shape[2], model_info.input_shape[1]))
+            ablationcam = cv2.resize(ablationcam, (model_info.input_shape[2], model_info.input_shape[1]))
             # ablationcam (H, W)
 
             cv2.imwrite(save_path, ablationcam)
@@ -736,7 +659,7 @@ class CAMService:
                     model=request.model,
                     label=label,
                     filename=filename,
-                    heatmap_type="ablation_cam"
+                    heatmap_type=self.constants.ABLATION_CAM,
                 )
         return GradientResponse(
             success=True,
@@ -745,17 +668,15 @@ class CAMService:
     async def xgrad_cam(self, request: GradientRequest) -> GradientResponse:
         root_path = os.path.join(
             self.container.models_datasets_path,
-            await self.utilities_service.models_datasets_path(
-                request.model, request.dataset),
-            self.constants.XGRAD_CAM
+            await self.utilities_service.models_datasets_path(request.model, request.dataset),
+            self.constants.XGRAD_CAM,
         )
         os.makedirs(root_path, exist_ok=True)
 
         model_info = await self.models_service.load_model(request.model)
 
-        config = await self.config_service.get_method_config('xgrad_cam')
-        EPSILON = config.epsilon
-        print(EPSILON)
+        config = await self.config_service.get_method_config(self.constants.XGRAD_CAM)
+        self.logger_service.log(f"XGrad-CAM config: EPSILON={config.epsilon}")
 
         for image in request.images:
             label = image.label
@@ -769,25 +690,15 @@ class CAMService:
                 label,
             )
             os.makedirs(label_path, exist_ok=True)
-            save_path = os.path.join(
-                label_path,
-                await self.utilities_service.add_png_extension(filename)
-            )
+            save_path = os.path.join(label_path, await self.utilities_service.add_png_extension(filename))
 
             if self.constants.CACHE_ENABLED and await self.utilities_service.skip_forward(save_path):
                 continue
 
-            image_path = os.path.join(
-                self.container.datasets_path,
-                request.dataset,
-                label,
-                filename
-            )
+            image_path = os.path.join(self.container.datasets_path, request.dataset, label, filename)
 
-            image_np = await self.datasets_service.load_image(
-                image_path, model_info.input_shape)
-            image_tensor = await self.utilities_service.convert_image_to_tensor(
-                image_np, grad=True)
+            image_np = await self.datasets_service.load_image(image_path, model_info.input_shape)
+            image_tensor = await self.utilities_service.convert_image_to_tensor(image_np, grad=True)
 
             model_info.model.eval()
 
@@ -803,8 +714,7 @@ class CAMService:
                 gradients = o[0].clone().detach()
 
             h1 = model_info.last_conv_layer.register_forward_hook(forward_hook)
-            h2 = model_info.last_conv_layer.register_full_backward_hook(
-                backward_hook)
+            h2 = model_info.last_conv_layer.register_full_backward_hook(backward_hook)
 
             image_tensor.requires_grad_(True)
             output = model_info.model(image_tensor)
@@ -830,7 +740,7 @@ class CAMService:
             cam = cam.squeeze().cpu().detach().numpy()
 
             cam = await self.utilities_service.relu_normalize(
-                cam, model_info.input_shape, EPSILON
+                cam, model_info.input_shape, config.epsilon or self.constants.DEFAULT_EPSILON
             )
             # cam (H, W)
 
@@ -842,7 +752,7 @@ class CAMService:
                     model=request.model,
                     label=label,
                     filename=filename,
-                    heatmap_type="xgrad_cam"
+                    heatmap_type=self.constants.XGRAD_CAM,
                 )
         return GradientResponse(
             success=True,

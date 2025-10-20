@@ -1,4 +1,3 @@
-
 from pydantic import BaseModel, Field
 
 
@@ -25,8 +24,12 @@ class ConfigModel(BaseModel):
 
 class ConfigService:
     def __init__(self, base_dir: str):
+        from services.container import Constants, get_constants
+
+        self.constants: Constants = get_constants()
+
         self.base_dir = base_dir
-        self.NAME = 'config.json'
+        self.NAME = self.constants.CONFIG_FILENAME
         self._config = None
 
     @property
@@ -46,42 +49,111 @@ class ConfigService:
         with open(path) as f:
             data = json.load(f)
             methods = {}
-            for method_name, method_params in data.get('methods', {}).items():
+            for method_name, method_params in data.get("methods", {}).items():
                 methods[method_name] = XAIMethodConfig(**method_params)
             return ConfigModel(methods=methods)
 
     async def _get_default_config(self) -> ConfigModel:
         default_methods = {
-            "grad_cam": XAIMethodConfig(epsilon=1e-6),
-            "grad_cam_plus_plus": XAIMethodConfig(epsilon=1e-6),
-            "group_cam": XAIMethodConfig(epsilon=1e-6, group_size=8, k_size=5, sigma=0.5),
-            "hires_cam": XAIMethodConfig(epsilon=1e-6),
-            "wgrad_cam": XAIMethodConfig(epsilon=1e-6),
-            "ablation_cam": XAIMethodConfig(epsilon=1e-6),
-            "xgrad_cam": XAIMethodConfig(epsilon=1e-6),
-
-            "smooth_grad": XAIMethodConfig(epsilon=1e-6, n_samples=50, noise_level=0.1, aggregation="max"),
-            "smooth_grad_squared": XAIMethodConfig(epsilon=1e-6, n_samples=50, noise_level=0.1, aggregation="max"),
-            "var_grad": XAIMethodConfig(epsilon=1e-6, n_samples=50, noise_level=0.1, aggregation="max"),
-
-            "gradient": XAIMethodConfig(epsilon=1e-6, aggregation="max"),
-            "gradient_squared": XAIMethodConfig(epsilon=1e-6, aggregation="max"),
-            "deconvolution": XAIMethodConfig(epsilon=1e-6, aggregation="max"),
-            "guided_backpropagation": XAIMethodConfig(epsilon=1e-6, aggregation="max"),
-            "input_gradient": XAIMethodConfig(epsilon=1e-6, aggregation="max"),
-
-            "integrated_gradient": XAIMethodConfig(epsilon=1e-6, baseline=0, steps=50, aggregation="max"),
-
-            "xrai": XAIMethodConfig(epsilon=1e-6, aggregation="max", baseline=0, super_pixels=30, segmentation="seed"),
-            "kernel_shap": XAIMethodConfig(epsilon=1e-6, n_samples=50, aggregation="max", baseline=0, super_pixels=30, segmentation="seed"),
-            "lime": XAIMethodConfig(epsilon=1e-6, n_samples=50, aggregation="max", baseline=0, super_pixels=30, segmentation="seed"),
-
-            "lrp_epsilon": XAIMethodConfig(epsilon=1e-6, aggregation="max"),
-            "lrp_gamma": XAIMethodConfig(epsilon=1e-6, gamma=0.75, aggregation="max"),
-            "lrp_alpha_beta": XAIMethodConfig(epsilon=1e-6, alpha=2.5, beta=1.5, aggregation="max"),
-            "lrp_zplus": XAIMethodConfig(epsilon=1e-6, aggregation="max"),
-            "lrp_w2": XAIMethodConfig(epsilon=1e-6, aggregation="max"),
-
+            self.constants.GRAD_CAM: XAIMethodConfig(epsilon=self.constants.DEFAULT_EPSILON),
+            self.constants.GRAD_CAM_PLUS_PLUS: XAIMethodConfig(epsilon=self.constants.DEFAULT_EPSILON),
+            self.constants.GROUP_CAM: XAIMethodConfig(
+                epsilon=self.constants.DEFAULT_EPSILON,
+                group_size=self.constants.DEFAULT_GROUP_SIZE,
+                k_size=self.constants.DEFAULT_KSIZE,
+                sigma=self.constants.DEFAULT_SIGMA,
+            ),
+            self.constants.HIRES_CAM: XAIMethodConfig(epsilon=self.constants.DEFAULT_EPSILON),
+            self.constants.WGRAD_CAM: XAIMethodConfig(epsilon=self.constants.DEFAULT_EPSILON),
+            self.constants.ABLATION_CAM: XAIMethodConfig(epsilon=self.constants.DEFAULT_EPSILON),
+            self.constants.XGRAD_CAM: XAIMethodConfig(epsilon=self.constants.DEFAULT_EPSILON),
+            self.constants.SMOOTH_GRADIENT: XAIMethodConfig(
+                epsilon=self.constants.DEFAULT_EPSILON,
+                n_samples=self.constants.DEFAULT_N_SAMPLES,
+                noise_level=self.constants.DEFAULT_NOISE_LEVEL,
+                aggregation=self.constants.DEFAULT_AGGREGATION,
+            ),
+            self.constants.SMOOTH_GRADIENT_SQUARE: XAIMethodConfig(
+                epsilon=self.constants.DEFAULT_EPSILON,
+                n_samples=self.constants.DEFAULT_N_SAMPLES,
+                noise_level=self.constants.DEFAULT_NOISE_LEVEL,
+                aggregation=self.constants.DEFAULT_AGGREGATION,
+            ),
+            self.constants.VAR_GRADIENT: XAIMethodConfig(
+                epsilon=self.constants.DEFAULT_EPSILON,
+                n_samples=self.constants.DEFAULT_N_SAMPLES,
+                noise_level=self.constants.DEFAULT_NOISE_LEVEL,
+                aggregation=self.constants.DEFAULT_AGGREGATION,
+            ),
+            self.constants.GRADIENT: XAIMethodConfig(
+                epsilon=self.constants.DEFAULT_EPSILON,
+                aggregation=self.constants.DEFAULT_AGGREGATION,
+            ),
+            self.constants.GRADIENT_SQUARED: XAIMethodConfig(
+                epsilon=self.constants.DEFAULT_EPSILON,
+                aggregation=self.constants.DEFAULT_AGGREGATION,
+            ),
+            self.constants.DECONVOLUTION: XAIMethodConfig(
+                epsilon=self.constants.DEFAULT_EPSILON,
+                aggregation=self.constants.DEFAULT_AGGREGATION,
+            ),
+            self.constants.GUIDED_BACKPROPAGATION: XAIMethodConfig(
+                epsilon=self.constants.DEFAULT_EPSILON,
+                aggregation=self.constants.DEFAULT_AGGREGATION,
+            ),
+            self.constants.INPUT_GRADIENT: XAIMethodConfig(
+                epsilon=self.constants.DEFAULT_EPSILON,
+                aggregation=self.constants.DEFAULT_AGGREGATION,
+            ),
+            self.constants.INTEGRATED_GRADIENT: XAIMethodConfig(
+                epsilon=self.constants.DEFAULT_EPSILON,
+                baseline=self.constants.DEFAULT_BASELINE,
+                steps=self.constants.DEFAULT_STEPS,
+                aggregation=self.constants.DEFAULT_AGGREGATION,
+            ),
+            self.constants.XRAI: XAIMethodConfig(
+                epsilon=self.constants.DEFAULT_EPSILON,
+                aggregation=self.constants.DEFAULT_AGGREGATION,
+                baseline=self.constants.DEFAULT_BASELINE,
+                super_pixels=self.constants.DEFAULT_SUPER_PIXELS,
+                segmentation=self.constants.DEFAULT_SEGMENTATION,
+            ),
+            self.constants.KERNEL_SHAP: XAIMethodConfig(
+                epsilon=self.constants.DEFAULT_EPSILON,
+                n_samples=self.constants.DEFAULT_N_SAMPLES,
+                aggregation=self.constants.DEFAULT_AGGREGATION,
+                baseline=self.constants.DEFAULT_BASELINE,
+                super_pixels=self.constants.DEFAULT_SUPER_PIXELS,
+                segmentation=self.constants.DEFAULT_SEGMENTATION,
+            ),
+            self.constants.LIME: XAIMethodConfig(
+                epsilon=self.constants.DEFAULT_EPSILON,
+                n_samples=self.constants.DEFAULT_N_SAMPLES,
+                aggregation=self.constants.DEFAULT_AGGREGATION,
+                baseline=self.constants.DEFAULT_BASELINE,
+                super_pixels=self.constants.DEFAULT_SUPER_PIXELS,
+                segmentation=self.constants.DEFAULT_SEGMENTATION,
+            ),
+            self.constants.LRP_EPSILON: XAIMethodConfig(
+                epsilon=self.constants.DEFAULT_EPSILON, aggregation=self.constants.DEFAULT_AGGREGATION
+            ),
+            self.constants.LRP_GAMMA: XAIMethodConfig(
+                epsilon=self.constants.DEFAULT_EPSILON,
+                gamma=self.constants.DEFAULT_GAMMA,
+                aggregation=self.constants.DEFAULT_AGGREGATION,
+            ),
+            self.constants.LRP_ALPHA_BETA: XAIMethodConfig(
+                epsilon=self.constants.DEFAULT_EPSILON,
+                alpha=self.constants.DEFAULT_ALPHA,
+                beta=self.constants.DEFAULT_BETA,
+                aggregation=self.constants.DEFAULT_AGGREGATION,
+            ),
+            self.constants.LRP_ZPLUS: XAIMethodConfig(
+                epsilon=self.constants.DEFAULT_EPSILON, aggregation=self.constants.DEFAULT_AGGREGATION
+            ),
+            self.constants.LRP_W2: XAIMethodConfig(
+                epsilon=self.constants.DEFAULT_EPSILON, aggregation=self.constants.DEFAULT_AGGREGATION
+            ),
         }
         return ConfigModel(methods=default_methods)
 
@@ -97,7 +169,7 @@ class ConfigService:
             }
         }
 
-        with open(path, 'w') as f:
+        with open(path, "w") as f:
             json.dump(config_dict, f, indent=4)
 
         self._config = config
@@ -109,7 +181,7 @@ class ConfigService:
             if method_name in default_config.methods:
                 return default_config.methods[method_name]
             else:
-                return XAIMethodConfig(epsilon=1e-6)
+                return XAIMethodConfig(epsilon=self.constants.DEFAULT_EPSILON)
         return config.methods[method_name]
 
     async def update_method_config(self, method_name: str, method_config: XAIMethodConfig):
