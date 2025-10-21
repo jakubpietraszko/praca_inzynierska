@@ -12,9 +12,7 @@ from interfaces.unsupervised_heatmaps import FilenameCoords, UnsupervisedHeatmap
 
 
 class HeatmapsService:
-    def __init__(self,
-                 dataset_path: str,
-                 models_datasets_path: str):
+    def __init__(self, dataset_path: str, models_datasets_path: str):
         from services.container import (
             get_container,
             get_datasets_service,
@@ -33,58 +31,37 @@ class HeatmapsService:
         self.dataset_path = dataset_path
         self.models_datasets_path = models_datasets_path
 
-    async def activations(self) -> tuple[np.ndarray, int]:
-        pass
-
     async def all_available_heatmaps(self, constants):
         heatmaps = constants.AVAILABLE_HEATMAPS
-        return AllHeatmapsResponse(
-            heatmaps=heatmaps
-        )
+        return AllHeatmapsResponse(heatmaps=heatmaps)
 
     async def unsupervised_heatmaps(self, request):
         filenames = await self.dataset_service.list_filenames_in_label(
-            dataset_name=request.dataset,
-            label=request.label
+            dataset_name=request.dataset, label=request.label
         )
 
         req = GradientRequest(
             model=request.model,
             dataset=request.dataset,
-            images=[
-                LabelFilenameTarget(
-                    label=request.label,
-                    filename=filename,
-                    target=None
-                ) for filename in filenames
-            ],
-            overwrite=False
+            images=[LabelFilenameTarget(label=request.label, filename=filename, target=None) for filename in filenames],
+            overwrite=False,
         )
 
-        await self.heatmaps_facede_service.generate_heatmap(
-            request=req,
-            type=request.heatmap
-        )
+        await self.heatmaps_facede_service.generate_heatmap(request=req, type=request.heatmap)
 
         images_dir = os.path.join(
             self.container.models_datasets_path,
             await self.utilities_service.models_datasets_path(request.model, request.dataset),
             request.heatmap,
-            request.label
+            request.label,
         )
 
-        image_paths = [
-            os.path.join(images_dir, f) for f in os.listdir(images_dir)
-        ]
+        image_paths = [os.path.join(images_dir, f) for f in os.listdir(images_dir)]
 
         if len(image_paths) == 0:
-            return UnsupervisedHeatmapsResponse(
-                dataset=request.dataset,
-                label_filenames_coords=[],
-                success=False
-            )
+            return UnsupervisedHeatmapsResponse(filenames_coords=[], success=False)
 
-        images = list()
+        images = []
 
         for image_path in image_paths:
             img = np.array(Image.open(image_path))
@@ -98,18 +75,11 @@ class HeatmapsService:
         images_tsne = normalize(images_tsne, axis=0)
         scaler = MinMaxScaler()
         images_tsne = scaler.fit_transform(images_tsne)
-        filenames_coords = list()
+        filenames_coords = []
 
         for image_path, coords in zip(image_paths, images_tsne, strict=False):
             filenames_coords.append(
-                FilenameCoords(
-                    filename=os.path.basename(image_path),
-                    coordX=float(coords[0]),
-                    coordY=float(coords[1])
-                )
+                FilenameCoords(filename=os.path.basename(image_path), coordX=float(coords[0]), coordY=float(coords[1]))
             )
 
-        return UnsupervisedHeatmapsResponse(
-            filenames_coords=filenames_coords,
-            success=True
-        )
+        return UnsupervisedHeatmapsResponse(filenames_coords=filenames_coords, success=True)

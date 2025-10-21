@@ -6,12 +6,15 @@ class FetchImageRequest(BaseModel):
     label: str
     filename: str
 
+
 class FetchImageResponse(BaseModel):
     image: str
+
 
 class FetchActivationImageRequest(FetchImageRequest):
     model: str
     image: str
+
 
 class FetchModelsDatasetsRequest(FetchImageRequest):
     model: str

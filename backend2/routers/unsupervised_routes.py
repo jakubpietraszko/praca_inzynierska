@@ -30,9 +30,8 @@ from services.container import (
 router = APIRouter()
 
 
-@router.post('/activations', response_model=UnsupervisedActivationsResponse)
+@router.post("/activations", response_model=UnsupervisedActivationsResponse)
 async def activations(request: UnsupervisedActivationsRequest):
-
     container: ServiceContainer = Depends(get_container)
     utilities_service: UtilitiesService = Depends(get_utilities_service)
     constants: Constants = Depends(get_constants)
@@ -42,11 +41,9 @@ async def activations(request: UnsupervisedActivationsRequest):
         await utilities_service.models_datasets_path(request.model, request.dataset),
         constants.ACTIVATIONS,
         request.label,
-        await utilities_service.delete_extension(request.filename)
+        await utilities_service.delete_extension(request.filename),
     )
-    image_paths = [
-        os.path.join(images_dir, f) for f in os.listdir(images_dir)
-    ]
+    image_paths = [os.path.join(images_dir, f) for f in os.listdir(images_dir)]
     images = []
 
     for image_path in image_paths:
@@ -72,64 +69,44 @@ async def activations(request: UnsupervisedActivationsRequest):
                 label=request.label,
                 filename=os.path.basename(image_path),
                 coordX=float(coords[0]),
-                coordY=float(coords[1])
+                coordY=float(coords[1]),
             )
         )
 
     return UnsupervisedActivationsResponse(
-        dataset=request.dataset,
-        label_filenames_coords=label_filenames_coords,
-        success=True
+        dataset=request.dataset, label_filenames_coords=label_filenames_coords, success=True
     )
 
 
-@router.post('/heatmaps', response_model=UnsupervisedHeatmapsResponse)
+@router.post("/heatmaps", response_model=UnsupervisedHeatmapsResponse)
 async def heatmaps(request: UnsupervisedHeatmapsRequest):
-
     container: ServiceContainer = Depends(get_container)
     utilities_service: UtilitiesService = Depends(get_utilities_service)
     datasets_service: DatasetsService = Depends(get_datasets_service)
     heatmaps_facede_service: HeatmapsFacedeService = Depends(get_heatmaps_facede_service)
 
-    filenames = await datasets_service.list_filenames_in_label(
-        dataset_name=request.dataset,
-        label=request.label
-    )
+    filenames = await datasets_service.list_filenames_in_label(dataset_name=request.dataset, label=request.label)
 
     req = GradientRequest(
         model=request.model,
         dataset=request.dataset,
-        images=[
-            LabelFilenameTarget(
-                label=request.label,
-                filename=filename,
-                target=None
-            ) for filename in filenames
-        ],
-        overwrite=False
+        images=[LabelFilenameTarget(label=request.label, filename=filename, target=None) for filename in filenames],
+        overwrite=False,
     )
 
-    await heatmaps_facede_service.generate_heatmap(
-        request=req,
-        type=request.heatmap
-    )
+    await heatmaps_facede_service.generate_heatmap(request=req, type=request.heatmap)
 
     images_dir = os.path.join(
         container.models_datasets_path,
         await utilities_service.models_datasets_path(request.model, request.dataset),
         request.heatmap,
-        request.label
+        request.label,
     )
 
-    image_paths = [
-        os.path.join(images_dir, f) for f in os.listdir(images_dir)
-    ]
+    image_paths = [os.path.join(images_dir, f) for f in os.listdir(images_dir)]
 
     if len(image_paths) == 0:
-        return UnsupervisedHeatmapsResponse(
-            filenames_coords=[],
-            success=False
-        )
+        return UnsupervisedHeatmapsResponse(filenames_coords=[], success=False)
 
     images = []
 
@@ -152,14 +129,7 @@ async def heatmaps(request: UnsupervisedHeatmapsRequest):
 
     for image_path, coords in zip(image_paths, images_tsne, strict=False):
         filenames_coords.append(
-            FilenameCoords(
-                filename=os.path.basename(image_path),
-                coordX=float(coords[0]),
-                coordY=float(coords[1])
-            )
+            FilenameCoords(filename=os.path.basename(image_path), coordX=float(coords[0]), coordY=float(coords[1]))
         )
 
-    return UnsupervisedHeatmapsResponse(
-        filenames_coords=filenames_coords,
-        success=True
-    )
+    return UnsupervisedHeatmapsResponse(filenames_coords=filenames_coords, success=True)

@@ -8,6 +8,7 @@ import torch
 
 from interfaces.gradient import GradientRequest, GradientResponse
 from services.config_service import XAIMethodConfig
+from services.models_service import ModelInfo
 
 
 class CAMService:
@@ -80,8 +81,8 @@ class CAMService:
 
             model_info.model.eval()
 
-            activations = None
-            gradients = None
+            activations: torch.Tensor | None = None
+            gradients: torch.Tensor | None = None
 
             def forward_hook(module, i, o):
                 nonlocal activations
@@ -101,6 +102,8 @@ class CAMService:
             h2.remove()
             # activations (1, b, h, w)
             # gradients (1, b, h, w)
+            if activations is None or gradients is None:
+                raise RuntimeError("Failed to obtain activations or gradients from the model.")
             weights = gradients.mean(dim=(2, 3), keepdim=True)
             weights = torch.nn.functional.relu(weights)
             print(weights.min(), weights.max())
@@ -169,8 +172,8 @@ class CAMService:
 
             model_info.model.eval()
 
-            activations = None
-            gradients = None
+            activations: torch.Tensor | None = None
+            gradients: torch.Tensor | None = None
 
             def forward_hook(module, i, o):
                 nonlocal activations
@@ -190,7 +193,11 @@ class CAMService:
             h1.remove()
             h2.remove()
 
+            if activations is None or gradients is None:
+                raise RuntimeError("Failed to obtain activations or gradients from the model.")
+
             grads = gradients
+
             grads_2 = grads.pow(2)
             grads_3 = grads.pow(3)
 
@@ -280,8 +287,8 @@ class CAMService:
             if image_tensor.device.type == "cuda":
                 blurred_image = blurred_image.cuda()
 
-            activations = None
-            gradients = None
+            activations: torch.Tensor | None = None
+            gradients: torch.Tensor | None = None
 
             def forward_hook(module, i, o):
                 nonlocal activations
@@ -303,6 +310,9 @@ class CAMService:
             # activations (1, b, h, w)
             # gradients (1, b, h, w)
 
+            if activations is None or gradients is None:
+                raise RuntimeError("Failed to obtain activations or gradients from the model.")
+
             weights = gradients.mean(dim=(2, 3), keepdim=True)
             # weights (1, b, 1, 1)
 
@@ -318,6 +328,9 @@ class CAMService:
             for l in range(config.group_size or self.constants.DEFAULT_GROUP_SIZE):
                 start_idx = l * g
                 end_idx = min((l + 1) * g, K)
+
+                if activations is None or weights is None:
+                    raise RuntimeError("Failed to obtain activations or weights from the model.")
 
                 group_activations = activations[:, start_idx:end_idx, :, :]
                 group_weights = weights[:, start_idx:end_idx, :, :]
@@ -411,8 +424,8 @@ class CAMService:
 
             model_info.model.eval()
 
-            activations = None
-            gradients = None
+            activations: torch.Tensor | None = None
+            gradients: torch.Tensor | None = None
 
             def forward_hook(module, i, o):
                 nonlocal activations
@@ -435,6 +448,9 @@ class CAMService:
 
             weights = gradients
             # weights (1, b, h, w)
+
+            if activations is None or weights is None:
+                raise RuntimeError("Failed to obtain activations or weights from the model.")
 
             cam = (activations * weights).sum(dim=1, keepdim=True)
             # cam (1, 1, h, w)
@@ -498,8 +514,8 @@ class CAMService:
 
             model_info.model.eval()
 
-            activations = None
-            gradients = None
+            activations: torch.Tensor | None = None
+            gradients: torch.Tensor | None = None
 
             def forward_hook(module, i, o):
                 nonlocal activations
@@ -521,6 +537,9 @@ class CAMService:
 
             # activations (1, b, h, w)
             # gradients (1, b, h, w)
+
+            if gradients is None:
+                raise RuntimeError("Failed to obtain gradients from the model.")
 
             K = activations.shape[1]
 
@@ -571,7 +590,7 @@ class CAMService:
         )
         os.makedirs(root_path, exist_ok=True)
 
-        model_info = await self.models_service.load_model(request.model)
+        model_info: ModelInfo = await self.models_service.load_model(request.model)
 
         config: XAIMethodConfig = await self.config_service.get_method_config(self.constants.ABLATION_CAM)
 
@@ -600,7 +619,7 @@ class CAMService:
 
             model_info.model.eval()
 
-            activations = None
+            activations: torch.Tensor | None = None
 
             def forward_hook(module, inp, output):
                 nonlocal activations
@@ -613,8 +632,15 @@ class CAMService:
 
             h1.remove()
 
+            if activations is None:
+                raise RuntimeError("Failed to obtain activations from the model.")
+
             activations = activations.cpu().detach().numpy()
             # activations (1, b, h, w)
+
+            if activations is None:
+                raise RuntimeError("Failed to obtain activations from the model.")
+
             weights = np.zeros(activations.shape[1], dtype=np.float32)
             # weights (b,)
 
@@ -725,6 +751,9 @@ class CAMService:
 
             # activations (1, b, h, w)
             # gradients (1, b, h, w)
+
+            if activations is None or gradients is None:
+                raise RuntimeError("Failed to obtain activations or gradients from the model.")
 
             activations_x_gradient = activations * gradients
             # activations_x_gradient (1, b, h, w)

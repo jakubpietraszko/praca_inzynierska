@@ -11,8 +11,8 @@ class UnsupervisedHeatmapsRequest(BaseModel):
 
 class FilenameCoords(BaseModel):
     filename: str
-    coordX: float
-    coordY: float
+    coordX: float  # noqa: N815
+    coordY: float  # noqa: N815
 
 class UnsupervisedHeatmapsResponse(BaseModel):
     filenames_coords: list[FilenameCoords]

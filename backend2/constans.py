@@ -21,7 +21,7 @@ class Constants:
     MASK_SLIC: str = "mask_slic"
     MASK_SEED: str = "mask_seed"
 
-    # EDGE_CANNY: str = 'edge_canny'
+    EDGE_CANNY: str = 'edge_canny'
 
     ACTIVATIONS: str = "activations"
 
@@ -214,3 +214,9 @@ class Constants:
     DEFAULT_SUPER_PIXELS: int = 30
 
     CONFIG_FILENAME: str = "config.json"
+
+    THRESHOLD_ACTIVATIONS: float = 0.1
+
+    SEEDS_ITERATIONS: int = 5
+    SLIC_ITERATIONS: int = 5
+    SEEDS_LEVELS: int = 2

@@ -10,11 +10,11 @@ class UtilitiesService:
         pass
 
     async def env(self):
-        env = os.getenv('APP_ENV', 'development')
+        env = os.getenv("APP_ENV", "development")
         return env
 
     async def models_datasets_path(self, model: str, dataset: str) -> str:
-        result = model + '_' + dataset
+        result = model + "_" + dataset
         return result
 
     async def convert_image_to_tensor(self, image: np.ndarray, grad: bool = False):
@@ -34,12 +34,12 @@ class UtilitiesService:
         return image_tensor
 
     async def delete_extension(self, filename: str) -> str:
-        base = filename.split('.')[0]
+        base = filename.split(".")[0]
         return base
 
     async def add_png_extension(self, filename: str) -> str:
         base = await self.delete_extension(filename)
-        base += '.png'
+        base += ".png"
         return base
 
     async def relu_normalize(self, image: np.ndarray, shape: tuple, epsilon: float) -> np.ndarray:
@@ -61,11 +61,11 @@ class UtilitiesService:
     async def aggregate_channels(self, image: np.ndarray, type: str) -> np.ndarray:
         assert len(image.shape) == 3
 
-        if type == 'max':
+        if type == "max":
             image = np.max(image, axis=0)
-        elif type == 'mean':
+        elif type == "mean":
             image = np.mean(image, axis=0)
-        elif type == 'sum':
+        elif type == "sum":
             image = np.sum(image, axis=0)
 
         assert len(image.shape) == 2

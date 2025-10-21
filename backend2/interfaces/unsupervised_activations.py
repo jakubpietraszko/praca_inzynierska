@@ -11,8 +11,8 @@ class UnsupervisedActivationsRequest(BaseModel):
 class LabelFilenameCoords(BaseModel):
     label: str
     filename: str
-    coordX: float
-    coordY: float
+    coordX: float  # noqa: N815
+    coordY: float  # noqa: N815
 
 class UnsupervisedActivationsResponse(BaseModel):
     dataset: str

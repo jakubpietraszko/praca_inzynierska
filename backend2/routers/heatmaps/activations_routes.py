@@ -7,23 +7,20 @@ from services.container import ActivationsService, get_activations_service
 router = APIRouter()
 
 
-@router.post('/activations', response_model=ActivationsResponse)
-async def activations(request: ActivationsRequest,
-                      activations_service: ActivationsService = Depends(
-                          get_activations_service
-                      )
-                      ):
+@router.post("/activations", response_model=ActivationsResponse)
+async def activations(
+    request: ActivationsRequest, activations_service: ActivationsService = Depends(get_activations_service)  # noqa: B008
+):
     response = await activations_service.activations(
         request=request,
     )
     return response
 
-@router.post('/unsupervised-activations', response_model=UnsupervisedActivationsResponse)
-async def unsupervised_activations(request: UnsupervisedActivationsRequest,
-                      activations_service: ActivationsService = Depends(
-                          get_activations_service
-                      )
-                      ):
+
+@router.post("/unsupervised-activations", response_model=UnsupervisedActivationsResponse)
+async def unsupervised_activations(
+    request: UnsupervisedActivationsRequest, activations_service: ActivationsService = Depends(get_activations_service)  # noqa: B008
+):
     response = await activations_service.unsupervised_activations(
         request=request,
     )

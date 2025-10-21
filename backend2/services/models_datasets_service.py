@@ -27,107 +27,57 @@ class ModelsDatasetsService:
     async def init_dir(self, model: str, dataset: str) -> bool:
         try:
             await self.full_init_dir(model, dataset)
-        except:
+        except Exception:
             return False
         return True
 
-    async def load_image(self,
-                         model: str,
-                         dataset: str,
-                         label: str,
-                         heatmap: str,
-                         filename: str) -> np.ndarray:
-
+    async def load_image(self, model: str, dataset: str, label: str, heatmap: str, filename: str) -> np.ndarray:
         path = os.path.join(
             self.models_datasets_path,
             await self.utilities_service.models_datasets_path(model, dataset),
             heatmap,
             label,
-            filename
+            filename,
         )
 
-        image = Image.open(path).convert('L')
+        image = Image.open(path).convert("L")
         image = np.array(image)
 
         return image
 
-    async def fetch_activations_image(self,
-                                      models_dataset: str,
-                                      activations: str,
-                                      label: str,
-                                      filename: str,
-                                      image: str) -> bytes:
-        path = os.path.join(
-            self.models_datasets_path,
-            models_dataset,
-            activations,
-            label,
-            filename,
-            image
-        )
+    async def fetch_activations_image(
+        self, models_dataset: str, activations: str, label: str, filename: str, image: str
+    ) -> str:
+        path = os.path.join(self.models_datasets_path, models_dataset, activations, label, filename, image)
 
-        with open(path, 'rb') as f:
-            image = base64.b64encode(f.read()).decode('utf-8')
+        with open(path, "rb") as f:
+            image = base64.b64encode(f.read()).decode("utf-8")
 
         return image
 
-    async def fetch_image(self,
-                          models_dataset: str,
-                          type: str,
-                          label: str,
-                          filename: str) -> bytes:
-        path = os.path.join(
-            self.models_datasets_path,
-            models_dataset,
-            type,
-            label,
-            filename
-        )
+    async def fetch_image(self, models_dataset: str, type: str, label: str, filename: str) -> str:
+        path = os.path.join(self.models_datasets_path, models_dataset, type, label, filename)
 
-        images = [
-            LabelFilenameTarget(
-                label=label, filename=filename, target=None
-            )
-        ]
+        images = [LabelFilenameTarget(label=label, filename=filename, target=None)]
 
         request = GradientRequest(
-            model=models_dataset.split('_')[0],
-            dataset=models_dataset.split('_')[1],
-            images=images,
-            overwrite=False
+            model=models_dataset.split("_")[0], dataset=models_dataset.split("_")[1], images=images, overwrite=False
         )
 
         await self.heatmaps_facede_service.generate_heatmap(request, type=type)
 
-        with open(path, 'rb') as f:
-            image = base64.b64encode(f.read()).decode('utf-8')
+        with open(path, "rb") as f:
+            image = base64.b64encode(f.read()).decode("utf-8")
 
         return image
 
-    async def fetch_fourier_image(self,
-                                  models_dataset: str,
-                                  type: str,
-                                  label: str,
-                                  filename: str) -> bytes:
-        path = os.path.join(
-            self.models_datasets_path,
-            models_dataset,
-            type,
-            label,
-            filename
-        )
+    async def fetch_fourier_image(self, models_dataset: str, type: str, label: str, filename: str) -> str:
+        path = os.path.join(self.models_datasets_path, models_dataset, type, label, filename)
 
-        images = [
-            LabelFilenameTarget(
-                label=label, filename=filename, target=None
-            )
-        ]
+        images = [LabelFilenameTarget(label=label, filename=filename, target=None)]
 
         request = GradientRequest(
-            model=models_dataset.split('_')[0],
-            dataset=models_dataset.split('_')[1],
-            images=images,
-            overwrite=False
+            model=models_dataset.split("_")[0], dataset=models_dataset.split("_")[1], images=images, overwrite=False
         )
 
         await self.heatmaps_facede_service.generate_heatmap(request, type=type)
@@ -137,21 +87,18 @@ class ModelsDatasetsService:
         dft = cv2.dft(np.float32(image), flags=cv2.DFT_COMPLEX_OUTPUT)
         dft_shift = np.fft.fftshift(dft)
 
-        magnitude_spectrum = 20 * \
-            np.log(cv2.magnitude(dft_shift[:, :, 0], dft_shift[:, :, 1]) + 1)
+        magnitude_spectrum = 20 * np.log(cv2.magnitude(dft_shift[:, :, 0], dft_shift[:, :, 1]) + 1)
 
-        magnitude_spectrum = cv2.normalize(
-            magnitude_spectrum, None, 0, 255, cv2.NORM_MINMAX)
+        magnitude_spectrum = cv2.normalize(magnitude_spectrum, None, 0, 255, cv2.NORM_MINMAX)
         magnitude_spectrum = np.uint8(magnitude_spectrum)
 
-        _, buffer = cv2.imencode('.png', magnitude_spectrum)
-        image_b64 = base64.b64encode(buffer).decode('utf-8')
+        _, buffer = cv2.imencode(".png", magnitude_spectrum)
+        image_b64 = base64.b64encode(buffer).decode("utf-8")
 
         return image_b64
 
     async def full_init_dir(self, model: str, dataset: str) -> bool:
-        name_of_dir = await self.utilities_service.models_datasets_path(
-            model, dataset)
+        name_of_dir = await self.utilities_service.models_datasets_path(model, dataset)
         full_path = os.path.join(self.models_datasets_path, name_of_dir)
 
         try:
@@ -161,15 +108,16 @@ class ModelsDatasetsService:
             os.makedirs(path, exist_ok=True)
 
             for label in await self.datasets_service.list_labels_in_dataset(dataset):
-                path = os.path.join(
-                    full_path, self.constants.ACTIVATIONS, label)
+                path = os.path.join(full_path, self.constants.ACTIVATIONS, label)
                 os.makedirs(path, exist_ok=True)
 
                 for filename in await self.datasets_service.list_filenames_in_label(dataset, label):
                     path = os.path.join(
-                        full_path, self.constants.ACTIVATIONS, label, await self.utilities_service.delete_extension(
-                            filename
-                        ))
+                        full_path,
+                        self.constants.ACTIVATIONS,
+                        label,
+                        await self.utilities_service.delete_extension(filename),
+                    )
                     os.makedirs(path, exist_ok=True)
 
             for dir_name in self.constants.AVAILABLE_HEATMAPS:
@@ -177,28 +125,23 @@ class ModelsDatasetsService:
                 os.makedirs(path, exist_ok=True)
 
                 for label in await self.datasets_service.list_labels_in_dataset(dataset):
-                    path = os.path.join(
-                        full_path, dir_name, label)
+                    path = os.path.join(full_path, dir_name, label)
                     os.makedirs(path, exist_ok=True)
 
             for dir_name in self.constants.AVAILABLE_HEATMAPS:
-                path = os.path.join(
-                    full_path, self.constants.STATISTICS, dir_name)
+                path = os.path.join(full_path, self.constants.STATISTICS, dir_name)
                 os.makedirs(path, exist_ok=True)
 
                 for label in await self.datasets_service.list_labels_in_dataset(dataset):
-                    path = os.path.join(
-                        full_path, self.constants.STATISTICS, dir_name, label)
+                    path = os.path.join(full_path, self.constants.STATISTICS, dir_name, label)
                     os.makedirs(path, exist_ok=True)
 
-        except:
+        except Exception:
             return False
         return True
 
     async def numerator_denominator(self, model: str, dataset: str, label: str) -> tuple[dict[str, int], int]:
-        dataset_dir_path = os.path.join(
-            self.datasets_path, dataset, label
-        )
+        dataset_dir_path = os.path.join(self.datasets_path, dataset, label)
 
         xai_base_path = os.path.join(
             self.models_datasets_path,
@@ -212,9 +155,7 @@ class ModelsDatasetsService:
 
         for xai_method in self.constants.AVAILABLE_HEATMAPS:
             xai_path = os.path.join(
-                xai_base_path,
-                await self.utilities_service.models_datasets_path(model, dataset),
-                xai_method, label
+                xai_base_path, await self.utilities_service.models_datasets_path(model, dataset), xai_method, label
             )
             os.makedirs(xai_path, exist_ok=True)
 

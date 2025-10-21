@@ -17,7 +17,6 @@ class DatasetInfo:
 
 
 class DatasetsService:
-
     def __init__(self, datasets_path: str):
         self.datasets_path = datasets_path
 
@@ -43,45 +42,25 @@ class DatasetsService:
 
         dataset = ImageFolder(path, transform=transform)
 
-        dataset_info = DatasetInfo(
-            name=dataset_name,
-            dataset=dataset,
-            path=path
-        )
+        dataset_info = DatasetInfo(name=dataset_name, dataset=dataset, path=path)
 
         return dataset_info
 
-    async def fetch_image(self,
-                          dataset: str,
-                          label: str,
-                          filename: str) -> bytes:
-        path = os.path.join(
-            self.datasets_path,
-            dataset,
-            label,
-            filename
-        )
+    async def fetch_image(self, dataset: str, label: str, filename: str) -> str:
+        path = os.path.join(self.datasets_path, dataset, label, filename)
 
-        with open(path, 'rb') as f:
-            image = base64.b64encode(f.read()).decode('utf-8')
+        with open(path, "rb") as f:
+            image = base64.b64encode(f.read()).decode("utf-8")
 
         return image
 
-    async def fetch_fourier_image(self,
-                                  dataset: str,
-                                  label: str,
-                                  filename: str) -> bytes:
-        path = os.path.join(
-            self.datasets_path,
-            dataset,
-            label,
-            filename
-        )
+    async def fetch_fourier_image(self, dataset: str, label: str, filename: str) -> str:
+        path = os.path.join(self.datasets_path, dataset, label, filename)
 
         image = Image.open(path)
 
-        if image.mode != 'L':
-            image = image.convert('L')
+        if image.mode != "L":
+            image = image.convert("L")
 
         image_array = np.array(image)
 
@@ -90,15 +69,19 @@ class DatasetsService:
 
         magnitude_spectrum = np.log(np.abs(fft_shift) + 1)
 
-        magnitude_spectrum = ((magnitude_spectrum - magnitude_spectrum.min()) /
-                              (magnitude_spectrum.max() - magnitude_spectrum.min()) * 255).astype(np.uint8)
+        magnitude_spectrum = (
+            (magnitude_spectrum - magnitude_spectrum.min())
+            / (magnitude_spectrum.max() - magnitude_spectrum.min())
+            * 255
+        ).astype(np.uint8)
 
         fourier_image = Image.fromarray(magnitude_spectrum)
 
         import io
+
         buffer = io.BytesIO()
-        fourier_image.save(buffer, format='PNG')
-        fourier_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
+        fourier_image.save(buffer, format="PNG")
+        fourier_base64 = base64.b64encode(buffer.getvalue()).decode("utf-8")
 
         return fourier_base64
 

@@ -19,7 +19,8 @@ from services.container import (
 
 router = APIRouter()
 
-@router.post('/edge-canny')
+
+@router.post("/edge-canny")
 async def canny_edge(edge_request: EdgeRequest):
     container: ServiceContainer = Depends(get_container)
     models_service: ModelsService = Depends(get_models_service)
@@ -32,29 +33,17 @@ async def canny_edge(edge_request: EdgeRequest):
         label = label_filename.label
         filename = label_filename.filename
 
-        models_datasets_name = await utilities_service.models_datasets_path(
-            edge_request.model, edge_request.dataset
-        )
+        models_datasets_name = await utilities_service.models_datasets_path(edge_request.model, edge_request.dataset)
 
-        path = os.path.join(
-            container.models_datasets_path,
-            models_datasets_name,
-            constants.EDGE_CANNY, label
-        )
+        path = os.path.join(container.models_datasets_path, models_datasets_name, constants.EDGE_CANNY, label)
 
         os.makedirs(path, exist_ok=True)
 
-        image_path = os.path.join(
-            container.datasets_path,
-            edge_request.dataset, label, filename
-        )
+        image_path = os.path.join(container.datasets_path, edge_request.dataset, label, filename)
 
         image_np = np.array(Image.open(image_path))
 
-        image_np = cv2.resize(
-            image_np,
-            (model_info.input_shape[2], model_info.input_shape[1])
-        )
+        image_np = cv2.resize(image_np, (model_info.input_shape[2], model_info.input_shape[1]))
 
         if len(image_np.shape) == 3:
             image_np = cv2.cvtColor(image_np, cv2.COLOR_RGB2GRAY)

@@ -24,7 +24,7 @@ class WebSocketService:
             "model": model,
             "label": label,
             "heatmap_type": heatmap_type,
-            "filename": filename
+            "filename": filename,
         }
 
         disconnected = set()
@@ -37,13 +37,13 @@ class WebSocketService:
         for connection in disconnected:
             self.disconnect(connection)
 
-    async def send_heatmap_notification_sync(self, dataset: str, model: str, label: str, heatmap_type: str, filename: str):
+    async def send_heatmap_notification_sync(
+        self, dataset: str, model: str, label: str, heatmap_type: str, filename: str
+    ):
         if not self.active_connections:
             return
 
         with contextlib.suppress(Exception):
-            await self.send_heatmap_notification(
-                dataset, model, label, heatmap_type, filename
-            )
+            await self.send_heatmap_notification(dataset, model, label, heatmap_type, filename)
 
         return

@@ -446,7 +446,7 @@ class ProbingImageService:
         self, image: np.ndarray, super_pixels: np.ndarray, unique_segments: np.ndarray, mask: np.ndarray
     ):
         assert len(image.shape) == 3 and image.shape[2] in [1, 3]
-        assert type(image) == np.ndarray and image.dtype == np.uint8
+        assert type(image) is np.ndarray and image.dtype == np.uint8
 
         assert super_pixels.dtype == np.uint8
         assert unique_segments.dtype == np.uint8  # 1d vector [0, 1, 2, .... n]
@@ -509,9 +509,6 @@ class ProbingImageService:
                 else:
                     gains[s] = 0
 
-            if gains:
-                gain_values = list(gains.values())
-
             if not gains or all(g <= 0 for g in gains.values()):
                 if gains and any(g >= 0 for g in gains.values()):
                     s_hat = max(gains, key=gains.get)
@@ -519,8 +516,6 @@ class ProbingImageService:
                     break
             else:
                 s_hat = max(gains, key=gains.get)
-
-            max_gain = gains[s_hat]
 
             S.remove(s_hat)
             new_region = segment_masks[s_hat] & (~M)

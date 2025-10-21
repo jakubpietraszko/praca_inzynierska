@@ -7,9 +7,9 @@ class SuperPixelsRequest(BaseModel):
     model: str
     dataset: str
     images: list[LabelFilename]
-    superPixels: int
+    superPixels: int  # noqa: N815
     overwrite: bool
 
 class SuperPixelsResponse(BaseModel):
     success: bool
-    superPixels: list[int]
+    superPixels: list[int]  # noqa: N815

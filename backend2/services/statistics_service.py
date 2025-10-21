@@ -1,4 +1,3 @@
-
 import torch
 from torch.utils.data import DataLoader
 
@@ -29,8 +28,9 @@ class StatisticsService:
         self.heatmaps_facede_service: HeatmapsFacedeService = get_heatmaps_facede_service()
         self.constants: Constants = get_constants()
 
-    async def generate_all_quantitative_statistics(self, request: AllQuantitativeStatisticsRequest) -> AllQuantitativeStatisticsResponse:
-
+    async def generate_all_quantitative_statistics(
+        self, request: AllQuantitativeStatisticsRequest
+    ) -> AllQuantitativeStatisticsResponse:
         model_info = await self.models_service.load_model(request.model)
         labels = await self.datasets_service.list_labels_in_dataset(request.dataset)
         label_to_idx = model_info.label_to_idx
@@ -48,8 +48,7 @@ class StatisticsService:
         model.eval()
         dataloader = DataLoader(dataset, batch_size=self.constants.BATCH_SIZE, shuffle=False)
 
-        device = next(model.parameters()).device if next(
-            model.parameters(), None) is not None else 'cpu'
+        device = next(model.parameters()).device if next(model.parameters(), None) is not None else "cpu"
         model.to(device)
 
         with torch.no_grad():
@@ -69,7 +68,9 @@ class StatisticsService:
 
         return AllQuantitativeStatisticsResponse(success=True, confusion_dict=confusion_dict)
 
-    async def all_quantitative_statistics(self, request: AllQuantitativeStatisticsRequest) -> AllQuantitativeStatisticsResponse:
+    async def all_quantitative_statistics(
+        self, request: AllQuantitativeStatisticsRequest
+    ) -> AllQuantitativeStatisticsResponse:
         response = await self.generate_all_quantitative_statistics(request)
         return response
 
@@ -88,18 +89,15 @@ class StatisticsService:
     async def generate_insertion_plot(self):
         pass
 
-    async def heatmaps_statistics_image(self, request: HeatmapsStatisticsImageRequest) -> HeatmapsStatisticsImageResponse:
-
+    async def heatmaps_statistics_image(
+        self, request: HeatmapsStatisticsImageRequest
+    ) -> HeatmapsStatisticsImageResponse:
         await self.heatmaps_facede_service.generate_heatmap(
             GradientRequest(
                 model=request.model,
                 dataset=request.dataset,
-                images=[LabelFilenameTarget(
-                    label=request.label,
-                    filename=request.image,
-                    target=None
-                )],
-                overwrite=False
+                images=[LabelFilenameTarget(label=request.label, filename=request.image, target=None)],
+                overwrite=False,
             ),
             type=request.heatmap,
         )
@@ -109,7 +107,7 @@ class StatisticsService:
             dataset=request.dataset,
             label=request.label,
             heatmap=request.heatmap,
-            filename=request.image
+            filename=request.image,
         )
 
         print(image.shape)
@@ -119,11 +117,11 @@ class StatisticsService:
             insertion=0.0,
             overall=0.0,
             success=True,
-
         )
 
-    async def heatmaps_statistics_dataset(self, request: HeatmapsStatisticsDatasetRequest) -> HeatmapsStatisticsDatasetResponse:
+    async def heatmaps_statistics_dataset(
+        self, request: HeatmapsStatisticsDatasetRequest
+    ) -> HeatmapsStatisticsDatasetResponse:
         return HeatmapsStatisticsDatasetResponse(
-            average_drop=[0.0, 0.33, 0.66, 1.0],
-            rate_of_increase=[0.0, 0.33, 0.66, 1.0],
-            success=True)
+            average_drop=[0.0, 0.33, 0.66, 1.0], rate_of_increase=[0.0, 0.33, 0.66, 1.0], success=True
+        )

@@ -59,7 +59,7 @@ class LRPService:
         hooks = []
         original_inplace_states = {}
         stack_modules = []
-        R = None
+        r: torch.Tensor | None = None
 
         for name, module in model_info.model.named_modules():
             if isinstance(module, nn.ReLU):
@@ -111,34 +111,40 @@ class LRPService:
             output = model(image_tensor)
             for hook in hooks:
                 hook.remove()
-            R = torch.zeros_like(output)
-            R[0, target] = 1.0
-            R = R.squeeze()
+            r = torch.zeros_like(output)
+            r[0, target] = 1.0
+            r = r.squeeze()
 
             while len(stack_modules) > 0:
                 current_module = stack_modules.pop()
                 current_input = stack_inputs.pop()
                 current_output = stack_outputs.pop()
 
-                if R.shape != current_output.shape:
+                if r is None:
+                    break
+
+                if r.shape != current_output.shape:
                     try:
-                        R = R.view_as(current_output)
-                    except:
-                        R_sum = R.sum()
-                        R = torch.zeros_like(current_input)
-                        R += R_sum / R.numel()
+                        r = r.view_as(current_output)
+                    except Exception:
+                        r_sum = r.sum()
+                        r = torch.zeros_like(current_input)
+                        r += r_sum / r.numel()
                         continue
 
                 z = current_module(current_input) + (config.epsilon or self.constants.DEFAULT_EPSILON)
 
-                s = R / z
+                s = r / z
                 c = torch.autograd.grad(
                     outputs=z, inputs=current_input, grad_outputs=s, retain_graph=True, allow_unused=True
                 )[0]
 
-                R = c * current_input
+                r = c * current_input
 
-            result = R.squeeze().cpu().detach().numpy()
+            if r is None:
+                break
+
+            result = r.squeeze().cpu().detach().numpy()
 
             if len(result.shape) == 3 and result.shape[0] == 3:
                 result = await self.utilities_service.aggregate_channels(
@@ -190,7 +196,7 @@ class LRPService:
         hooks = []
         original_inplace_states = {}
         stack_modules = []
-        R = None
+        r: torch.Tensor | None = None
 
         for name, module in model_info.model.named_modules():
             if isinstance(module, nn.ReLU):
@@ -242,22 +248,25 @@ class LRPService:
             output = model(image_tensor)
             for hook in hooks:
                 hook.remove()
-            R = torch.zeros_like(output)
-            R[0, target] = 1.0
-            R = R.squeeze()
+            r = torch.zeros_like(output)
+            r[0, target] = 1.0
+            r = r.squeeze()
 
             while len(stack_modules) > 0:
                 current_module = stack_modules.pop()
                 current_input = stack_inputs.pop()
                 current_output = stack_outputs.pop()
 
-                if R.shape != current_output.shape:
+                if r is None:
+                    break
+
+                if r.shape != current_output.shape:
                     try:
-                        R = R.view_as(current_output)
-                    except:
-                        R_sum = R.sum()
-                        R = torch.zeros_like(current_input)
-                        R += R_sum / R.numel()
+                        r = r.view_as(current_output)
+                    except Exception:
+                        r_sum = r.sum()
+                        r = torch.zeros_like(current_input)
+                        r += r_sum / r.numel()
                         continue
 
                 if isinstance(current_module, (nn.Conv2d, nn.Linear)):
@@ -285,14 +294,20 @@ class LRPService:
                 else:
                     z = current_module(current_input) + (config.epsilon or self.constants.DEFAULT_EPSILON)
 
-                s = R / z
+                if r is None:
+                    break
+
+                s = r / z
                 c = torch.autograd.grad(
                     outputs=z, inputs=current_input, grad_outputs=s, retain_graph=True, allow_unused=True
                 )[0]
 
-                R = c * current_input
+                r = c * current_input
 
-            result = R.squeeze().cpu().detach().numpy()
+            if r is None:
+                continue
+
+            result = r.squeeze().cpu().detach().numpy()
 
             if len(result.shape) == 3 and result.shape[0] == 3:
                 result = await self.utilities_service.aggregate_channels(
@@ -344,7 +359,7 @@ class LRPService:
         hooks = []
         original_inplace_states = {}
         stack_modules = []
-        R = None
+        r: torch.Tensor | None = None
 
         for name, module in model_info.model.named_modules():
             if isinstance(module, nn.ReLU):
@@ -396,22 +411,25 @@ class LRPService:
             output = model(image_tensor)
             for hook in hooks:
                 hook.remove()
-            R = torch.zeros_like(output)
-            R[0, target] = 1.0
-            R = R.squeeze()
+            r = torch.zeros_like(output)
+            r[0, target] = 1.0
+            r = r.squeeze()
 
             while len(stack_modules) > 0:
                 current_module = stack_modules.pop()
                 current_input = stack_inputs.pop()
                 current_output = stack_outputs.pop()
 
-                if R.shape != current_output.shape:
+                if r is None:
+                    break
+
+                if r.shape != current_output.shape:
                     try:
-                        R = R.view_as(current_output)
-                    except:
-                        R_sum = R.sum()
-                        R = torch.zeros_like(current_input)
-                        R += R_sum / R.numel()
+                        r = r.view_as(current_output)
+                    except Exception:
+                        r_sum = r.sum()
+                        r = torch.zeros_like(current_input)
+                        r += r_sum / r.numel()
                         continue
 
                 if isinstance(current_module, (nn.Conv2d, nn.Linear)):
@@ -449,8 +467,8 @@ class LRPService:
                             weight_neg,
                             bias=current_module.bias,
                         ) - (config.epsilon or self.constants.DEFAULT_EPSILON)
-                    s_pos = R / z_pos
-                    s_neg = R / z_neg
+                    s_pos = r / z_pos
+                    s_neg = r / z_neg
 
                     c_pos = torch.autograd.grad(
                         outputs=z_pos, inputs=current_input, grad_outputs=s_pos, retain_graph=True, allow_unused=True
@@ -459,19 +477,22 @@ class LRPService:
                         outputs=z_neg, inputs=current_input, grad_outputs=s_neg, retain_graph=True, allow_unused=True
                     )[0]
 
-                    R = (config.alpha or self.constants.DEFAULT_ALPHA) * c_pos * current_input - (
+                    r = (config.alpha or self.constants.DEFAULT_ALPHA) * c_pos * current_input - (
                         config.beta or self.constants.DEFAULT_BETA
                     ) * c_neg * current_input
 
                 else:
                     z = current_module(current_input) + (config.epsilon or self.constants.DEFAULT_EPSILON)
-                    s = R / z
+                    s = r / z
                     c = torch.autograd.grad(
                         outputs=z, inputs=current_input, grad_outputs=s, retain_graph=True, allow_unused=True
                     )[0]
-                    R = c * current_input
+                    r = c * current_input
 
-            result = R.squeeze().cpu().detach().numpy()
+            if r is None:
+                continue
+
+            result = r.squeeze().cpu().detach().numpy()
 
             if len(result.shape) == 3 and result.shape[0] == 3:
                 result = await self.utilities_service.aggregate_channels(
@@ -521,7 +542,7 @@ class LRPService:
         hooks = []
         original_inplace_states = {}
         stack_modules = []
-        R = None
+        r: torch.Tensor | None = None
 
         for name, module in model_info.model.named_modules():
             if isinstance(module, nn.ReLU):
@@ -573,22 +594,25 @@ class LRPService:
             output = model(image_tensor)
             for hook in hooks:
                 hook.remove()
-            R = torch.zeros_like(output)
-            R[0, target] = 1.0
-            R = R.squeeze()
+            r = torch.zeros_like(output)
+            r[0, target] = 1.0
+            r = r.squeeze()
 
             while len(stack_modules) > 0:
                 current_module = stack_modules.pop()
                 current_input = stack_inputs.pop()
                 current_output = stack_outputs.pop()
 
-                if R.shape != current_output.shape:
+                if r is None:
+                    break
+
+                if r.shape != current_output.shape:
                     try:
-                        R = R.view_as(current_output)
-                    except:
-                        R_sum = R.sum()
-                        R = torch.zeros_like(current_input)
-                        R += R_sum / R.numel()
+                        r = r.view_as(current_output)
+                    except Exception:
+                        r_sum = r.sum()
+                        r = torch.zeros_like(current_input)
+                        r += r_sum / r.numel()
                         continue
 
                 if isinstance(current_module, (nn.Conv2d, nn.Linear)):
@@ -611,20 +635,23 @@ class LRPService:
                             weight_pos,
                             bias=current_module.bias,
                         ) + (config.epsilon or self.constants.DEFAULT_EPSILON)
-                    s = R / z
+                    s = r / z
                     c = torch.autograd.grad(
                         outputs=z, inputs=current_input, grad_outputs=s, retain_graph=True, allow_unused=True
                     )[0]
-                    R = c * current_input
+                    r = c * current_input
                 else:
                     z = current_module(current_input) + (config.epsilon or self.constants.DEFAULT_EPSILON)
-                    s = R / z
+                    s = r / z
                     c = torch.autograd.grad(
                         outputs=z, inputs=current_input, grad_outputs=s, retain_graph=True, allow_unused=True
                     )[0]
-                    R = c * current_input
+                    r = c * current_input
 
-            result = R.squeeze().cpu().detach().numpy()
+            if r is None:
+                continue
+
+            result = r.squeeze().cpu().detach().numpy()
 
             if len(result.shape) == 3 and result.shape[0] == 3:
                 result = await self.utilities_service.aggregate_channels(
@@ -674,7 +701,7 @@ class LRPService:
         hooks = []
         original_inplace_states = {}
         stack_modules = []
-        R = None
+        r: torch.Tensor | None = None
 
         for name, module in model_info.model.named_modules():
             if isinstance(module, nn.ReLU):
@@ -726,22 +753,25 @@ class LRPService:
             output = model(image_tensor)
             for hook in hooks:
                 hook.remove()
-            R = torch.zeros_like(output)
-            R[0, target] = 1.0
-            R = R.squeeze()
+            r = torch.zeros_like(output)
+            r[0, target] = 1.0
+            r = r.squeeze()
 
             while len(stack_modules) > 0:
                 current_module = stack_modules.pop()
                 current_input = stack_inputs.pop()
                 current_output = stack_outputs.pop()
 
-                if R.shape != current_output.shape:
+                if r is None:
+                    break
+
+                if r.shape != current_output.shape:
                     try:
-                        R = R.view_as(current_output)
-                    except:
-                        R_sum = 1e18
-                        R = torch.zeros_like(current_input)
-                        R += R_sum / R.numel()
+                        r = r.view_as(current_output)
+                    except Exception:
+                        r_sum = 1e18
+                        r = torch.zeros_like(current_input)
+                        r += r_sum / r.numel()
                         continue
 
                 if isinstance(current_module, (nn.Conv2d, nn.Linear)):
@@ -768,21 +798,24 @@ class LRPService:
                             norm_weight,
                             bias=current_module.bias,
                         ) + (config.epsilon or self.constants.DEFAULT_EPSILON)
-                    s = R / z
+                    s = r / z
                     c = torch.autograd.grad(
                         outputs=z, inputs=current_input, grad_outputs=s, retain_graph=True, allow_unused=True
                     )[0]
-                    R = c * current_input
+                    r = c * current_input
 
                 else:
                     z = current_module(current_input) + (config.epsilon or self.constants.DEFAULT_EPSILON)
-                    s = R / z
+                    s = r / z
                     c = torch.autograd.grad(
                         outputs=z, inputs=current_input, grad_outputs=s, retain_graph=True, allow_unused=True
                     )[0]
-                    R = c * current_input
+                    r = c * current_input
 
-            result = R.squeeze().cpu().detach().numpy()
+            if r is None:
+                continue
+
+            result = r.squeeze().cpu().detach().numpy()
 
             if len(result.shape) == 3 and result.shape[0] == 3:
                 result = await self.utilities_service.aggregate_channels(

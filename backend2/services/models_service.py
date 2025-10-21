@@ -16,6 +16,7 @@ class ModelInfo:
     label_to_idx: dict
     input_shape: tuple
 
+
 class ModelsService:
     def __init__(self, models_path: str):
         self.models_path = models_path
@@ -25,8 +26,8 @@ class ModelsService:
         return models
 
     async def load_model(self, model_name: str) -> ModelInfo:
-        path = os.path.join(self.models_path, model_name, 'model.py')
-        spec = importlib.util.spec_from_file_location('loadModel', path)
+        path = os.path.join(self.models_path, model_name, "model.py")
+        spec = importlib.util.spec_from_file_location("loadModel", path)
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
 
@@ -37,7 +38,7 @@ class ModelsService:
             last_conv_layer=last_conv_layer,
             transform=transform,
             label_to_idx=label_to_idx,
-            input_shape=input_shape
+            input_shape=input_shape,
         )
 
         return model_info
@@ -51,6 +52,7 @@ class ModelsService:
         def hook_fn(name):
             def hook(module, input, output):
                 layers.append((name, module))
+
             return hook
 
         for name, module in model_info.model.named_modules():
@@ -69,7 +71,7 @@ class ModelsService:
         result = list()
 
         for name, layer in layers:
-            if ':' not in str(layer):
+            if ":" not in str(layer):
                 result.append(str(layer))
 
         return result

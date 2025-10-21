@@ -186,7 +186,7 @@ class GradientService:
                 return (torch.clamp(grad_output[0], min=0.0),)
             return grad_output
 
-        for name, module in model_info.model.named_modules():
+        for _, module in model_info.model.named_modules():
             if isinstance(module, torch.nn.ReLU):
                 hooks.append(module.register_backward_hook(deconv))
 
@@ -282,7 +282,7 @@ class GradientService:
 
             return hook
 
-        for i, (name, module) in enumerate(model_info.model.named_modules()):
+        for _, (_, module) in enumerate(model_info.model.named_modules()):
             if isinstance(module, torch.nn.ReLU):
                 forward_hook_handle = module.register_forward_hook(forward_hook())
                 backward_hook_handle = module.register_full_backward_hook(guided_relu_hook())

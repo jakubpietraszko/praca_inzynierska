@@ -32,7 +32,6 @@ from services.models_service import ModelInfo
 
 
 class HeatmapsFacedeService:
-
     def __init__(self):
         from services.container import (
             Constants,
@@ -52,6 +51,7 @@ class HeatmapsFacedeService:
             get_probing_image_service,
             get_utilities_service,
         )
+
         self.get_gradient_service = get_gradient_service
         self.get_integrated_gradients_service = get_integrated_gradients_service
         self.get_gradient_noise_service = get_gradient_noise_service
@@ -71,11 +71,10 @@ class HeatmapsFacedeService:
         self.constants: Constants = get_constants()
 
     async def generate_heatmap(
-            self,
-            request: GradientRequest,
-            type: str,
+        self,
+        request: GradientRequest,
+        type: str,
     ) -> GradientResponse:
-
         if type == self.get_constants().GRADIENT:
             return await self.get_gradient_service().gradient(request)
         elif type == self.get_constants().GRADIENT_SQUARED:
@@ -130,9 +129,7 @@ class HeatmapsFacedeService:
         elif type == self.get_constants().LRP_W2:
             return await self.get_lrp_service().lrp_w2(request)
 
-        return GradientResponse(
-            success=True
-        )
+        return GradientResponse(success=True)
 
     async def generate_heatmap_statistics(self, request: GradientStatisticRequest) -> GradientStatisticResponse:
         base_request: GradientRequest = GradientRequest(
@@ -142,94 +139,67 @@ class HeatmapsFacedeService:
             overwrite=request.overwrite,
         )
 
-        await self.generate_heatmap(
-            request=base_request, type=request.heatmap
-        )
+        await self.generate_heatmap(request=base_request, type=request.heatmap)
 
-        model_info: ModelInfo = await self.model_service.load_model(
-            request.model
-        )
+        model_info: ModelInfo = await self.model_service.load_model(request.model)
 
-        softmax_scores = list()
+        softmax_scores = []
 
         for image in request.images:
-            list_of_scores = list()
+            list_of_scores = []
             label = image.label
             filename = image.filename
             target = image.target
             if target is None:
-                target = await self.utilities_service.fill_target(
-                    model_info, label
-                )
+                target = await self.utilities_service.fill_target(model_info, label)
 
             image_from_dataset_path = os.path.join(
-                self.datasets_service.datasets_path,
-                request.dataset,
-                label,
-                filename
+                self.datasets_service.datasets_path, request.dataset, label, filename
             )
             image_from_heatmap_path = os.path.join(
                 self.container.models_datasets_path,
-                await self.utilities_service.models_datasets_path(
-                    request.model, request.dataset
-                ),
+                await self.utilities_service.models_datasets_path(request.model, request.dataset),
                 request.heatmap,
                 label,
-                filename
+                filename,
             )
 
-            image_from_dataset = await self.datasets_service.load_image(
-                image_from_dataset_path, model_info.input_shape
-            )
+            image_from_dataset = await self.datasets_service.load_image(image_from_dataset_path, model_info.input_shape)
 
-            image_from_heatmap = np.array(Image.open(
-                image_from_heatmap_path
-            ))
+            image_from_heatmap = np.array(Image.open(image_from_heatmap_path))
 
             for threshold in self.constants.STATISTICS_PERCENTAGES_STEP:
                 normalized_threshold = threshold / 100 * 255
                 normalized_threshold = int(normalized_threshold)
-                if request.threshold_type == 'down':
-                    image_from_heatmap_copy = np.where(
-                        image_from_heatmap < normalized_threshold, 0, 1
-                    )
+                if request.threshold_type == "down":
+                    image_from_heatmap_copy = np.where(image_from_heatmap < normalized_threshold, 0, 1)
                 else:
-                    image_from_heatmap_copy = np.where(
-                        image_from_heatmap > normalized_threshold, 0, 1
-                    )
+                    image_from_heatmap_copy = np.where(image_from_heatmap > normalized_threshold, 0, 1)
 
                 image_from_dataset_copy = np.copy(image_from_dataset)
                 img_to_model = image_from_dataset_copy * image_from_heatmap_copy
                 img_to_model = img_to_model.astype(np.uint8)
-                img_tensor = await self.utilities_service.convert_image_to_tensor(
-                    img_to_model, grad=True
-                )
+                img_tensor = await self.utilities_service.convert_image_to_tensor(img_to_model, grad=True)
                 model_info.model.eval()
 
                 output = model_info.model(img_tensor)
                 output_softmax = torch.softmax(output, dim=1)
                 list_of_scores.append(output_softmax[0, target].item())
 
-            softmax_scores.append(
-                ListOfScores(
-                    scores=list_of_scores
-                )
-            )
+            softmax_scores.append(ListOfScores(scores=list_of_scores))
 
-        return GradientStatisticResponse(
-            success=False,
-            softmax_scores=softmax_scores
-        )
+        return GradientStatisticResponse(success=False, softmax_scores=softmax_scores)
 
-    async def generate_heatmap_statistics_dataset(self, request: GradientStatisticsDatasetRequest) -> GradientStatisticsDatasetResponse:
+    async def generate_heatmap_statistics_dataset(
+        self, request: GradientStatisticsDatasetRequest
+    ) -> GradientStatisticsDatasetResponse:
+        images = [
+            LabelFilenameTarget(label=label, filename=filename, target=None)
+            for label in await self.datasets_service.list_labels_in_dataset(request.dataset)
+            for filename in await self.datasets_service.list_filenames_in_label(request.dataset, label)
+        ]
 
-        images = [LabelFilenameTarget(label=label, filename=filename, target=None)
-                  for label in await self.datasets_service.list_labels_in_dataset(request.dataset)
-                  for filename in await self.datasets_service.list_filenames_in_label(request.dataset, label)
-                  ]
-
-        images = random.sample(images, int(
-            len(images) * (request.percentage / 100)))
+        images = random.sample(images, int(len(images) * (request.percentage / 100)))
 
         base_request: GradientRequest = GradientRequest(
             model=request.model,
@@ -238,25 +208,15 @@ class HeatmapsFacedeService:
             overwrite=True,
         )
 
-        await self.generate_heatmap(
-            request=base_request, type=request.heatmap
-        )
+        await self.generate_heatmap(request=base_request, type=request.heatmap)
 
-        model_info: ModelInfo = await self.model_service.load_model(
-            request.model
-        )
+        model_info: ModelInfo = await self.model_service.load_model(request.model)
 
         model_info.model.eval()
 
         normalized_threshold = int((request.threshold / 100) * 255)
-        models_datasets_path = await self.utilities_service.models_datasets_path(
-            request.model, request.dataset
-        )
-        heatmap_base_path = os.path.join(
-            self.container.models_datasets_path,
-            models_datasets_path,
-            request.heatmap
-        )
+        models_datasets_path = await self.utilities_service.models_datasets_path(request.model, request.dataset)
+        heatmap_base_path = os.path.join(self.container.models_datasets_path, models_datasets_path, request.heatmap)
 
         original_softmax_scores = []
         modified_softmax_scores = []
@@ -266,39 +226,24 @@ class HeatmapsFacedeService:
                 label = image_info.label
                 filename = image_info.filename
 
-                target = await self.utilities_service.fill_target(
-                    model_info, label
-                )
+                target = await self.utilities_service.fill_target(model_info, label)
 
                 image_from_dataset_path = os.path.join(
-                    self.datasets_service.datasets_path,
-                    request.dataset,
-                    label,
-                    filename
+                    self.datasets_service.datasets_path, request.dataset, label, filename
                 )
-                image_from_heatmap_path = os.path.join(
-                    heatmap_base_path,
-                    label,
-                    filename
-                )
+                image_from_heatmap_path = os.path.join(heatmap_base_path, label, filename)
 
                 image_from_dataset = await self.datasets_service.load_image(
                     image_from_dataset_path, model_info.input_shape
                 )
 
-                image_from_heatmap = np.array(Image.open(
-                    image_from_heatmap_path
-                ))
+                image_from_heatmap = np.array(Image.open(image_from_heatmap_path))
 
-                mask = np.where(
-                    image_from_heatmap < normalized_threshold, 0, 1
-                )
+                mask = np.where(image_from_heatmap < normalized_threshold, 0, 1)
 
                 img_to_model = (image_from_dataset * mask).astype(np.uint8)
 
-                img_tensor_modified = await self.utilities_service.convert_image_to_tensor(
-                    img_to_model, grad=False
-                )
+                img_tensor_modified = await self.utilities_service.convert_image_to_tensor(img_to_model, grad=False)
                 img_tensor_original = await self.utilities_service.convert_image_to_tensor(
                     image_from_dataset, grad=False
                 )
@@ -314,7 +259,8 @@ class HeatmapsFacedeService:
                 original_softmax_scores.append(score_original)
 
         rate_of_increase_in_scores = sum(
-            1 for original, modified in zip(original_softmax_scores, modified_softmax_scores, strict=False)
+            1
+            for original, modified in zip(original_softmax_scores, modified_softmax_scores, strict=False)
             if modified > original
         ) / len(original_softmax_scores)
 
@@ -324,12 +270,12 @@ class HeatmapsFacedeService:
         ) / len(original_softmax_scores)
 
         return GradientStatisticsDatasetResponse(
-            success=True,
-            rate_of_increase_in_scores=rate_of_increase_in_scores,
-            average_drop=average_drop
+            success=True, rate_of_increase_in_scores=rate_of_increase_in_scores, average_drop=average_drop
         )
 
-    async def generate_heatmap_statistics_dataset_many(self, request: GradientStatisticsDatasetManyRequest) -> GradientStatisticsDatasetManyResponse:
+    async def generate_heatmap_statistics_dataset_many(
+        self, request: GradientStatisticsDatasetManyRequest
+    ) -> GradientStatisticsDatasetManyResponse:
         list_of_rate_of_increase_in_scores = []
         list_of_average_drop = []
 
@@ -339,29 +285,27 @@ class HeatmapsFacedeService:
                 dataset=request.dataset,
                 heatmap=request.heatmap,
                 threshold=percentage,
-                percentage=request.percentage
+                percentage=request.percentage,
             )
-            response = await self.generate_heatmap_statistics_dataset(
-                request=modified_request
-            )
-            list_of_rate_of_increase_in_scores.append(
-                response.rate_of_increase_in_scores)
+            response = await self.generate_heatmap_statistics_dataset(request=modified_request)
+            list_of_rate_of_increase_in_scores.append(response.rate_of_increase_in_scores)
             list_of_average_drop.append(response.average_drop)
 
         return GradientStatisticsDatasetManyResponse(
             success=True,
             list_of_rate_of_increase_in_scores=list_of_rate_of_increase_in_scores,
-            list_of_average_drop=list_of_average_drop
+            list_of_average_drop=list_of_average_drop,
         )
 
-    async def generate_heatmap_statistics_label(self, request: GradientStatisticsLabelRequest) -> GradientStatisticsDatasetResponse:
+    async def generate_heatmap_statistics_label(
+        self, request: GradientStatisticsLabelRequest
+    ) -> GradientStatisticsDatasetResponse:
+        images = [
+            LabelFilenameTarget(label=request.label, filename=filename, target=None)
+            for filename in await self.datasets_service.list_filenames_in_label(request.dataset, request.label)
+        ]
 
-        images = [LabelFilenameTarget(label=request.label, filename=filename, target=None)
-                  for filename in await self.datasets_service.list_filenames_in_label(request.dataset, request.label)
-                  ]
-
-        images = random.sample(images, int(
-            len(images) * (request.percentage / 100)))
+        images = random.sample(images, int(len(images) * (request.percentage / 100)))
 
         base_request: GradientRequest = GradientRequest(
             model=request.model,
@@ -370,25 +314,15 @@ class HeatmapsFacedeService:
             overwrite=True,
         )
 
-        await self.generate_heatmap(
-            request=base_request, type=request.heatmap
-        )
+        await self.generate_heatmap(request=base_request, type=request.heatmap)
 
-        model_info: ModelInfo = await self.model_service.load_model(
-            request.model
-        )
+        model_info: ModelInfo = await self.model_service.load_model(request.model)
 
         model_info.model.eval()
 
         normalized_threshold = int((request.threshold / 100) * 255)
-        models_datasets_path = await self.utilities_service.models_datasets_path(
-            request.model, request.dataset
-        )
-        heatmap_base_path = os.path.join(
-            self.container.models_datasets_path,
-            models_datasets_path,
-            request.heatmap
-        )
+        models_datasets_path = await self.utilities_service.models_datasets_path(request.model, request.dataset)
+        heatmap_base_path = os.path.join(self.container.models_datasets_path, models_datasets_path, request.heatmap)
 
         original_softmax_scores = []
         modified_softmax_scores = []
@@ -398,39 +332,24 @@ class HeatmapsFacedeService:
                 label = image_info.label
                 filename = image_info.filename
 
-                target = await self.utilities_service.fill_target(
-                    model_info, label
-                )
+                target = await self.utilities_service.fill_target(model_info, label)
 
                 image_from_dataset_path = os.path.join(
-                    self.datasets_service.datasets_path,
-                    request.dataset,
-                    label,
-                    filename
+                    self.datasets_service.datasets_path, request.dataset, label, filename
                 )
-                image_from_heatmap_path = os.path.join(
-                    heatmap_base_path,
-                    label,
-                    filename
-                )
+                image_from_heatmap_path = os.path.join(heatmap_base_path, label, filename)
 
                 image_from_dataset = await self.datasets_service.load_image(
                     image_from_dataset_path, model_info.input_shape
                 )
 
-                image_from_heatmap = np.array(Image.open(
-                    image_from_heatmap_path
-                ))
+                image_from_heatmap = np.array(Image.open(image_from_heatmap_path))
 
-                mask = np.where(
-                    image_from_heatmap < normalized_threshold, 0, 1
-                )
+                mask = np.where(image_from_heatmap < normalized_threshold, 0, 1)
 
                 img_to_model = (image_from_dataset * mask).astype(np.uint8)
 
-                img_tensor_modified = await self.utilities_service.convert_image_to_tensor(
-                    img_to_model, grad=False
-                )
+                img_tensor_modified = await self.utilities_service.convert_image_to_tensor(img_to_model, grad=False)
                 img_tensor_original = await self.utilities_service.convert_image_to_tensor(
                     image_from_dataset, grad=False
                 )
@@ -446,7 +365,8 @@ class HeatmapsFacedeService:
                 original_softmax_scores.append(score_original)
 
         rate_of_increase_in_scores = sum(
-            1 for original, modified in zip(original_softmax_scores, modified_softmax_scores, strict=False)
+            1
+            for original, modified in zip(original_softmax_scores, modified_softmax_scores, strict=False)
             if modified > original
         ) / len(original_softmax_scores)
 
@@ -456,12 +376,12 @@ class HeatmapsFacedeService:
         ) / len(original_softmax_scores)
 
         return GradientStatisticsDatasetResponse(
-            success=True,
-            rate_of_increase_in_scores=rate_of_increase_in_scores,
-            average_drop=average_drop
+            success=True, rate_of_increase_in_scores=rate_of_increase_in_scores, average_drop=average_drop
         )
 
-    async def generate_heatmap_statistics_label_many(self, request: GradientStatisticsLabelManyRequest) -> GradientStatisticsLabelManyResponse:
+    async def generate_heatmap_statistics_label_many(
+        self, request: GradientStatisticsLabelManyRequest
+    ) -> GradientStatisticsLabelManyResponse:
         list_of_rate_of_increase_in_scores = []
         list_of_average_drop = []
 
@@ -472,33 +392,32 @@ class HeatmapsFacedeService:
                 heatmap=request.heatmap,
                 threshold=percentage,
                 percentage=10,
-                label=request.label
+                label=request.label,
             )
-            response = await self.generate_heatmap_statistics_label(
-                request=modified_request
-            )
-            list_of_rate_of_increase_in_scores.append(
-                response.rate_of_increase_in_scores)
+            response = await self.generate_heatmap_statistics_label(request=modified_request)
+            list_of_rate_of_increase_in_scores.append(response.rate_of_increase_in_scores)
             list_of_average_drop.append(response.average_drop)
 
         return GradientStatisticsLabelManyResponse(
             success=True,
             list_of_rate_of_increase_in_scores=list_of_rate_of_increase_in_scores,
-            list_of_average_drop=list_of_average_drop
+            list_of_average_drop=list_of_average_drop,
         )
 
-    async def generate_heatmap_statistics_dataset_shapes(self, request: ShapeMetricsDatasetRequest) -> ShapeMetricsDatasetResponse:
+    async def generate_heatmap_statistics_dataset_shapes(
+        self, request: ShapeMetricsDatasetRequest
+    ) -> ShapeMetricsDatasetResponse:
         areas = []
         perimeters = []
         circularities = []
         rectangularities = []
-        images = [LabelFilenameTarget(label=label, filename=filename, target=None)
-                  for label in await self.datasets_service.list_labels_in_dataset(request.dataset)
-                  for filename in await self.datasets_service.list_filenames_in_label(request.dataset, label)
-                  ]
+        images = [
+            LabelFilenameTarget(label=label, filename=filename, target=None)
+            for label in await self.datasets_service.list_labels_in_dataset(request.dataset)
+            for filename in await self.datasets_service.list_filenames_in_label(request.dataset, label)
+        ]
 
-        images = random.sample(images, int(
-            len(images) * (request.percentage / 100)))
+        images = random.sample(images, int(len(images) * (request.percentage / 100)))
 
         base_request: GradientRequest = GradientRequest(
             model=request.model,
@@ -507,9 +426,7 @@ class HeatmapsFacedeService:
             overwrite=True,
         )
 
-        await self.generate_heatmap(
-            request=base_request, type=request.heatmap
-        )
+        await self.generate_heatmap(request=base_request, type=request.heatmap)
 
         for image in images:
             label = image.label
@@ -517,21 +434,16 @@ class HeatmapsFacedeService:
 
             image_from_heatmap_path = os.path.join(
                 self.container.models_datasets_path,
-                await self.utilities_service.models_datasets_path(
-                    request.model, request.dataset
-                ),
+                await self.utilities_service.models_datasets_path(request.model, request.dataset),
                 request.heatmap,
                 label,
-                filename
+                filename,
             )
 
-            image_from_heatmap = np.array(Image.open(
-                image_from_heatmap_path
-            ))
+            image_from_heatmap = np.array(Image.open(image_from_heatmap_path))
 
-            THRESHOLD = 0.1
             image_from_heatmap_normalized = image_from_heatmap / 255
-            image_binary = (image_from_heatmap_normalized > THRESHOLD).astype(np.uint8)
+            image_binary = (image_from_heatmap_normalized > self.constants.THRESHOLD_ACTIVATIONS).astype(np.uint8)
 
             area = np.sum(image_binary)
             areas.append(area)
@@ -542,21 +454,15 @@ class HeatmapsFacedeService:
             total_perimeter = max(0, total_perimeter)
             perimeters.append(total_perimeter)
 
-            if area > 0:
-                circularity = (total_perimeter ** 2) / (4 * math.pi * area)
-            else:
-                circularity = 0
+            circularity = total_perimeter**2 / (4 * math.pi * area) if area > 0 else 0
             circularities.append(circularity)
 
             if len(contours) > 0:
-                all_points = np.vstack([contour for contour in contours])
+                all_points = np.vstack(list(contours))
                 mbr = cv2.minAreaRect(all_points)
                 mbr_area = mbr[1][0] * mbr[1][1]
 
-                if mbr_area > 0:
-                    rectangularity = area / mbr_area
-                else:
-                    rectangularity = 0
+                rectangularity = area / mbr_area if mbr_area > 0 else 0
             else:
                 rectangularity = 0
             rectangularities.append(rectangularity)
@@ -566,21 +472,23 @@ class HeatmapsFacedeService:
             areas=areas,
             perimeters=perimeters,
             circularities=circularities,
-            rectangularities=rectangularities
+            rectangularities=rectangularities,
         )
 
-    async def generate_heatmap_statistics_label_shapes(self, request: ShapeMetricsLabelRequest) -> ShapeMetricsLabelResponse:
+    async def generate_heatmap_statistics_label_shapes(
+        self, request: ShapeMetricsLabelRequest
+    ) -> ShapeMetricsLabelResponse:
         areas = []
         perimeters = []
         circularities = []
         rectangularities = []
 
-        images = [LabelFilenameTarget(label=request.label, filename=filename, target=None)
-                  for filename in await self.datasets_service.list_filenames_in_label(request.dataset, request.label)
-                  ]
+        images = [
+            LabelFilenameTarget(label=request.label, filename=filename, target=None)
+            for filename in await self.datasets_service.list_filenames_in_label(request.dataset, request.label)
+        ]
 
-        images = random.sample(images, int(
-            len(images) * (request.percentage / 100)))
+        images = random.sample(images, int(len(images) * (request.percentage / 100)))
 
         base_request: GradientRequest = GradientRequest(
             model=request.model,
@@ -589,9 +497,7 @@ class HeatmapsFacedeService:
             overwrite=True,
         )
 
-        await self.generate_heatmap(
-            request=base_request, type=request.heatmap
-        )
+        await self.generate_heatmap(request=base_request, type=request.heatmap)
 
         for image in images:
             label = image.label
@@ -599,23 +505,17 @@ class HeatmapsFacedeService:
 
             image_from_heatmap_path = os.path.join(
                 self.container.models_datasets_path,
-                await self.utilities_service.models_datasets_path(
-                    request.model, request.dataset
-                ),
+                await self.utilities_service.models_datasets_path(request.model, request.dataset),
                 request.heatmap,
                 label,
-                filename
+                filename,
             )
 
-            image_from_heatmap = np.array(Image.open(
-                image_from_heatmap_path
-            ))
-
-            THRESHOLD = 0.1
+            image_from_heatmap = np.array(Image.open(image_from_heatmap_path))
 
             image_from_heatmap = image_from_heatmap / 255
 
-            image_binary = (image_from_heatmap > THRESHOLD)
+            image_binary = image_from_heatmap > self.constants.THRESHOLD_ACTIVATIONS
 
             area = np.sum(image_binary)
 
@@ -628,21 +528,15 @@ class HeatmapsFacedeService:
             total_perimeter = max(0, total_perimeter)
             perimeters.append(total_perimeter)
 
-            if area > 0:
-                circularity = (total_perimeter ** 2) / (4 * math.pi * area)
-            else:
-                circularity = 0
+            circularity = total_perimeter**2 / (4 * math.pi * area) if area > 0 else 0
             circularities.append(circularity)
 
             if len(contours) > 0:
-                all_points = np.vstack([contour for contour in contours])
+                all_points = np.vstack(list(contours))
                 mbr = cv2.minAreaRect(all_points)
                 mbr_area = mbr[1][0] * mbr[1][1]
 
-                if mbr_area > 0:
-                    rectangularity = area / mbr_area
-                else:
-                    rectangularity = 0
+                rectangularity = area / mbr_area if mbr_area > 0 else 0
             else:
                 rectangularity = 0
             rectangularities.append(rectangularity)
@@ -652,5 +546,5 @@ class HeatmapsFacedeService:
             areas=areas,
             perimeters=perimeters,
             circularities=circularities,
-            rectangularities=rectangularities
+            rectangularities=rectangularities,
         )
