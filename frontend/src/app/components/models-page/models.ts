@@ -1,12 +1,20 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  signal,
+} from '@angular/core';
 import { httpResource } from '@angular/common/http';
 import { GenericModelSelector } from '../shared/generic-model-selector/generic-model-selector';
-import { ModelLayersResponse } from '../../interfaces/model-layers';
+import { AllLayersResponse } from '../../interfaces/model-layers';
 import { environment } from '../../../environments/environment';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { DialogUnsupervisedAnyActivations } from './dialog-unsupervised-any-activations';
 
 @Component({
   selector: 'app-models',
-  imports: [GenericModelSelector],
+  imports: [GenericModelSelector, MatButtonModule, MatIconModule],
   templateUrl: './models.html',
   styleUrl: './models.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -14,12 +22,22 @@ import { environment } from '../../../environments/environment';
 export class Models {
   currentModel = signal<string | null>(null);
 
-  layers = httpResource<ModelLayersResponse>(() => {
+  unsupervisedAnyActivationsDialog = inject(DialogUnsupervisedAnyActivations);
+
+  layers = httpResource<AllLayersResponse>(() => {
     const model = this.currentModel();
     if (!model) return undefined;
     return {
-      url: `${environment.apiUrl}/model-layers`,
+      url: `${environment.apiUrl}/all-layers`,
       params: { model },
     };
   });
+
+  onOpenDialog(model: string | null, ref: string | undefined) {
+    if (!model || !ref) return;
+
+    this.unsupervisedAnyActivationsDialog.open(
+      model, ref, this.layers.isLoading() ? null : this.layers.value() ?? null
+    );
+  }
 }

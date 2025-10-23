@@ -1,0 +1,11 @@
+<div class="upper-controls">
+<app-generic-selector [dataset]="true" [label]="true" [image]="true" [(selectedDataset)]="selectedDataset"
+    [(selectedLabel)]="selectedLabel" [(selectedImage)]="selectedImage"></app-generic-selector>
+<app-switcher [items]="items()" [(selectedItem)]="selectedRef"></app-switcher>
+
+</div>
+
+@if( allNotNull()) {
+<app-content-unsupervised-any-activations [model]="data.model" [ref]="selectedRef()" [dataset]="selectedDataset()!"
+    [label]="selectedLabel()!" [filename]="selectedImage()!"></app-content-unsupervised-any-activations>
+}

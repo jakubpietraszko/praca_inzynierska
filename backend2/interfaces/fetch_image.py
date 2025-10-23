@@ -15,6 +15,10 @@ class FetchActivationImageRequest(FetchImageRequest):
     model: str
     image: str
 
+class FetchAnyActivationImageRequest(FetchImageRequest):
+    model: str
+    ref: str
+    image: str
 
 class FetchModelsDatasetsRequest(FetchImageRequest):
     model: str

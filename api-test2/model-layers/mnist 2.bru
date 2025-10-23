@@ -1,0 +1,21 @@
+meta {
+  name: mnist 2
+  type: http
+  seq: 2
+}
+
+get {
+  url: http://localhost:8000/all-layers
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "model": "dogs-vs-cats-reg-net"
+  }
+}
+
+settings {
+  encodeUrl: true
+}

@@ -6,6 +6,8 @@ import torch
 import torch.nn as nn
 import torchvision.transforms as transforms
 
+from interfaces.model_layers import AllLayersResponse, LayerConvRef
+
 
 @dataclass
 class ModelInfo:
@@ -46,8 +48,8 @@ class ModelsService:
     async def get_model_layers(self, model_name: str) -> list[str]:
         model_info = await self.load_model(model_name)
         dummy_input = torch.randn(1, *model_info.input_shape)
-        layers = list()
-        hooks = list()
+        layers = []
+        hooks = []
 
         def hook_fn(name):
             def hook(module, input, output):
@@ -68,10 +70,46 @@ class ModelsService:
         for hook in hooks:
             hook.remove()
 
-        result = list()
+        result = []
 
-        for name, layer in layers:
+        for _, layer in layers:
             if ":" not in str(layer):
                 result.append(str(layer))
 
         return result
+
+    async def all_layers(self, model_name: str) -> AllLayersResponse:
+        layers = []
+
+        model_info: ModelInfo = await self.load_model(model_name)
+
+        dummy_input: torch.Tensor = torch.randn(1, *model_info.input_shape)
+        hooks = []
+
+        def hook_fn(name):
+            def hook(module, input, output):
+                if ":" not in str(module):
+                    layers.append(
+                        LayerConvRef(
+                            name=str(module),
+                            conv=isinstance(module, nn.Conv2d),
+                            ref=name,
+                        )
+                    )
+
+            return hook
+
+        for name, module in model_info.model.named_modules():
+            if name:
+                hook = module.register_forward_hook(hook_fn(name))
+                hooks.append(hook)
+
+        model_info.model.eval()
+
+        with torch.no_grad():
+            model_info.model(dummy_input)
+
+        for hook in hooks:
+            hook.remove()
+
+        return AllLayersResponse(layers=layers)

@@ -19,10 +19,18 @@ ng lint
 npx prettier --write .
 ```
 
-```
-testy na frontendzie
-testy na backendzie
-automatyczna generacji interfejsow na frontendzie
-dodanie zod do frontendu
-template method w serwisach
-```
+
+
+# TODO
+- [ ] testy na frontendzie
+- [ ] testy na backendzie
+- [ ] test api
+- [ ] automatyczna generacji interfejsow na frontendzie
+- [ ] dodanie zod do frontendu
+- [ ] template method w serwisach
+- [ ] przykłądy poprawnych i złych klasyfikacji
+- [ ] roc curves
+- [ ] dodanie szumu do obrazów
+- [ ] oglądanie wszystkich konwolucji
+- [ ] sprawdzenie zbalansowania zbioru
+- [ ] top k accuracy

@@ -19,18 +19,19 @@ from .models_datasets_service import ModelsDatasetsService
 from .models_service import ModelsService
 from .probing_image_service import ProbingImageService
 from .statistics_service import StatisticsService
+from .unsupervised_service import UnsupervisedService
 from .utilities_service import UtilitiesService
 from .websocket_service import WebSocketService
 
 
 class ServiceContainer:
-    def __init__(self, env: str = 'development'):
+    def __init__(self, env: str = "development"):
         self.env = env
 
-        if env == 'development':
-            self.base_dir = os.path.join('..', 'DIR')
+        if env == "development":
+            self.base_dir = os.path.join("..", "DIR")
         else:
-            self.base_dir = os.path.join('/app', 'DIR')
+            self.base_dir = os.path.join("/app", "DIR")
 
         self.constants = Constants()
 
@@ -57,6 +58,7 @@ class ServiceContainer:
         self._statistics_service = None
         self._constants_service = None
         self._logger_service = None
+        self._unsupervised_service = None
 
     @property
     def datasets_service(self) -> DatasetsService:
@@ -92,10 +94,7 @@ class ServiceContainer:
     def models_datasets_service(self) -> ModelsDatasetsService:
         if self._models_datasets_service is None:
             self._models_datasets_service = ModelsDatasetsService(
-                self.models_datasets_path,
-                self.datasets_path,
-                self.utilities_service,
-                self.constants
+                self.models_datasets_path, self.datasets_path, self.utilities_service, self.constants
             )
         return self._models_datasets_service
 
@@ -121,6 +120,7 @@ class ServiceContainer:
     def cam_service(self):
         if self._cam_service is None:
             from .cam_service import CAMService
+
             self._cam_service = CAMService()
         return self._cam_service
 
@@ -178,71 +178,103 @@ class ServiceContainer:
             self._logger_service = LoggerService()
         return self._logger_service
 
+    @property
+    def unsupervised_service(self):
+        if self._unsupervised_service is None:
+            self._unsupervised_service = UnsupervisedService()
+        return self._unsupervised_service
+
+
 _container: ServiceContainer | None = None
+
 
 def get_container() -> ServiceContainer:
     global _container
     if _container is None:
-        env = os.getenv('APP_ENV', 'development')
+        env = os.getenv("APP_ENV", "development")
         _container = ServiceContainer(env)
     return _container
+
 
 def get_datasets_service() -> DatasetsService:
     return get_container().datasets_service
 
+
 def get_heatmaps_service() -> HeatmapsService:
     return get_container().heatmaps_service
+
 
 def get_models_service() -> ModelsService:
     return get_container().models_service
 
+
 def get_masks_service() -> MasksService:
     return get_container().masks_service
+
 
 def get_utilities_service() -> UtilitiesService:
     return get_container().utilities_service
 
+
 def get_models_datasets_service() -> ModelsDatasetsService:
     return get_container().models_datasets_service
+
 
 def get_constants() -> Constants:
     return get_container().constants
 
+
 def get_gradient_service() -> GradientService:
     return get_container().gradient_service
+
 
 def get_activations_service() -> ActivationsService:
     return get_container().activations_service
 
+
 def get_integrated_gradients_service() -> IntegratedGradientsService:
     return get_container().integrated_gradient_service
+
 
 def get_cam_service() -> CAMService:
     return get_container().cam_service
 
+
 def get_probing_image_service() -> ProbingImageService:
     return get_container().probing_image_service
+
 
 def get_gradient_noise_service() -> GradientNoiseService:
     return get_container().gradient_noise_service
 
+
 def get_heatmaps_facede_service() -> HeatmapsFacedeService:
     return get_container().heatmaps_facede_service
+
 
 def get_lrp_service() -> LRPService:
     return get_container().lrp_service
 
+
 def get_config_service() -> ConfigService:
     return get_container().config_service
+
 
 def get_websocket_service() -> WebSocketService:
     return get_container().websocket_service
 
+
 def get_statistics_service() -> StatisticsService:
     return get_container().statistics_service
+
 
 def get_constants_service() -> ConstantsService:
     return get_container().constants_service
 
+
 def get_logger_service() -> LoggerService:
     return get_container().logger_service
+
+
+def get_unsupervised_service() -> UnsupervisedService:
+    return get_container().unsupervised_service

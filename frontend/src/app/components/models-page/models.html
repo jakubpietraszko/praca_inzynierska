@@ -1,17 +1,26 @@
-<app-generic-model-selector
-  [(selectedModel)]="currentModel"
-></app-generic-model-selector>
+<app-generic-model-selector [(selectedModel)]="currentModel"></app-generic-model-selector>
+
 @if (!layers.isLoading() && layers.value()?.layers) {
-  <div class="model-layers">
-    <h3>Warstwy dla {{ currentModel() }}</h3>
-    @if (layers.value()?.layers) {
-      <ul>
-        @for (layer of layers.value()?.layers; track $index) {
-          <li>{{ layer }}</li>
-        }
-      </ul>
-    } @else {
-      <p>Brak warstw do wyświetlenia</p>
+<div class="model-layers">
+  <h3>Warstwy dla {{ currentModel() }}</h3>
+  @if (layers.value()?.layers) {
+  <ul>
+    @for (layer of layers.value()?.layers; track $index) {
+    <li>{{ layer?.name }}
+
+      @if (layer?.conv) {
+      <button class="btn btn-sm btn-primary"
+        (click)="onOpenDialog(currentModel(), layer?.ref)"
+      >
+        <mat-icon>launch</mat-icon>
+      </button>
+      }
+
+    </li>
     }
-  </div>
+  </ul>
+  } @else {
+  <p>Brak warstw do wyświetlenia</p>
+  }
+</div>
 }

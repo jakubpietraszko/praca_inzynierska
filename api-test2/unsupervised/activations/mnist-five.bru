@@ -5,7 +5,7 @@ meta {
 }
 
 post {
-  url: http://localhost:8000/unsupervised/activations
+  url: http://localhost:8000/heatmap/any-activations
   body: json
   auth: inherit
 }
@@ -15,8 +15,9 @@ body:json {
     "model": "mnist",
     "dataset": "mnist-dataset",
     "label": "five",
-    "filename": "8.png",
-    "type": "tsne"
+    "filename": "test_8.png",
+    "type": "tsne",
+    "ref": "conv1"
   }
 }
 

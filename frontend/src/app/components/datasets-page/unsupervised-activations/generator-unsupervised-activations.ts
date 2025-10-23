@@ -11,6 +11,11 @@ export interface UnsupervisedActivationsRequest {
   type: string;
 }
 
+export interface UnsupervisedAnyActivationsRequest
+  extends UnsupervisedActivationsRequest {
+  ref: string;
+}
+
 export interface ImageCoordinate {
   label: string;
   filename: string;
@@ -24,6 +29,9 @@ export interface UnsupervisedActivationsResponse {
   success: boolean;
 }
 
+export interface UnsupervisedAnyActivationsResponse
+  extends UnsupervisedActivationsResponse {}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -35,6 +43,15 @@ export class GeneratorUnsupervisedActivations {
   ): Observable<UnsupervisedActivationsResponse> {
     return this.http.post<UnsupervisedActivationsResponse>(
       `${environment.apiUrl}/heatmap/unsupervised-activations`,
+      request,
+    );
+  }
+
+  unsupervisedAnyActivations(
+    request: UnsupervisedAnyActivationsRequest,
+  ): Observable<UnsupervisedAnyActivationsResponse> {
+    return this.http.post<UnsupervisedAnyActivationsResponse>(
+      `${environment.apiUrl}/heatmap/unsupervised-any-activations`,
       request,
     );
   }

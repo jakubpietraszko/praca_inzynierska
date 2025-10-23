@@ -1,0 +1,11 @@
+.switcher-control {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.current-item {
+  min-width: 120px;
+  text-align: center;
+  font-weight: 500;
+}

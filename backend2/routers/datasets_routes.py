@@ -128,6 +128,29 @@ async def fetch_activations_image_get(
 
     return FetchImageResponse(image=image_)
 
+@router.get("/fetch-any-activations-image", response_model=FetchImageResponse)
+async def fetch_any_activations_image_get(
+    dataset: str,
+    model: str,
+    label: str,
+    filename: str,
+    image: str,
+    ref: str,
+    models_data_service: ModelsDatasetsService = Depends(get_models_datasets_service),  # noqa: B008
+    utilities_service: UtilitiesService = Depends(get_utilities_service),  # noqa: B008
+    constants: Constants = Depends(get_constants),  # noqa: B008
+):
+    image_ = await models_data_service.fetch_any_activations_image(
+        await utilities_service.models_datasets_path(model, dataset),
+        constants.ACTIVATIONS,
+        label,
+        await utilities_service.delete_extension(filename),
+        image,
+        ref,
+    )
+
+    return FetchImageResponse(image=image_)
+
 
 @router.post("/fetch-models-datasets-image", response_model=FetchImageResponse)
 async def fetch_models_datasets_image_post(

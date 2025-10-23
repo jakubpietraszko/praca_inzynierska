@@ -1,7 +1,12 @@
 from fastapi import APIRouter, Depends
 
 from interfaces.all_models import AllModelsResponse
-from interfaces.model_layers import ModelLayersRequest, ModelLayersResponse
+from interfaces.model_layers import (
+    AllLayersRequest,
+    AllLayersResponse,
+    ModelLayersRequest,
+    ModelLayersResponse,
+)
 from services.container import get_models_service
 
 router = APIRouter()
@@ -23,3 +28,9 @@ async def model_layers(request: ModelLayersRequest, models_service=Depends(get_m
 async def model_layers_get(model: str, models_service=Depends(get_models_service)):  # noqa: B008
     layers = await models_service.get_model_layers(model)
     return ModelLayersResponse(layers=layers)
+
+
+@router.get("/all-layers", response_model=AllLayersResponse)
+async def all_layers(model: str, models_service=Depends(get_models_service)):  # noqa: B008
+    response = await models_service.all_layers(model)
+    return response

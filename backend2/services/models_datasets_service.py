@@ -54,6 +54,16 @@ class ModelsDatasetsService:
             image = base64.b64encode(f.read()).decode("utf-8")
 
         return image
+    
+    async def fetch_any_activations_image(
+        self, models_dataset: str, activations: str, label: str, filename: str, image: str, ref: str
+    ) -> str:
+        path = os.path.join(self.models_datasets_path, models_dataset, activations, ref, label, filename, image)
+
+        with open(path, "rb") as f:
+            image = base64.b64encode(f.read()).decode("utf-8")
+
+        return image
 
     async def fetch_image(self, models_dataset: str, type: str, label: str, filename: str) -> str:
         path = os.path.join(self.models_datasets_path, models_dataset, type, label, filename)
