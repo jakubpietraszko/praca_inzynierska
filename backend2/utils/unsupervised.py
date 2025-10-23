@@ -3,7 +3,7 @@ from sklearn.manifold import TSNE
 from sklearn.preprocessing import MinMaxScaler, normalize
 
 
-def apply_tsne_with_augmentation(images_flat_np: np.ndarray, min_samples: int = 31) -> np.ndarray:
+async def apply_tsne_with_augmentation(images_flat_np: np.ndarray, min_samples: int = 31) -> np.ndarray:
     images_flat_np = images_flat_np.astype(np.float64)
     images_flat_np += np.random.normal(0, 1e-10, images_flat_np.shape)
 

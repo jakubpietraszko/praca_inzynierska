@@ -218,7 +218,7 @@ class ActivationsService:
         n_samples = images_np.shape[0]
         images_flat_np = images_np.reshape(n_samples, -1)
 
-        images_tsne = apply_tsne_with_augmentation(images_flat_np)
+        images_tsne = await apply_tsne_with_augmentation(images_flat_np)
 
         label_filenames_coords = []
 
