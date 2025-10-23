@@ -1,12 +1,9 @@
 import os
-import shutil
 
 import cv2
 import numpy as np
 import torch
 from PIL import Image
-from sklearn.manifold import TSNE
-from sklearn.preprocessing import MinMaxScaler, normalize
 
 from interfaces.activations import (
     ActivationsRequest,
@@ -22,6 +19,7 @@ from interfaces.unsupervised_activations import (
     UnsupervisedAnyActivationsResponse,
 )
 from services.models_service import ModelInfo
+from utils.unsupervised import apply_tsne_with_augmentation
 
 
 class ActivationsService:
@@ -168,11 +166,9 @@ class ActivationsService:
         images_np = np.array(images)
         n_samples = images_np.shape[0]
         images_flat_np = images_np.reshape(n_samples, -1)
-        tsne = TSNE(n_components=2)
-        images_tsne = tsne.fit_transform(images_flat_np)
-        images_tsne = normalize(images_tsne, axis=0)
-        scaler = MinMaxScaler()
-        images_tsne = scaler.fit_transform(images_tsne)
+
+        images_tsne = apply_tsne_with_augmentation(images_flat_np)
+
         label_filenames_coords = []
 
         for img_path, coords in zip(image_path, images_tsne, strict=False):
@@ -221,11 +217,9 @@ class ActivationsService:
         images_np = np.array(images)
         n_samples = images_np.shape[0]
         images_flat_np = images_np.reshape(n_samples, -1)
-        tsne = TSNE(n_components=2)
-        images_tsne = tsne.fit_transform(images_flat_np)
-        images_tsne = normalize(images_tsne, axis=0)
-        scaler = MinMaxScaler()
-        images_tsne = scaler.fit_transform(images_tsne)
+
+        images_tsne = apply_tsne_with_augmentation(images_flat_np)
+
         label_filenames_coords = []
 
         for img_path, coords in zip(image_path, images_tsne, strict=False):

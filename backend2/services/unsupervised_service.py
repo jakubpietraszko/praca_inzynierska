@@ -2,8 +2,6 @@ import os
 
 import numpy as np
 from PIL import Image
-from sklearn.manifold import TSNE
-from sklearn.preprocessing import MinMaxScaler, normalize
 
 from interfaces.gradient import GradientRequest
 from interfaces.label_filename import LabelFilenameTarget
@@ -13,6 +11,7 @@ from interfaces.unsupervised_activations import (
     UnsupervisedActivationsResponse,
 )
 from interfaces.unsupervised_heatmaps import FilenameCoords, UnsupervisedHeatmapsRequest, UnsupervisedHeatmapsResponse
+from utils.unsupervised import apply_tsne_with_augmentation
 
 
 class UnsupervisedService:
@@ -54,13 +53,8 @@ class UnsupervisedService:
         images_np = np.array(images)
         n_samples = images_np.shape[0]
         images_flat_np = images_np.reshape(n_samples, -1)
-        tsne = TSNE(n_components=2)
-        images_tsne = tsne.fit_transform(images_flat_np)
 
-        images_tsne = normalize(images_tsne, axis=0)
-
-        scaler = MinMaxScaler()
-        images_tsne = scaler.fit_transform(images_tsne)
+        images_tsne = apply_tsne_with_augmentation(images_flat_np)
 
         label_filenames_coords = []
 
@@ -113,13 +107,8 @@ class UnsupervisedService:
         images_np = np.array(images)
         n_samples = images_np.shape[0]
         images_flat_np = images_np.reshape(n_samples, -1)
-        tsne = TSNE(n_components=2)
-        images_tsne = tsne.fit_transform(images_flat_np)
 
-        images_tsne = normalize(images_tsne, axis=0)
-
-        scaler = MinMaxScaler()
-        images_tsne = scaler.fit_transform(images_tsne)
+        images_tsne = apply_tsne_with_augmentation(images_flat_np)
 
         filenames_coords = []
 
