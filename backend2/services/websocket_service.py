@@ -1,12 +1,18 @@
+import builtins
 import contextlib
 import json
 
 from fastapi import WebSocket
 
+from interfaces.gradient import GradientRequest
+
 
 class WebSocketService:
     def __init__(self):
+        from services.container import Constants, get_constants
+
         self.active_connections: set[WebSocket] = set()
+        self.constants: Constants = get_constants()
 
     async def connect(self, websocket: WebSocket):
         await websocket.accept()
@@ -47,3 +53,15 @@ class WebSocketService:
             await self.send_heatmap_notification(dataset, model, label, heatmap_type, filename)
 
         return
+
+    async def send_notification_supress_exceptions(
+        self, request: GradientRequest, label: str, filename: str, heatmap_type: str
+    ) -> None:
+        with contextlib.suppress(builtins.BaseException):
+            await self.send_heatmap_notification_sync(
+                dataset=request.dataset,
+                model=request.model,
+                label=label,
+                filename=filename,
+                heatmap_type=heatmap_type,
+            )

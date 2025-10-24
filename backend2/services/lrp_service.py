@@ -155,16 +155,14 @@ class LRPService:
                 result, model_info.input_shape, epsilon=config.epsilon or self.constants.DEFAULT_EPSILON
             )
 
-            cv2.imwrite(save_path, result)
+            await self.utilities_service.save_image(save_path, result)
 
-            with contextlib.suppress(builtins.BaseException):
-                await self.websocket_service.send_heatmap_notification_sync(
-                    dataset=request.dataset,
-                    model=request.model,
-                    label=label,
-                    filename=filename,
-                    heatmap_type=self.constants.LRP_EPSILON,
-                )
+            await self.websocket_service.send_notification_supress_exceptions(
+                request=request,
+                label=label,
+                filename=filename,
+                heatmap_type=self.constants.LRP_EPSILON,
+            )
 
         for hook in hooks:
             hook.remove()
@@ -318,16 +316,14 @@ class LRPService:
                 result, model_info.input_shape, epsilon=(config.epsilon or self.constants.DEFAULT_EPSILON)
             )
 
-            cv2.imwrite(save_path, result)
+            await self.utilities_service.save_image(save_path, result)
 
-            with contextlib.suppress(builtins.BaseException):
-                await self.websocket_service.send_heatmap_notification_sync(
-                    dataset=request.dataset,
-                    model=request.model,
-                    label=label,
-                    filename=filename,
-                    heatmap_type=self.constants.LRP_GAMMA,
-                )
+            await self.websocket_service.send_notification_supress_exceptions(
+                request=request,
+                label=label,
+                filename=filename,
+                heatmap_type=self.constants.LRP_GAMMA,
+            )
 
         for hook in hooks:
             hook.remove()
@@ -503,16 +499,14 @@ class LRPService:
                 result, model_info.input_shape, epsilon=(config.epsilon or self.constants.DEFAULT_EPSILON)
             )
 
-            cv2.imwrite(save_path, result)
+            await self.utilities_service.save_image(save_path, result)
 
-            with contextlib.suppress(builtins.BaseException):
-                await self.websocket_service.send_heatmap_notification_sync(
-                    dataset=request.dataset,
-                    model=request.model,
-                    label=label,
-                    filename=filename,
-                    heatmap_type=self.constants.LRP_ALPHA_BETA,
-                )
+            await self.websocket_service.send_notification_supress_exceptions(
+                request=request,
+                label=label,
+                filename=filename,
+                heatmap_type=self.constants.LRP_ALPHA_BETA,
+            )
 
         for hook in hooks:
             hook.remove()
@@ -662,16 +656,14 @@ class LRPService:
                 result, model_info.input_shape, epsilon=config.epsilon or self.constants.DEFAULT_EPSILON
             )
 
-            cv2.imwrite(save_path, result)
+            await self.utilities_service.save_image(save_path, result)
 
-            with contextlib.suppress(builtins.BaseException):
-                await self.websocket_service.send_heatmap_notification_sync(
-                    dataset=request.dataset,
-                    model=request.model,
-                    label=label,
-                    filename=filename,
-                    heatmap_type=self.constants.LRP_ZPLUS,
-                )
+            await self.websocket_service.send_notification_supress_exceptions(
+                request=request,
+                label=label,
+                filename=filename,
+                heatmap_type=self.constants.LRP_ZPLUS,
+            )
 
         for hook in hooks:
             hook.remove()
@@ -826,16 +818,14 @@ class LRPService:
                 result, model_info.input_shape, epsilon=config.epsilon or self.constants.DEFAULT_EPSILON
             )
 
-            cv2.imwrite(save_path, result)
+            await self.utilities_service.save_image(save_path, result)
 
-            with contextlib.suppress(builtins.BaseException):
-                await self.websocket_service.send_heatmap_notification_sync(
-                    dataset=request.dataset,
-                    model=request.model,
-                    label=label,
-                    filename=filename,
-                    heatmap_type=self.constants.LRP_W2,
-                )
+            await self.websocket_service.send_notification_supress_exceptions(
+                request=request,
+                label=label,
+                filename=filename,
+                heatmap_type=self.constants.LRP_W2,
+            )
 
         for hook in hooks:
             hook.remove()

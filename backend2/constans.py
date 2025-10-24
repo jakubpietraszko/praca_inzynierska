@@ -17,9 +17,9 @@ class Constants:
     STATISTICS_TYPES: list[str] = field(default_factory=lambda: [])
     STATISTICS_PERCENTAGES_STEP: list[int] = field(default_factory=lambda: [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100])
 
-    MASK_RISE: str = "mask_rise"
-    MASK_SLIC: str = "mask_slic"
-    MASK_SEED: str = "mask_seed"
+    MASK_RISE: str = "rise"
+    MASK_SLIC: str = "slic"
+    MASK_SEED: str = "seed"
 
     EDGE_CANNY: str = 'edge_canny'
 
@@ -192,7 +192,7 @@ class Constants:
     STEPS: int = 50
     NOISE_LEVEL: float = 0.1
     NUM_SAMPLES: int = 50
-    CACHE_ENABLED: bool = False
+    CACHE_ENABLED: bool = True
     BATCH_SIZE: int = 16
 
     EPSILON: float = 1e-8
@@ -207,7 +207,7 @@ class Constants:
     DEFAULT_SIGMA: float = 0.5
     DEFAULT_BASELINE: int = 0
     DEFAULT_STEPS: int = 50
-    DEFAULT_SEGMENTATION: str = "seed"
+    DEFAULT_SEGMENTATION: str = MASK_SLIC
     DEFAULT_GAMMA: float = 0.75
     DEFAULT_ALPHA: float = 2.5
     DEFAULT_BETA: float = 1.5

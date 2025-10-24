@@ -13,6 +13,7 @@ from interfaces.gradient import GradientRequest, GradientResponse
 from interfaces.label_filename import LabelFilename
 from interfaces.super_pixels import SuperPixelsRequest
 from services.config_service import XAIMethodConfig
+from services.models_service import ModelInfo
 
 
 class ProbingImageService:
@@ -47,33 +48,79 @@ class ProbingImageService:
         self.utilities_service: UtilitiesService = get_utilities_service()
         self.models_service: ModelsService = get_models_service()
         self.logger_service: LoggerService = get_logger_service()
+        self.utilities_service: UtilitiesService = get_utilities_service()
 
-    async def xrai(self, request: GradientRequest) -> GradientResponse:
-        root_path = os.path.join(
+    async def __make_root_path(self, request: GradientRequest, xai_method_name: str) -> str:
+        root_path: str = os.path.join(
             self.container.models_datasets_path,
             await self.utilities_service.models_datasets_path(request.model, request.dataset),
-            self.constants.XRAI,
+            xai_method_name,
         )
         os.makedirs(root_path, exist_ok=True)
+        return root_path
 
-        model_info = await self.models_service.load_model(request.model)
+    async def __make_label_path(self, root_path: str, label: str) -> str:
+        label_path: str = os.path.join(root_path, label)
+        os.makedirs(label_path, exist_ok=True)
+        return label_path
+
+    async def __make_superpixels(
+        self, request: GradientRequest, label: str, filename: str, config: XAIMethodConfig
+    ) -> np.ndarray | None:
+        request_superpixels: SuperPixelsRequest = SuperPixelsRequest(
+            model=request.model,
+            dataset=request.dataset,
+            images=[LabelFilename(label=label, filename=filename)],
+            superPixels=(config.super_pixels or self.constants.DEFAULT_SUPER_PIXELS),
+            overwrite=False,
+        )
+
+        self.logger_service.log_config(config, f"Superpixels for {label}/{filename}")
+
+        if config.segmentation is None:
+            return None
+        elif config.segmentation == self.constants.MASK_SEED:
+            await self.get_masks_service.seed_with_save(request=request_superpixels)
+        elif config.segmentation == self.constants.MASK_SLIC:
+            await self.get_masks_service.slic_with_save(request=request_superpixels)
+        else:
+            return None
+
+        super_pixels_path = os.path.join(
+            self.container.models_datasets_path,
+            await self.utilities_service.models_datasets_path(request.model, request.dataset),
+            config.segmentation,
+            label,
+            filename,
+        )
+
+        super_pixels_np = np.array(Image.open(super_pixels_path))
+
+        self.logger_service.log(f"{super_pixels_np.shape}")
+
+        unique_values = np.unique(super_pixels_np)
+        super_pixels_segments = np.zeros_like(super_pixels_np)
+        for i, val in enumerate(unique_values):
+            super_pixels_segments[super_pixels_np == val] = i
+        return super_pixels_segments
+
+    async def xrai(self, request: GradientRequest) -> GradientResponse:
+        root_path = await self.__make_root_path(request, self.constants.XRAI)
+
+        model_info: ModelInfo = await self.models_service.load_model(request.model)
 
         config: XAIMethodConfig = await self.config_service.get_method_config(self.constants.XRAI)
 
-        self.logger_service.log(
-            f"XRAI config: EPSILON={config.epsilon}, AGGREGATION={config.aggregation}, SUPER_PIXELS={config.super_pixels}, BASELINE={config.baseline}, SEGMENTATION={config.segmentation}"
-        )
+        self.logger_service.log_config(config, self.constants.XRAI)
 
         for image in request.images:
-            label = image.label
-            filename = image.filename
-            target = image.target
+            label, filename, target = image.label, image.filename, image.target
 
             if target is None:
                 target = await self.utilities_service.fill_target(model_info, label)
 
-            label_path = os.path.join(root_path, label)
-            os.makedirs(label_path, exist_ok=True)
+            label_path = await self.__make_label_path(root_path, label)
+
             save_path = os.path.join(label_path, await self.utilities_service.add_png_extension(filename))
             if self.constants.CACHE_ENABLED and await self.utilities_service.skip_forward(save_path):
                 continue
@@ -81,30 +128,8 @@ class ProbingImageService:
             image_path = os.path.join(self.container.datasets_path, request.dataset, label, filename)
 
             image_np = await self.datasets_service.load_image(image_path, model_info.input_shape)
-            request_superpixels: SuperPixelsRequest = SuperPixelsRequest(
-                model=request.model,
-                dataset=request.dataset,
-                images=[LabelFilename(label=label, filename=filename)],
-                superPixels=(config.super_pixels or self.constants.DEFAULT_SUPER_PIXELS),
-                overwrite=False,
-            )
 
-            await self.get_masks_service.seed_with_save(request=request_superpixels)
-
-            super_pixels_path = os.path.join(
-                self.container.models_datasets_path,
-                await self.utilities_service.models_datasets_path(request.model, request.dataset),
-                self.constants.MASK_SEED,
-                label,
-                filename,
-            )
-
-            super_pixels_np = np.array(Image.open(super_pixels_path))
-
-            unique_values = np.unique(super_pixels_np)
-            super_pixels_segments = np.zeros_like(super_pixels_np)
-            for i, val in enumerate(unique_values):
-                super_pixels_segments[super_pixels_np == val] = i
+            super_pixels_segments = await self.__make_superpixels(request, label, filename, config)
 
             if len(image_np.shape) == 3 and image_np.shape[0] in [1, 3]:
                 image_np_hwc = np.transpose(image_np, (1, 2, 0))
@@ -130,67 +155,50 @@ class ProbingImageService:
                     attribution_map, (super_pixels_segments.shape[1], super_pixels_segments.shape[0])
                 )
 
-            try:
-                xrai_result = await self._xrai_algorithm(
-                    image=image_np_hwc, segments=super_pixels_segments, attribution_map=attribution_map
-                )
+            xrai_result = await self._xrai_algorithm(
+                image=image_np_hwc, segments=super_pixels_segments, attribution_map=attribution_map
+            )
 
-                if np.max(xrai_result) > np.min(xrai_result):
-                    xrai_normalized = (xrai_result - np.min(xrai_result)) / (np.max(xrai_result) - np.min(xrai_result))
-                    xrai_normalized = xrai_normalized * 255.0
-                    xrai_final = xrai_normalized.astype(np.uint8)
+            if np.max(xrai_result) > np.min(xrai_result):
+                xrai_normalized = (xrai_result - np.min(xrai_result)) / (np.max(xrai_result) - np.min(xrai_result))
+                xrai_normalized = xrai_normalized * 255.0
+                xrai_final = xrai_normalized.astype(np.uint8)
 
-                    if xrai_final.shape != (model_info.input_shape[1], model_info.input_shape[2]):
-                        xrai_final = cv2.resize(xrai_final, (model_info.input_shape[2], model_info.input_shape[1]))
+                if xrai_final.shape != (model_info.input_shape[1], model_info.input_shape[2]):
+                    xrai_final = cv2.resize(xrai_final, (model_info.input_shape[2], model_info.input_shape[1]))
 
-                else:
-                    xrai_final = np.zeros((model_info.input_shape[1], model_info.input_shape[2]), dtype=np.uint8)
-
-                xrai_final = xrai_final.astype(np.uint8)
-
-                cv2.imwrite(save_path, xrai_final)
-                with contextlib.suppress(builtins.BaseException):
-                    await self.websocket_service.send_heatmap_notification_sync(
-                        dataset=request.dataset,
-                        model=request.model,
-                        label=label,
-                        filename=filename,
-                        heatmap_type=self.constants.XRAI,
-                    )
-
-            except Exception:
-                traceback.print_exc()
+            else:
                 xrai_final = np.zeros((model_info.input_shape[1], model_info.input_shape[2]), dtype=np.uint8)
-                cv2.imwrite(save_path, xrai_final)
+
+            xrai_final = xrai_final.astype(np.uint8)
+
+            await self.utilities_service.save_image(save_path, xrai_final)
+
+            await self.websocket_service.send_notification_supress_exceptions(
+                request=request,
+                label=label,
+                filename=filename,
+                heatmap_type=self.constants.XRAI,
+            )
 
         return GradientResponse(success=True)
 
     async def kernel_shap(self, request: GradientRequest) -> GradientResponse:
-        root_path = os.path.join(
-            self.container.models_datasets_path,
-            await self.utilities_service.models_datasets_path(request.model, request.dataset),
-            self.constants.KERNEL_SHAP,
-        )
-        os.makedirs(root_path, exist_ok=True)
+        root_path: str = await self.__make_root_path(request, self.constants.KERNEL_SHAP)
 
-        model_info = await self.models_service.load_model(request.model)
+        model_info: ModelInfo = await self.models_service.load_model(request.model)
 
         config: XAIMethodConfig = await self.config_service.get_method_config(self.constants.KERNEL_SHAP)
 
-        self.logger_service.log(
-            f"Kernel SHAP config: EPSILON={config.epsilon}, AGGREGATION={config.aggregation}, SUPER_PIXELS={config.super_pixels}, BASELINE={config.baseline}, N_SAMPLES={config.n_samples}, SEGMENTATION={config.segmentation}"
-        )
+        self.logger_service.log_config(config, self.constants.KERNEL_SHAP)
 
         for image in request.images:
-            label = image.label
-            filename = image.filename
-            target = image.target
+            label, filename, target = image.label, image.filename, image.target
 
             if target is None:
                 target = await self.utilities_service.fill_target(model_info, label)
 
-            label_path = os.path.join(root_path, label)
-            os.makedirs(label_path, exist_ok=True)
+            label_path = await self.__make_label_path(root_path, label)
             save_path = os.path.join(label_path, await self.utilities_service.add_png_extension(filename))
 
             if self.constants.CACHE_ENABLED and await self.utilities_service.skip_forward(save_path):
@@ -200,109 +208,60 @@ class ProbingImageService:
 
             image_np = await self.datasets_service.load_image(image_path, model_info.input_shape)
 
-            request_superpixels: SuperPixelsRequest = SuperPixelsRequest(
-                model=request.model,
-                dataset=request.dataset,
-                images=[LabelFilename(label=label, filename=filename)],
-                superPixels=(config.super_pixels or self.constants.DEFAULT_SUPER_PIXELS),
-                overwrite=False,
-            )
-
-            await self.get_masks_service.seed_with_save(request=request_superpixels)
-
-            super_pixels_path = os.path.join(
-                self.container.models_datasets_path,
-                await self.utilities_service.models_datasets_path(request.model, request.dataset),
-                self.constants.MASK_SEED,
-                label,
-                filename,
-            )
-
-            super_pixels_np = np.array(Image.open(super_pixels_path))
-            unique_values = np.unique(super_pixels_np)
-            super_pixels_segments = np.zeros_like(super_pixels_np)
-            for i, val in enumerate(unique_values):
-                super_pixels_segments[super_pixels_np == val] = i
+            super_pixels_segments = await self.__make_superpixels(request, label, filename, config)
 
             if len(image_np.shape) == 3 and image_np.shape[0] in [1, 3]:
                 image_np_hwc = np.transpose(image_np, (1, 2, 0))
             else:
                 image_np_hwc = image_np
 
-            try:
-                shap_values = await self._kernel_shap_explain(
-                    image_np=image_np_hwc,
-                    super_pixels=super_pixels_segments,
-                    model=model_info.model,
-                    target=target,
-                    utilities_service=self.utilities_service,
-                    num_samples=(config.n_samples or self.constants.DEFAULT_N_SAMPLES),
-                )
+            shap_values = await self._kernel_shap_explain(
+                image_np=image_np_hwc,
+                super_pixels=super_pixels_segments,
+                model=model_info.model,
+                target=target,
+                utilities_service=self.utilities_service,
+                num_samples=(config.n_samples or self.constants.DEFAULT_N_SAMPLES),
+            )
 
-                if np.max(shap_values) > np.min(shap_values):
-                    shap_normalized = (shap_values - np.min(shap_values)) / (np.max(shap_values) - np.min(shap_values))
-                    shap_normalized = shap_normalized * 255.0
-                    shap_final = shap_normalized.astype(np.uint8)
+            if np.max(shap_values) > np.min(shap_values):
+                shap_normalized = (shap_values - np.min(shap_values)) / (np.max(shap_values) - np.min(shap_values))
+                shap_normalized = shap_normalized * 255.0
+                shap_final = shap_normalized.astype(np.uint8)
 
-                    if shap_final.shape != (model_info.input_shape[1], model_info.input_shape[2]):
-                        shap_final = cv2.resize(shap_final, (model_info.input_shape[2], model_info.input_shape[1]))
+                if shap_final.shape != (model_info.input_shape[1], model_info.input_shape[2]):
+                    shap_final = cv2.resize(shap_final, (model_info.input_shape[2], model_info.input_shape[1]))
 
-                else:
-                    shap_final = np.zeros((model_info.input_shape[1], model_info.input_shape[2]), dtype=np.uint8)
-
-                shap_final = shap_final.astype(np.uint8)
-
-                cv2.imwrite(save_path, shap_final)
-                with contextlib.suppress(builtins.BaseException):
-                    await self.websocket_service.send_heatmap_notification_sync(
-                        dataset=request.dataset,
-                        model=request.model,
-                        label=label,
-                        filename=filename,
-                        heatmap_type=self.constants.KERNEL_SHAP,
-                    )
-
-            except Exception:
-                traceback.print_exc()
+            else:
                 shap_final = np.zeros((model_info.input_shape[1], model_info.input_shape[2]), dtype=np.uint8)
-                cv2.imwrite(save_path, shap_final)
-                with contextlib.suppress(builtins.BaseException):
-                    await self.websocket_service.send_heatmap_notification_sync(
-                        dataset=request.dataset,
-                        model=request.model,
-                        label=label,
-                        filename=filename,
-                        heatmap_type=self.constants.KERNEL_SHAP,
-                    )
+
+            shap_final = shap_final.astype(np.uint8)
+
+            await self.utilities_service.save_image(save_path, shap_final)
+
+            await self.websocket_service.send_notification_supress_exceptions(
+                request=request, label=label, filename=filename, heatmap_type=self.constants.KERNEL_SHAP
+            )
 
         return GradientResponse(success=True)
 
     async def lime(self, request: GradientRequest) -> GradientResponse:
-        root_path = os.path.join(
-            self.container.models_datasets_path,
-            await self.utilities_service.models_datasets_path(request.model, request.dataset),
-            self.constants.LIME,
-        )
-        os.makedirs(root_path, exist_ok=True)
+        root_path: str = await self.__make_root_path(request, self.constants.LIME)
 
-        model_info = await self.models_service.load_model(request.model)
+        model_info: ModelInfo = await self.models_service.load_model(request.model)
 
         config: XAIMethodConfig = await self.config_service.get_method_config(self.constants.LIME)
 
-        self.logger_service.log(
-            f"LIME config: EPSILON={config.epsilon}, AGGREGATION={config.aggregation}, SUPER_PIXELS={config.super_pixels}, BASELINE={config.baseline}, N_SAMPLES={config.n_samples}, SEGMENTATION={config.segmentation}"
-        )
+        self.logger_service.log_config(config, self.constants.LIME)
 
         for image in request.images:
-            label = image.label
-            filename = image.filename
-            target = image.target
+            label, filename, target = image.label, image.filename, image.target
 
             if target is None:
                 target = await self.utilities_service.fill_target(model_info, label)
 
-            label_path = os.path.join(root_path, label)
-            os.makedirs(label_path, exist_ok=True)
+            label_path = await self.__make_label_path(root_path, label)
+
             save_path = os.path.join(label_path, await self.utilities_service.add_png_extension(filename))
 
             if self.constants.CACHE_ENABLED and await self.utilities_service.skip_forward(save_path):
@@ -312,30 +271,7 @@ class ProbingImageService:
 
             image_np = await self.datasets_service.load_image(image_path, model_info.input_shape)
 
-            request: SuperPixelsRequest = SuperPixelsRequest(
-                model=request.model,
-                dataset=request.dataset,
-                images=[LabelFilename(label=label, filename=filename)],
-                superPixels=(config.super_pixels or self.constants.DEFAULT_SUPER_PIXELS),
-                overwrite=False,
-            )
-
-            await self.get_masks_service.seed_with_save(request=request)
-
-            super_pixels_path = os.path.join(
-                self.container.models_datasets_path,
-                await self.utilities_service.models_datasets_path(request.model, request.dataset),
-                self.constants.MASK_SEED,
-                label,
-                filename,
-            )
-
-            super_pixels_np = np.array(Image.open(super_pixels_path))
-
-            unique_values = np.unique(super_pixels_np)
-            super_pixels_segments = np.zeros_like(super_pixels_np)
-            for i, val in enumerate(unique_values):
-                super_pixels_segments[super_pixels_np == val] = i
+            super_pixels_segments = await self.__make_superpixels(request, label, filename, config)
 
             if len(image_np.shape) == 3 and image_np.shape[0] in [1, 3]:
                 image_np_hwc = np.transpose(image_np, (1, 2, 0))
@@ -367,15 +303,11 @@ class ProbingImageService:
 
             attribution_final = attribution_final.astype(np.uint8)
 
-            cv2.imwrite(save_path, attribution_final)
-            with contextlib.suppress(builtins.BaseException):
-                await self.websocket_service.send_heatmap_notification_sync(
-                    dataset=request.dataset,
-                    model=request.model,
-                    label=label,
-                    filename=filename,
-                    heatmap_type=self.constants.LIME,
-                )
+            await self.utilities_service.save_image(save_path, attribution_final)
+
+            await self.websocket_service.send_notification_supress_exceptions(
+                request=request, label=label, filename=filename, heatmap_type=self.constants.LIME
+            )
 
         return GradientResponse(success=True)
 

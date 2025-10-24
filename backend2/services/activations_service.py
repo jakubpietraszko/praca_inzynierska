@@ -84,7 +84,8 @@ class ActivationsService:
             )
 
             activation_path = os.path.join(path, f"{i}.png")
-            cv2.imwrite(activation_path, activation)
+
+            await self.utilities_service.save_image(activation_path, activation)
 
         return ActivationsResponse(success=True, count=len(activations))
 
@@ -137,7 +138,7 @@ class ActivationsService:
             )
 
             activation_path = os.path.join(path, f"{i}.png")
-            cv2.imwrite(activation_path, activation)
+            await self.utilities_service.save_image(activation_path, activation)
 
         return ActivationsResponse(success=True, count=len(activations))
 

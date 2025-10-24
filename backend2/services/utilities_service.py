@@ -77,3 +77,6 @@ class UtilitiesService:
 
     async def fill_target(self, model_info, label) -> int:
         return model_info.label_to_idx[label]
+
+    async def save_image(self, path: str, image: np.ndarray):
+        cv2.imwrite(path, image)

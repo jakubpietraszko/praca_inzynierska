@@ -98,14 +98,14 @@ class IntegratedGradientsService:
 
             result = await self.utilities_service.relu_normalize(result, model_info.input_shape, epsilon=config.epsilon or self.constants.DEFAULT_EPSILON)
 
-            cv2.imwrite(save_path, result)
-            with contextlib.suppress(builtins.BaseException):
-                await self.websocket_service.send_heatmap_notification_sync(
-                    dataset=request.dataset,
-                    model=request.model,
-                    label=label,
-                    filename=filename,
-                    heatmap_type=self.constants.INTEGRATED_GRADIENT,
-                )
+            await self.utilities_service.save_image(save_path, result)
+
+            await self.websocket_service.send_notification_supress_exceptions(
+                request=request,
+                label=label,
+                filename=filename,
+                heatmap_type=self.constants.INTEGRATED_GRADIENT,
+            )
+
 
         return GradientResponse(success=True)

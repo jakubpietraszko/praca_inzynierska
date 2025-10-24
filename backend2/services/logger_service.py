@@ -1,5 +1,7 @@
 from icecream import ic
 
+from services.config_service import XAIMethodConfig
+
 
 class LoggerService:
     def __init__(self, filename: str = "log.txt"):
@@ -16,6 +18,9 @@ class LoggerService:
 
     def log(self, message: str):
         ic(message)
+
+    def log_config(self, config: XAIMethodConfig, xai_method_name: str):
+        self.log(f"{xai_method_name}: {config}")
 
     def __del__(self):
         if self.file:

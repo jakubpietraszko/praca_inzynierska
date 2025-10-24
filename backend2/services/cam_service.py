@@ -121,15 +121,14 @@ class CAMService:
             print(cam.min(), cam.max())
             # cam (H, W)
 
-            cv2.imwrite(save_path, cam)
-            with contextlib.suppress(builtins.BaseException):
-                await self.websocket_service.send_heatmap_notification_sync(
-                    dataset=request.dataset,
-                    model=request.model,
-                    label=label,
-                    filename=filename,
-                    heatmap_type=self.constants.GRAD_CAM,
-                )
+            await self.utilities_service.save_image(save_path, cam)
+
+            await self.websocket_service.send_notification_supress_exceptions(
+                request=request,
+                label=label,
+                filename=filename,
+                heatmap_type=self.constants.GRAD_CAM,
+            )
 
         return GradientResponse(
             success=True,
@@ -219,16 +218,14 @@ class CAMService:
                 cam, model_info.input_shape, (config.epsilon or self.constants.DEFAULT_EPSILON)
             )
             # cam (H, W)
-            cv2.imwrite(save_path, cam)
-            cv2.imwrite(save_path, cam)
-            with contextlib.suppress(builtins.BaseException):
-                await self.websocket_service.send_heatmap_notification_sync(
-                    dataset=request.dataset,
-                    model=request.model,
-                    label=label,
-                    filename=filename,
-                    heatmap_type=self.constants.GRAD_CAM_PLUS_PLUS,
-                )
+            await self.utilities_service.save_image(save_path, cam)
+
+            await self.websocket_service.send_notification_supress_exceptions(
+                request=request,
+                label=label,
+                filename=filename,
+                heatmap_type=self.constants.GRAD_CAM_PLUS_PLUS,
+            )
 
         return GradientResponse(
             success=True,
@@ -373,15 +370,14 @@ class CAMService:
 
             group_cam_final = cv2.normalize(group_cam_final, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8)
 
-            cv2.imwrite(save_path, group_cam_final)
-            with contextlib.suppress(builtins.BaseException):
-                await self.websocket_service.send_heatmap_notification_sync(
-                    dataset=request.dataset,
-                    model=request.model,
-                    label=label,
-                    filename=filename,
-                    heatmap_type=self.constants.GROUP_CAM,
-                )
+            await self.utilities_service.save_image(save_path, group_cam_final)
+
+            await self.websocket_service.send_notification_supress_exceptions(
+                request=request,
+                label=label,
+                filename=filename,
+                heatmap_type=self.constants.GROUP_CAM,
+            )
 
         return GradientResponse(
             success=True,
@@ -462,16 +458,15 @@ class CAMService:
             )
             # cam (H, W)
 
-            cv2.imwrite(save_path, cam)
+            await self.utilities_service.save_image(save_path, cam)
 
-            with contextlib.suppress(builtins.BaseException):
-                await self.websocket_service.send_heatmap_notification_sync(
-                    dataset=request.dataset,
-                    model=request.model,
-                    label=label,
-                    filename=filename,
-                    heatmap_type=self.constants.HIRES_CAM,
-                )
+            await self.websocket_service.send_notification_supress_exceptions(
+                request=request,
+                label=label,
+                filename=filename,
+                heatmap_type=self.constants.HIRES_CAM,
+            )
+
         return GradientResponse(
             success=True,
         )
@@ -567,16 +562,15 @@ class CAMService:
             )
             # cam (H, W)
 
-            cv2.imwrite(save_path, cam)
+            await self.utilities_service.save_image(save_path, cam)
 
-            with contextlib.suppress(builtins.BaseException):
-                await self.websocket_service.send_heatmap_notification_sync(
-                    dataset=request.dataset,
-                    model=request.model,
-                    label=label,
-                    filename=filename,
-                    heatmap_type=self.constants.WGRAD_CAM,
-                )
+            await self.websocket_service.send_notification_supress_exceptions(
+                request=request,
+                label=label,
+                filename=filename,
+                heatmap_type=self.constants.WGRAD_CAM,
+            )
+
 
         return GradientResponse(
             success=True,
@@ -677,16 +671,15 @@ class CAMService:
             ablationcam = cv2.resize(ablationcam, (model_info.input_shape[2], model_info.input_shape[1]))
             # ablationcam (H, W)
 
-            cv2.imwrite(save_path, ablationcam)
+            await self.utilities_service.save_image(save_path, ablationcam)
 
-            with contextlib.suppress(builtins.BaseException):
-                await self.websocket_service.send_heatmap_notification_sync(
-                    dataset=request.dataset,
-                    model=request.model,
-                    label=label,
-                    filename=filename,
-                    heatmap_type=self.constants.ABLATION_CAM,
-                )
+            await self.websocket_service.send_notification_supress_exceptions(
+                request=request,
+                label=label,
+                filename=filename,
+                heatmap_type=self.constants.ABLATION_CAM,
+            )
+
         return GradientResponse(
             success=True,
         )
@@ -773,16 +766,15 @@ class CAMService:
             )
             # cam (H, W)
 
-            cv2.imwrite(save_path, cam)
+            await self.utilities_service.save_image(save_path, cam)
 
-            with contextlib.suppress(builtins.BaseException):
-                await self.websocket_service.send_heatmap_notification_sync(
-                    dataset=request.dataset,
-                    model=request.model,
-                    label=label,
-                    filename=filename,
-                    heatmap_type=self.constants.XGRAD_CAM,
-                )
+            await self.websocket_service.send_notification_supress_exceptions(
+                request=request,
+                label=label,
+                filename=filename,
+                heatmap_type=self.constants.XGRAD_CAM,
+            )
+
         return GradientResponse(
             success=True,
         )

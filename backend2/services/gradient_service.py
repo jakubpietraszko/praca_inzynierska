@@ -15,6 +15,7 @@ class GradientService:
             Constants,
             LoggerService,
             ServiceContainer,
+            UtilitiesService,
             get_config_service,
             get_constants,
             get_container,
@@ -26,7 +27,6 @@ class GradientService:
         )
         from services.datasets_service import DatasetsService
         from services.models_service import ModelsService
-        from services.utilities_service import UtilitiesService
 
         self.config_service = get_config_service()
         self.websocket_service = get_websocket_service()
@@ -87,16 +87,15 @@ class GradientService:
                                                                  epsilon=config.epsilon or
                                                                  self.constants.DEFAULT_EPSILON)
 
-            cv2.imwrite(save_path, result)
+            await self.utilities_service.save_image(save_path, result)
 
-            with contextlib.suppress(Exception):
-                await self.websocket_service.send_heatmap_notification_sync(
-                    dataset=request.dataset,
-                    model=request.model,
-                    label=label,
-                    filename=filename,
-                    heatmap_type=self.constants.GRADIENT,
-                )
+            await self.websocket_service.send_notification_supress_exceptions(
+                request=request,
+                label=label,
+                filename=filename,
+                heatmap_type=self.constants.GRADIENT,
+            )
+
 
         return GradientResponse(success=True)
 
@@ -147,15 +146,14 @@ class GradientService:
 
             result = await self.utilities_service.relu_normalize(result, model_info.input_shape, epsilon=config.epsilon or self.constants.DEFAULT_EPSILON)
 
-            cv2.imwrite(save_path, result)
-            with contextlib.suppress(Exception):
-                await self.websocket_service.send_heatmap_notification_sync(
-                    dataset=request.dataset,
-                    model=request.model,
-                    label=label,
-                    filename=filename,
-                    heatmap_type=self.constants.GRADIENT_SQUARED,
-                )
+            await self.utilities_service.save_image(save_path, result)
+
+            await self.websocket_service.send_notification_supress_exceptions(
+                request=request,
+                label=label,
+                filename=filename,
+                heatmap_type=self.constants.GRADIENT_SQUARED,
+            )
 
         return GradientResponse(success=True)
 
@@ -221,15 +219,14 @@ class GradientService:
 
             result = await self.utilities_service.relu_normalize(result, model_info.input_shape, epsilon=config.epsilon or self.constants.DEFAULT_EPSILON)
 
-            cv2.imwrite(save_path, result)
-            with contextlib.suppress(Exception):
-                await self.websocket_service.send_heatmap_notification_sync(
-                    dataset=request.dataset,
-                    model=request.model,
-                    label=label,
-                    filename=filename,
-                    heatmap_type=self.constants.DECONVOLUTION,
-                )
+            await self.utilities_service.save_image(save_path, result)
+
+            await self.websocket_service.send_notification_supress_exceptions(
+                request=request,
+                label=label,
+                filename=filename,
+                heatmap_type=self.constants.DECONVOLUTION,
+            )
 
         for hook in hooks:
             hook.remove()
@@ -320,15 +317,14 @@ class GradientService:
 
             result = await self.utilities_service.relu_normalize(result, model_info.input_shape, epsilon=config.epsilon or self.constants.DEFAULT_EPSILON)
 
-            cv2.imwrite(save_path, result)
-            with contextlib.suppress(Exception):
-                await self.websocket_service.send_heatmap_notification_sync(
-                    dataset=request.dataset,
-                    model=request.model,
-                    label=label,
-                    filename=filename,
-                    heatmap_type=self.constants.GUIDED_BACKPROPAGATION,
-                )
+            await self.utilities_service.save_image(save_path, result)
+
+            await self.websocket_service.send_notification_supress_exceptions(
+                request=request,
+                label=label,
+                filename=filename,
+                heatmap_type=self.constants.GUIDED_BACKPROPAGATION,
+            )
 
         for hook in hooks:
             hook.remove()
@@ -390,14 +386,13 @@ class GradientService:
             result = (result.astype(np.float32) / 255.0) * (input_np.astype(np.float32) / 255.0)
             result = (result * 255.0).astype(np.uint8)
 
-            cv2.imwrite(save_path, result)
-            with contextlib.suppress(Exception):
-                await self.websocket_service.send_heatmap_notification_sync(
-                    dataset=request.dataset,
-                    model=request.model,
-                    label=label,
-                    filename=filename,
-                    heatmap_type=self.constants.INPUT_GRADIENT,
-                )
+            await self.utilities_service.save_image(save_path, result)
+
+            await self.websocket_service.send_notification_supress_exceptions(
+                request=request,
+                label=label,
+                filename=filename,
+                heatmap_type=self.constants.INPUT_GRADIENT,
+            )
 
         return GradientResponse(success=True)

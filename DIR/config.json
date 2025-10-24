@@ -1,15 +1,15 @@
 {
     "methods": {
         "grad_cam": {
-            "epsilon": 2.4e-05
+            "epsilon": 1e-06
         },
         "grad_cam_plus_plus": {
-            "epsilon": 1.7e-05
+            "epsilon": 1e-06
         },
         "group_cam": {
             "epsilon": 1e-06,
             "group_size": 8,
-            "k_size": 5,
+            "k_size": 3,
             "sigma": 0.5
         },
         "hires_cam": {
@@ -24,19 +24,19 @@
         "xgrad_cam": {
             "epsilon": 1e-06
         },
-        "smooth_grad": {
-            "epsilon": 5e-06,
-            "aggregation": "max",
-            "n_samples": 50,
-            "noise_level": 0.1
-        },
-        "smooth_grad_squared": {
+        "smooth_gradient": {
             "epsilon": 1e-06,
             "aggregation": "max",
             "n_samples": 50,
             "noise_level": 0.1
         },
-        "var_grad": {
+        "smooth_gradient_square": {
+            "epsilon": 1e-06,
+            "aggregation": "max",
+            "n_samples": 50,
+            "noise_level": 0.1
+        },
+        "var_gradient": {
             "epsilon": 1e-06,
             "aggregation": "max",
             "n_samples": 50,
@@ -51,7 +51,7 @@
             "aggregation": "max"
         },
         "deconvolution": {
-            "epsilon": 4e-06,
+            "epsilon": 1e-06,
             "aggregation": "max"
         },
         "guided_backpropagation": {
@@ -86,7 +86,7 @@
         "lime": {
             "epsilon": 1e-06,
             "aggregation": "max",
-            "n_samples": 100000,
+            "n_samples": 50,
             "baseline": 0.0,
             "super_pixels": 30,
             "segmentation": "seed"

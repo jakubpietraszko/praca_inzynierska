@@ -75,7 +75,8 @@ class MasksService:
 
             for i, mask in enumerate(masks):
                 mask_path = os.path.join(path, f"{i}.png")
-                cv2.imwrite(mask_path, mask * 255)
+                await self.utilities_service.save_image(mask_path, mask * 255)
+
         return MasksResponse(success=True)
 
     async def seed(
@@ -134,7 +135,8 @@ class MasksService:
             counts.append(count)
             mask_normalized = np.zeros_like(mask, dtype=np.uint8)
             mask = cv2.normalize(mask, mask_normalized, 0, 255, cv2.NORM_MINMAX)
-            cv2.imwrite(image_path_save, mask)
+            await self.utilities_service.save_image(image_path_save, mask)
+
         return SuperPixelsResponse(success=True, superPixels=counts)
 
     async def slic(
@@ -190,5 +192,5 @@ class MasksService:
             counts.append(count)
             mask_normalized = np.zeros_like(mask, dtype=np.uint8)
             mask = cv2.normalize(mask, mask_normalized, 0, 255, cv2.NORM_MINMAX)
-            cv2.imwrite(image_path_save, mask)
+            await self.utilities_service.save_image(image_path_save, mask)
         return SuperPixelsResponse(success=True, superPixels=counts)
