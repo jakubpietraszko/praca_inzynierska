@@ -7,6 +7,7 @@ import torch
 
 from interfaces.gradient import GradientRequest, GradientResponse
 from services.config_service import XAIMethodConfig
+from services.models_service import ModelInfo
 
 
 class IntegratedGradientsService:
@@ -47,13 +48,11 @@ class IntegratedGradientsService:
         )
         os.makedirs(root_path, exist_ok=True)
 
-        model_info = await self.models_service.load_model(request.model)
+        model_info: ModelInfo = await self.models_service.load_model(request.model)
 
         config: XAIMethodConfig = await self.config_service.get_method_config(self.constants.INTEGRATED_GRADIENT)
 
-        self.logger_service.log(
-            f"Integrated Gradient config: EPSILON={config.epsilon}, AGGREGATION={config.aggregation}, BASELINE={config.baseline}, STEPS={config.steps}",
-        )
+        self.logger_service.log_config(config, self.constants.INTEGRATED_GRADIENT)
 
         for image in request.images:
             label = image.label
@@ -90,13 +89,17 @@ class IntegratedGradientsService:
                 grad = torch.autograd.grad(y_c, interpolated_image)[0]
                 grad = torch.clamp(grad, min=0)
                 result += grad
-            result /= (config.steps or self.constants.DEFAULT_STEPS)
+            result /= config.steps or self.constants.DEFAULT_STEPS
             result = result.squeeze().cpu().detach().numpy()
 
             if len(result.shape) == 3 and result.shape[0] == 3:
-                result = await self.utilities_service.aggregate_channels(result, config.aggregation or self.constants.DEFAULT_AGGREGATION)
+                result = await self.utilities_service.aggregate_channels(
+                    result, config.aggregation or self.constants.DEFAULT_AGGREGATION
+                )
 
-            result = await self.utilities_service.relu_normalize(result, model_info.input_shape, epsilon=config.epsilon or self.constants.DEFAULT_EPSILON)
+            result = await self.utilities_service.relu_normalize(
+                result, model_info.input_shape, epsilon=config.epsilon or self.constants.DEFAULT_EPSILON
+            )
 
             await self.utilities_service.save_image(save_path, result)
 
@@ -106,6 +109,5 @@ class IntegratedGradientsService:
                 filename=filename,
                 heatmap_type=self.constants.INTEGRATED_GRADIENT,
             )
-
 
         return GradientResponse(success=True)

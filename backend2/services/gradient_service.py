@@ -7,6 +7,7 @@ import torch
 
 from interfaces.gradient import GradientRequest, GradientResponse
 from services.config_service import XAIMethodConfig
+from services.models_service import ModelInfo
 
 
 class GradientService:
@@ -46,11 +47,11 @@ class GradientService:
         )
         os.makedirs(root_path, exist_ok=True)
 
-        model_info = await self.models_service.load_model(request.model)
+        model_info: ModelInfo = await self.models_service.load_model(request.model)
 
         config: XAIMethodConfig = await self.config_service.get_method_config(self.constants.GRADIENT)
 
-        self.logger_service.log(f"Gradient config: EPSILON={config.epsilon}, AGGREGATION={config.aggregation}")
+        self.logger_service.log_config(config, self.constants.GRADIENT)
 
         for image in request.images:
             label = image.label
@@ -107,11 +108,11 @@ class GradientService:
         )
         os.makedirs(root_path, exist_ok=True)
 
-        model_info = await self.models_service.load_model(request.model)
+        model_info: ModelInfo = await self.models_service.load_model(request.model)
 
         config: XAIMethodConfig = await self.config_service.get_method_config(self.constants.GRADIENT_SQUARED)
 
-        self.logger_service.log(f"Gradient Squared config: EPSILON={config.epsilon}, AGGREGATION={config.aggregation}")
+        self.logger_service.log_config(config, self.constants.GRADIENT_SQUARED)
 
         for image in request.images:
             label = image.label
@@ -165,11 +166,11 @@ class GradientService:
         )
         os.makedirs(root_path, exist_ok=True)
 
-        model_info = await self.models_service.load_model(request.model)
+        model_info: ModelInfo = await self.models_service.load_model(request.model)
 
         config: XAIMethodConfig = await self.config_service.get_method_config(self.constants.DECONVOLUTION)
 
-        self.logger_service.log(f"Deconvolution config: EPSILON={config.epsilon}, AGGREGATION={config.aggregation}")
+        self.logger_service.log_config(config, self.constants.DECONVOLUTION)
 
         hooks = []
         original_inplace_states = {}
@@ -245,10 +246,10 @@ class GradientService:
         )
         os.makedirs(root_path, exist_ok=True)
 
-        model_info = await self.models_service.load_model(request.model)
+        model_info: ModelInfo = await self.models_service.load_model(request.model)
         config: XAIMethodConfig = await self.config_service.get_method_config(self.constants.GUIDED_BACKPROPAGATION)
 
-        self.logger_service.log(f"Guided Backpropagation config: EPSILON={config.epsilon}, AGGREGATION={config.aggregation}")
+        self.logger_service.log_config(config, self.constants.GUIDED_BACKPROPAGATION)
 
         hooks = []
         original_inplace_states = {}
@@ -343,11 +344,11 @@ class GradientService:
         )
         os.makedirs(root_path, exist_ok=True)
 
-        model_info = await self.models_service.load_model(request.model)
+        model_info: ModelInfo = await self.models_service.load_model(request.model)
 
         config: XAIMethodConfig = await self.config_service.get_method_config(self.constants.INPUT_GRADIENT)
 
-        self.logger_service.log(f"Input Gradient config: EPSILON={config.epsilon}, AGGREGATION={config.aggregation}")
+        self.logger_service.log_config(config, self.constants.INPUT_GRADIENT)
 
         for image in request.images:
             label = image.label

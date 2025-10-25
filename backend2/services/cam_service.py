@@ -49,11 +49,11 @@ class CAMService:
         )
         os.makedirs(root_path, exist_ok=True)
 
-        model_info = await self.models_service.load_model(request.model)
+        model_info: ModelInfo = await self.models_service.load_model(request.model)
 
         config: XAIMethodConfig = await self.config_service.get_method_config(self.constants.GRAD_CAM)
 
-        self.logger_service.log(f"Grad-CAM config: EPSILON={config.epsilon}")
+        self.logger_service.log_config(config, self.constants.GRAD_CAM)
 
         for image in request.images:
             label = image.label
@@ -142,11 +142,11 @@ class CAMService:
         )
         os.makedirs(root_path, exist_ok=True)
 
-        model_info = await self.models_service.load_model(request.model)
+        model_info: ModelInfo = await self.models_service.load_model(request.model)
 
         config: XAIMethodConfig = await self.config_service.get_method_config(self.constants.GRAD_CAM_PLUS_PLUS)
 
-        self.logger_service.log(f"Grad-CAM++ config: EPSILON={config.epsilon}")
+        self.logger_service.log_config(config, self.constants.GRAD_CAM_PLUS_PLUS)
 
         for image in request.images:
             label = image.label
@@ -239,13 +239,11 @@ class CAMService:
         )
         os.makedirs(root_path, exist_ok=True)
 
-        model_info = await self.models_service.load_model(request.model)
+        model_info: ModelInfo = await self.models_service.load_model(request.model)
 
         config: XAIMethodConfig = await self.config_service.get_method_config(self.constants.GROUP_CAM)
 
-        self.logger_service.log(
-            f"Group-CAM config: EPSILON={config.epsilon}, G={config.group_size}, ksize={config.k_size}, sigma={config.sigma}"
-        )
+        self.logger_service.log_config(config, self.constants.GROUP_CAM)
 
         for image in request.images:
             label = image.label
@@ -391,11 +389,11 @@ class CAMService:
         )
         os.makedirs(root_path, exist_ok=True)
 
-        model_info = await self.models_service.load_model(request.model)
+        model_info: ModelInfo = await self.models_service.load_model(request.model)
 
         config: XAIMethodConfig = await self.config_service.get_method_config(self.constants.HIRES_CAM)
 
-        self.logger_service.log(f"HiRes-CAM config: EPSILON={config.epsilon}")
+        self.logger_service.log_config(config, self.constants.HIRES_CAM)
 
         for image in request.images:
             label = image.label
@@ -479,11 +477,11 @@ class CAMService:
         )
         os.makedirs(root_path, exist_ok=True)
 
-        model_info = await self.models_service.load_model(request.model)
+        model_info: ModelInfo = await self.models_service.load_model(request.model)
 
-        config = await self.config_service.get_method_config(self.constants.WGRAD_CAM)
+        config: XAIMethodConfig = await self.config_service.get_method_config(self.constants.WGRAD_CAM)
 
-        self.logger_service.log(f"WGrad-CAM config: EPSILON={config.epsilon}")
+        self.logger_service.log_config(config, self.constants.WGRAD_CAM)
 
         for image in request.images:
             label = image.label
@@ -571,7 +569,6 @@ class CAMService:
                 heatmap_type=self.constants.WGRAD_CAM,
             )
 
-
         return GradientResponse(
             success=True,
         )
@@ -588,7 +585,7 @@ class CAMService:
 
         config: XAIMethodConfig = await self.config_service.get_method_config(self.constants.ABLATION_CAM)
 
-        self.logger_service.log(f"Ablation-CAM config: EPSILON={config.epsilon}")
+        self.logger_service.log_config(config, self.constants.ABLATION_CAM)
 
         for image in request.images:
             label = image.label
@@ -692,10 +689,10 @@ class CAMService:
         )
         os.makedirs(root_path, exist_ok=True)
 
-        model_info = await self.models_service.load_model(request.model)
+        model_info: ModelInfo = await self.models_service.load_model(request.model)
 
-        config = await self.config_service.get_method_config(self.constants.XGRAD_CAM)
-        self.logger_service.log(f"XGrad-CAM config: EPSILON={config.epsilon}")
+        config: XAIMethodConfig = await self.config_service.get_method_config(self.constants.XGRAD_CAM)
+        self.logger_service.log_config(config, self.constants.XGRAD_CAM)
 
         for image in request.images:
             label = image.label

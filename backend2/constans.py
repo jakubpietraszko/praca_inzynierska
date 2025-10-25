@@ -192,7 +192,7 @@ class Constants:
     STEPS: int = 50
     NOISE_LEVEL: float = 0.1
     NUM_SAMPLES: int = 50
-    CACHE_ENABLED: bool = True
+    CACHE_ENABLED: bool = False
     BATCH_SIZE: int = 16
 
     EPSILON: float = 1e-8

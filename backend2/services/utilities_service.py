@@ -4,10 +4,14 @@ import cv2
 import numpy as np
 import torch
 
+from interfaces.gradient import GradientRequest
+
 
 class UtilitiesService:
     def __init__(self):
-        pass
+        from services.container import ServiceContainer, get_container
+
+        self.container: ServiceContainer = get_container()
 
     async def env(self):
         env = os.getenv("APP_ENV", "development")
@@ -80,3 +84,20 @@ class UtilitiesService:
 
     async def save_image(self, path: str, image: np.ndarray):
         cv2.imwrite(path, image)
+
+    async def make_root_path(self, request: GradientRequest, xai_method_type: str) -> str:
+        root_path = os.path.join(
+            self.container.models_datasets_path,
+            await self.models_datasets_path(request.model, request.dataset),
+            xai_method_type,
+        )
+        os.makedirs(root_path, exist_ok=True)
+        return root_path
+
+    async def make_label_path(self, root_path: str, label: str) -> str:
+        label_path = os.path.join(
+            root_path,
+            label,
+        )
+        os.makedirs(label_path, exist_ok=True)
+        return label_path

@@ -1,8 +1,5 @@
-import builtins
-import contextlib
 import os
 
-import cv2
 import numpy as np
 import torch
 
@@ -50,31 +47,16 @@ class GradientNoiseService:
     async def var_grad(self, request: GradientRequest) -> GradientResponse:
         return await self.__gradient_noise_generic(request, self.constants.VAR_GRADIENT)
 
-    async def __make_root_path(self, request: GradientRequest, typeOfNoise: str) -> str:
-        root_path: str = os.path.join(
-            self.container.models_datasets_path,
-            await self.utilities_service.models_datasets_path(request.model, request.dataset),
-            typeOfNoise,
+    async def __gradient_noise_generic(self, request: GradientRequest, xai_method_type: str) -> GradientResponse:
+        root_path: str = await self.utilities_service.make_root_path(
+            request=request, xai_method_type=xai_method_type
         )
-        os.makedirs(root_path, exist_ok=True)
-        return root_path
-
-    async def __make_label_path(self, root_path: str, label: str) -> str:
-        label_path: str = os.path.join(
-            root_path,
-            label,
-        )
-        os.makedirs(label_path, exist_ok=True)
-        return label_path
-
-    async def __gradient_noise_generic(self, request: GradientRequest, typeOfNoise: str) -> GradientResponse:
-        root_path: str = await self.__make_root_path(request, typeOfNoise)
 
         model_info: ModelInfo = await self.models_service.load_model(request.model)
 
-        config: XAIMethodConfig = await self.config_service.get_method_config(typeOfNoise)
+        config: XAIMethodConfig = await self.config_service.get_method_config(xai_method_type)
 
-        self.logger_service.log_config(config, typeOfNoise)
+        self.logger_service.log_config(config, xai_method_type)
 
         for image in request.images:
             label, filename, target = image.label, image.filename, image.target
@@ -82,7 +64,7 @@ class GradientNoiseService:
             if target is None:
                 target = await self.utilities_service.fill_target(model_info, label)
 
-            label_path = await self.__make_label_path(root_path, label)
+            label_path = await self.utilities_service.make_label_path(root_path, label)
 
             save_path = os.path.join(label_path, await self.utilities_service.add_png_extension(filename))
 
@@ -110,17 +92,17 @@ class GradientNoiseService:
             result_tensor: torch.Tensor = torch.zeros_like(image_tensor)
             result: np.ndarray | None = None
 
-            if typeOfNoise == self.constants.SMOOTH_GRADIENT:
+            if xai_method_type == self.constants.SMOOTH_GRADIENT:
                 for item in results_list:
                     result_tensor += item
                 result_tensor /= config.n_samples or self.constants.DEFAULT_N_SAMPLES
                 result = result_tensor.squeeze().cpu().detach().numpy()
-            elif typeOfNoise == self.constants.SMOOTH_GRADIENT_SQUARE:
+            elif xai_method_type == self.constants.SMOOTH_GRADIENT_SQUARE:
                 for item in results_list:
                     result_tensor += item.square()
                 result_tensor /= config.n_samples or self.constants.DEFAULT_N_SAMPLES
                 result = result_tensor.squeeze().cpu().detach().numpy()
-            elif typeOfNoise == self.constants.VAR_GRADIENT:
+            elif xai_method_type == self.constants.VAR_GRADIENT:
                 for item in results_list:
                     result_tensor += item
                 smooth_grad: torch.Tensor = torch.stack(results_list, dim=0)
@@ -144,7 +126,7 @@ class GradientNoiseService:
                 request=request,
                 label=label,
                 filename=filename,
-                heatmap_type=typeOfNoise,
+                heatmap_type=xai_method_type,
             )
 
 

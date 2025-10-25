@@ -50,20 +50,6 @@ class ProbingImageService:
         self.logger_service: LoggerService = get_logger_service()
         self.utilities_service: UtilitiesService = get_utilities_service()
 
-    async def __make_root_path(self, request: GradientRequest, xai_method_name: str) -> str:
-        root_path: str = os.path.join(
-            self.container.models_datasets_path,
-            await self.utilities_service.models_datasets_path(request.model, request.dataset),
-            xai_method_name,
-        )
-        os.makedirs(root_path, exist_ok=True)
-        return root_path
-
-    async def __make_label_path(self, root_path: str, label: str) -> str:
-        label_path: str = os.path.join(root_path, label)
-        os.makedirs(label_path, exist_ok=True)
-        return label_path
-
     async def __make_superpixels(
         self, request: GradientRequest, label: str, filename: str, config: XAIMethodConfig
     ) -> np.ndarray | None:
@@ -74,8 +60,6 @@ class ProbingImageService:
             superPixels=(config.super_pixels or self.constants.DEFAULT_SUPER_PIXELS),
             overwrite=False,
         )
-
-        self.logger_service.log_config(config, f"Superpixels for {label}/{filename}")
 
         if config.segmentation is None:
             return None
@@ -96,8 +80,6 @@ class ProbingImageService:
 
         super_pixels_np = np.array(Image.open(super_pixels_path))
 
-        self.logger_service.log(f"{super_pixels_np.shape}")
-
         unique_values = np.unique(super_pixels_np)
         super_pixels_segments = np.zeros_like(super_pixels_np)
         for i, val in enumerate(unique_values):
@@ -105,7 +87,7 @@ class ProbingImageService:
         return super_pixels_segments
 
     async def xrai(self, request: GradientRequest) -> GradientResponse:
-        root_path = await self.__make_root_path(request, self.constants.XRAI)
+        root_path = await self.utilities_service.make_root_path(request, self.constants.XRAI)
 
         model_info: ModelInfo = await self.models_service.load_model(request.model)
 
@@ -119,7 +101,7 @@ class ProbingImageService:
             if target is None:
                 target = await self.utilities_service.fill_target(model_info, label)
 
-            label_path = await self.__make_label_path(root_path, label)
+            label_path = await self.utilities_service.make_label_path(root_path, label)
 
             save_path = os.path.join(label_path, await self.utilities_service.add_png_extension(filename))
             if self.constants.CACHE_ENABLED and await self.utilities_service.skip_forward(save_path):
@@ -184,7 +166,7 @@ class ProbingImageService:
         return GradientResponse(success=True)
 
     async def kernel_shap(self, request: GradientRequest) -> GradientResponse:
-        root_path: str = await self.__make_root_path(request, self.constants.KERNEL_SHAP)
+        root_path: str = await self.utilities_service.make_root_path(request, self.constants.KERNEL_SHAP)
 
         model_info: ModelInfo = await self.models_service.load_model(request.model)
 
@@ -198,7 +180,7 @@ class ProbingImageService:
             if target is None:
                 target = await self.utilities_service.fill_target(model_info, label)
 
-            label_path = await self.__make_label_path(root_path, label)
+            label_path = await self.utilities_service.make_label_path(root_path, label)
             save_path = os.path.join(label_path, await self.utilities_service.add_png_extension(filename))
 
             if self.constants.CACHE_ENABLED and await self.utilities_service.skip_forward(save_path):
@@ -246,7 +228,7 @@ class ProbingImageService:
         return GradientResponse(success=True)
 
     async def lime(self, request: GradientRequest) -> GradientResponse:
-        root_path: str = await self.__make_root_path(request, self.constants.LIME)
+        root_path: str = await self.utilities_service.make_root_path(request, self.constants.LIME)
 
         model_info: ModelInfo = await self.models_service.load_model(request.model)
 
@@ -260,7 +242,7 @@ class ProbingImageService:
             if target is None:
                 target = await self.utilities_service.fill_target(model_info, label)
 
-            label_path = await self.__make_label_path(root_path, label)
+            label_path = await self.utilities_service.make_label_path(root_path, label)
 
             save_path = os.path.join(label_path, await self.utilities_service.add_png_extension(filename))
 
