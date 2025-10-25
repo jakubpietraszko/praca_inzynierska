@@ -11,7 +11,7 @@ import {
 import { environment } from '../../../../environments/environment';
 import { CommonModule } from '@angular/common';
 import { MatTabsModule } from '@angular/material/tabs';
-import { AllLabelsResponse } from '../../../interfaces/all-labels';
+import { AllLabelsResponse } from '../../../generated-interfaces/all_labels';
 
 @Component({
   selector: 'app-generic-label-selector',

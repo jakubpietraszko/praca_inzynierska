@@ -1,7 +1,7 @@
 import { httpResource } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { environment } from '../../environments/environment';
-import { AllHeatmapsResponse } from '../interfaces/all-heatmaps';
+import { AllHeatmapsResponse } from '../generated-interfaces/all_heatmaps';
 
 @Injectable({
   providedIn: 'root',

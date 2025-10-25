@@ -1,7 +1,7 @@
 import { httpResource } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { AllModelsResponse } from '../interfaces/all-models';
 import { environment } from '../../environments/environment';
+import { AllModelsResponse } from '../generated-interfaces/all_models';
 
 @Injectable({
   providedIn: 'root',

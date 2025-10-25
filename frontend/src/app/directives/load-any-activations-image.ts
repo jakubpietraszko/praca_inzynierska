@@ -1,7 +1,7 @@
 import { httpResource } from '@angular/common/http';
 import { Directive, effect, ElementRef, inject, input } from '@angular/core';
-import { FetchImageResponse } from '../interfaces/fetch-image';
 import { environment } from '../../environments/environment';
+import { FetchImageResponse } from '../generated-interfaces/fetch_image';
 
 @Directive({
   selector: '[appLoadAnyActivationsImage]',

@@ -2,7 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { WrapperUnsupervisedAnyActivations } from './wrapper-unsupervised-any-activations/wrapper-unsupervised-any-activations';
 import { constants } from '../../../constants';
-import { AllLayersResponse } from '../../interfaces/model-layers';
+import { AllLayersResponse } from '../../generated-interfaces/model_layers';
 
 @Injectable({
   providedIn: 'root',

@@ -5,9 +5,9 @@ import {
   effect,
   model,
 } from '@angular/core';
-import { AllModelsResponse } from '../../../interfaces/all-models';
 import { environment } from '../../../../environments/environment';
 import { MatTabsModule } from '@angular/material/tabs';
+import { AllModelsResponse } from '../../../generated-interfaces/all_models';
 
 @Component({
   selector: 'app-generic-model-selector',

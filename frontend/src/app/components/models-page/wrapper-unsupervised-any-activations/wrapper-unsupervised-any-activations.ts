@@ -9,12 +9,8 @@ import {
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { ContentUnsupervisedAnyActivations } from '../content-unsupervised-any-activations/content-unsupervised-any-activations';
 import { GenericSelector } from '../../shared/generic-selector/generic-selector';
-import { A11yModule } from '@angular/cdk/a11y';
 import { Switcher } from '../../shared/switcher/switcher';
-import {
-  AllLayersResponse,
-  LayerConvRef,
-} from '../../../interfaces/model-layers';
+import { AllLayersResponse, LayerConvRef } from '../../../generated-interfaces/model_layers';
 
 @Component({
   selector: 'app-wrapper-unsupervised-any-activations',

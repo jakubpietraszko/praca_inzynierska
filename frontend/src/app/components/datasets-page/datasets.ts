@@ -12,13 +12,13 @@ import { DialogCompareHeatmaps } from './compare-heatmaps/dialog-compare-heatmap
 import { DialogUnsupervisedHeatmaps } from './unsupervised-heatmaps/dialog-unsupervised-heatmaps';
 import { DialogUnsupervisedActivations } from './unsupervised-activations/dialog-unsupervised-activations';
 import { httpResource } from '@angular/common/http';
-import { AllImagesResponse } from '../../interfaces/all-images';
 import { environment } from '../../../environments/environment';
 import { constants } from '../../../constants';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatGridListModule } from '@angular/material/grid-list';
 import { LoadImage } from '../../directives/load-image';
 import { DialogDatasetsBalance } from './datasets-balance/dialog-datasets-balance';
+import { AllImagesResponse } from '../../generated-interfaces/all_images';
 
 @Component({
   selector: 'app-datasets',

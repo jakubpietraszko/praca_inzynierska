@@ -6,11 +6,11 @@ import {
 } from '@angular/core';
 import { httpResource } from '@angular/common/http';
 import { GenericModelSelector } from '../shared/generic-model-selector/generic-model-selector';
-import { AllLayersResponse } from '../../interfaces/model-layers';
 import { environment } from '../../../environments/environment';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { DialogUnsupervisedAnyActivations } from './dialog-unsupervised-any-activations';
+import { AllLayersResponse } from '../../generated-interfaces/model_layers';
 
 @Component({
   selector: 'app-models',

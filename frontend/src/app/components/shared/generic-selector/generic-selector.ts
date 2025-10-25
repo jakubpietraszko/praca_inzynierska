@@ -10,13 +10,13 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { httpResource } from '@angular/common/http';
-import { AllModelsResponse } from '../../../interfaces/all-models';
 import { environment } from '../../../../environments/environment';
-import { AllDatasetsResponse } from '../../../interfaces/all-datasets';
-import { AllHeatmapsResponse } from '../../../interfaces/all-heatmaps';
 import { TranslateXaiMethodsPipe } from '../../../pipes/translate-xai-methods-pipe';
-import { AllLabelsResponse } from '../../../interfaces/all-labels';
-import { AllImagesResponse } from '../../../interfaces/all-images';
+import { AllDatasetsResponse } from '../../../generated-interfaces/all_datasets';
+import { AllModelsResponse } from '../../../generated-interfaces/all_models';
+import { AllLabelsResponse } from '../../../generated-interfaces/all_labels';
+import { AllImagesResponse } from '../../../generated-interfaces/all_images';
+import { AllHeatmapsResponse } from '../../../generated-interfaces/all_heatmaps';
 
 @Component({
   selector: 'app-generic-selector',

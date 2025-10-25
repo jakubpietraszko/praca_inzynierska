@@ -1,7 +1,7 @@
 import { Directive, effect, ElementRef, inject, input } from '@angular/core';
 import { environment } from '../../environments/environment';
 import { httpResource } from '@angular/common/http';
-import { FetchImageResponse } from '../interfaces/fetch-image';
+import { FetchImageResponse } from '../generated-interfaces/fetch_image';
 
 @Directive({
   selector: '[appLoadModelsDatasetsImage]',

@@ -7,10 +7,10 @@ import {
   model,
   TemplateRef,
 } from '@angular/core';
-import { AllDatasetsResponse } from '../../../interfaces/all-datasets';
 import { environment } from '../../../../environments/environment';
 import { MatTabsModule } from '@angular/material/tabs';
 import { CommonModule } from '@angular/common';
+import { AllDatasetsResponse } from '../../../generated-interfaces/all_datasets';
 
 @Component({
   selector: 'app-generic-dataset-selector',
