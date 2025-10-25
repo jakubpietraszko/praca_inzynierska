@@ -7,11 +7,11 @@ import { Home } from './components/home-page/home';
 import { Models } from './components/models-page/models';
 
 export const routes: Routes = [
-  {
-    path: 'home',
-    component: Home,
-    pathMatch: 'full',
-  },
+  // {
+  //   path: 'home',
+  //   component: Home,
+  //   pathMatch: 'full',
+  // },
   {
     path: 'settings',
     component: Settings,
@@ -39,7 +39,7 @@ export const routes: Routes = [
   },
   {
     path: '**',
-    redirectTo: 'home',
+    redirectTo: 'models',
     pathMatch: 'full',
   },
 ];
