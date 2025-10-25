@@ -1,17 +1,11 @@
 <div class="switcher-control">
-  <button 
-    mat-icon-button 
-    (click)="selectPrevious()" 
-    [disabled]="itemIsFirst()">
+  <button mat-icon-button (click)="selectPrevious()" [disabled]="itemIsFirst()">
     <mat-icon>chevron_left</mat-icon>
   </button>
-  
+
   <span class="current-item">{{ selectedItem() }}</span>
-  
-  <button 
-    mat-icon-button 
-    (click)="selectNext()" 
-    [disabled]="itemIsLast()">
+
+  <button mat-icon-button (click)="selectNext()" [disabled]="itemIsLast()">
     <mat-icon>chevron_right</mat-icon>
   </button>
 </div>

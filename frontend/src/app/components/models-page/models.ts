@@ -37,7 +37,9 @@ export class Models {
     if (!model || !ref) return;
 
     this.unsupervisedAnyActivationsDialog.open(
-      model, ref, this.layers.isLoading() ? null : this.layers.value() ?? null
+      model,
+      ref,
+      this.layers.isLoading() ? null : (this.layers.value() ?? null),
     );
   }
 }

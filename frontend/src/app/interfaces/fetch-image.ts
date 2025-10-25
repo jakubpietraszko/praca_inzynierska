@@ -13,7 +13,7 @@ export interface FetchActivationRequest extends FetchImageRequest {
   image: string;
 }
 
-export interface FetchAnyActivationRequest extends FetchActivationRequest{
+export interface FetchAnyActivationRequest extends FetchActivationRequest {
   ref: string;
 }
 
