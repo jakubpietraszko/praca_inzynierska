@@ -15,3 +15,10 @@ export interface ActivationsResponse {
   success: boolean;
   count: number;
 }
+export interface AnyActivationsRequest {
+  model: string;
+  dataset: string;
+  label: string;
+  filename: string;
+  ref: string;
+}

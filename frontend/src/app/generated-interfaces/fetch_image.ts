@@ -12,6 +12,14 @@ export interface FetchActivationImageRequest {
   model: string;
   image: string;
 }
+export interface FetchAnyActivationImageRequest {
+  dataset: string;
+  label: string;
+  filename: string;
+  model: string;
+  ref: string;
+  image: string;
+}
 export interface FetchImageRequest {
   dataset: string;
   label: string;

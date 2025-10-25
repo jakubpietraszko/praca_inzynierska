@@ -2,21 +2,26 @@ import { httpResource } from '@angular/common/http';
 import {
   ChangeDetectionStrategy,
   Component,
+  contentChild,
   effect,
   model,
+  TemplateRef,
 } from '@angular/core';
 import { AllDatasetsResponse } from '../../../interfaces/all-datasets';
 import { environment } from '../../../../environments/environment';
 import { MatTabsModule } from '@angular/material/tabs';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-generic-dataset-selector',
-  imports: [MatTabsModule],
+  imports: [MatTabsModule, CommonModule],
   templateUrl: './generic-dataset-selector.html',
   styleUrl: './generic-dataset-selector.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class GenericDatasetSelector {
+  postfixButtonTemplate = contentChild('postfixButton', { read: TemplateRef });
+
   selectedDataset = model<string | null>(null);
 
   datasets = httpResource<AllDatasetsResponse>(

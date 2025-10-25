@@ -8,6 +8,8 @@ import torchvision.transforms as transforms
 from PIL import Image
 from torchvision.datasets import ImageFolder
 
+from interfaces.datasets_balance import DatasetBalanceResponse
+
 
 @dataclass
 class DatasetInfo:
@@ -111,3 +113,13 @@ class DatasetsService:
         assert image.dtype == np.uint8
 
         return image
+
+    async def datasets_balance(self, dataset_name: str) -> DatasetBalanceResponse:
+        path = os.path.join(self.datasets_path, dataset_name)
+        labels = os.listdir(path)
+        balance = {}
+        for label in labels:
+            label_path = os.path.join(path, label)
+            filenames = os.listdir(label_path)
+            balance[label] = len(filenames)
+        return DatasetBalanceResponse(balance=balance)

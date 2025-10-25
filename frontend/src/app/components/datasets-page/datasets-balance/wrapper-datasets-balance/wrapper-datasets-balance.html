@@ -1,0 +1,4 @@
+@if($showPlot()) {
+<app-bar-plot [labels]="$balanceLabels()" [values]="$balanceValues()" [title]="'Zbalancowanie Zbioru Danych'"
+    [xAxisLabel]="'Etykiety'" [yAxisLabel]="'Liczebność'" [color]="'#1f77b4'"></app-bar-plot>
+}

@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends
 from interfaces.all_datasets import AllDatasetsResponse
 from interfaces.all_images import AllImagesResponse, AllsImagesRequest
 from interfaces.all_labels import AllLabelsRequest, AllLabelsResponse
+from interfaces.datasets_balance import DatasetBalanceResponse
 from interfaces.fetch_image import (
     FetchActivationImageRequest,
     FetchImageRequest,
@@ -128,6 +129,7 @@ async def fetch_activations_image_get(
 
     return FetchImageResponse(image=image_)
 
+
 @router.get("/fetch-any-activations-image", response_model=FetchImageResponse)
 async def fetch_any_activations_image_get(
     dataset: str,
@@ -211,3 +213,11 @@ async def fetch_models_datasets_fourier_image(
     )
 
     return FetchImageResponse(image=image)
+
+
+@router.get("/datasets-balance", response_model=DatasetBalanceResponse)
+async def dataset_balance(
+    dataset: str,
+    datasets_service: DatasetsService = Depends(get_datasets_service),  # noqa: B008
+):
+    return await datasets_service.datasets_balance(dataset)

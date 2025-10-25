@@ -18,6 +18,7 @@ import { constants } from '../../../constants';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatGridListModule } from '@angular/material/grid-list';
 import { LoadImage } from '../../directives/load-image';
+import { DialogDatasetsBalance } from './datasets-balance/dialog-datasets-balance';
 
 @Component({
   selector: 'app-datasets',
@@ -40,6 +41,7 @@ export class Datasets {
   compareHeatmapsDialog = inject(DialogCompareHeatmaps);
   unsupervisedActivationsDialog = inject(DialogUnsupervisedActivations);
   unsupervisedHeatmapsDialog = inject(DialogUnsupervisedHeatmaps);
+  datasetsBalanceDialog = inject(DialogDatasetsBalance);
 
   currentDataset = signal<string | null>(null);
   currentLabel = signal<string | null>(null);
@@ -86,6 +88,10 @@ export class Datasets {
     filename: string,
   ) {
     this.unsupervisedActivationsDialog.open(dataset, label, filename);
+  }
+
+  onBalanceDatasetsOpen(dataset: string) {
+    this.datasetsBalanceDialog.open(dataset);
   }
 
   onPageChange(event: any) {

@@ -23,3 +23,11 @@ export interface UnsupervisedActivationsResponse {
   label_filenames_coords: LabelFilenameCoords[];
   success: boolean;
 }
+export interface UnsupervisedAnyActivationsRequest {
+  model: string;
+  dataset: string;
+  label: string;
+  filename: string;
+  ref: string;
+  type: string;
+}

@@ -1,10 +1,17 @@
 @if (!datasets.isLoading()) {
-  <mat-tab-group
-    (selectedTabChange)="onDatasetChange($event.index)"
-    color="primary"
-  >
-    @for (dataset of datasets.value()?.datasets; track $index) {
-      <mat-tab [label]="dataset"></mat-tab>
-    }
-  </mat-tab-group>
+<mat-tab-group (selectedTabChange)="onDatasetChange($event.index)" color="primary">
+  @for (dataset of datasets.value()?.datasets; track $index) {
+  <mat-tab [label]="dataset">
+    <ng-template mat-tab-label>
+      <div class="dataset-flex-row">
+        <span>{{ dataset }}</span>
+        <ng-container
+          [ngTemplateOutlet]="postfixButtonTemplate()"
+          [ngTemplateOutletContext]="{ dataset: dataset }"
+        ></ng-container>
+      </div>
+    </ng-template>
+  </mat-tab>
+  }
+</mat-tab-group>
 }

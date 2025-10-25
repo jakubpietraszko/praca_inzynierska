@@ -1,6 +1,12 @@
 <app-generic-dataset-selector
   [(selectedDataset)]="currentDataset"
-></app-generic-dataset-selector>
+>
+  <ng-template #postfixButton let-dataset="dataset">
+    <button mat-icon-button (click)="onBalanceDatasetsOpen(dataset)">
+      <mat-icon>balance</mat-icon>
+    </button>
+  </ng-template>
+</app-generic-dataset-selector>
 @if (currentDataset()) {
   <app-generic-label-selector
     [dataset]="currentDataset()!"

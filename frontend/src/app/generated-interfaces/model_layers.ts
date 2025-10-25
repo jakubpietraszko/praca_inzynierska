@@ -5,6 +5,17 @@
 /* Do not modify it by hand - just update the pydantic models and then re-run the script
 */
 
+export interface AllLayersRequest {
+  model: string;
+}
+export interface AllLayersResponse {
+  layers: LayerConvRef[];
+}
+export interface LayerConvRef {
+  name: string;
+  conv: boolean;
+  ref: string;
+}
 export interface ModelLayersRequest {
   model: string;
 }

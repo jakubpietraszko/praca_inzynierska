@@ -9,10 +9,8 @@
           <div class="label-flex-row">
             <span>{{ label }}</span>
             <ng-container
-              *ngTemplateOutlet="
-                postfixButtonTemplate;
-                context: { label: label, dataset: dataset() }
-              "
+              [ngTemplateOutlet]="postfixButtonTemplate()"
+              [ngTemplateOutletContext]="{ label: label, dataset: dataset() }"
             ></ng-container>
           </div>
         </ng-template>
