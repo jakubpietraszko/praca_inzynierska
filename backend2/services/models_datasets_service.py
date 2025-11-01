@@ -5,7 +5,7 @@ import cv2
 import numpy as np
 from PIL import Image
 
-from interfaces.gradient import GradientRequest, LabelFilenameTarget
+from interfaces.heatmap import HeatmapRequest, LabelFilenameTarget
 
 
 class ModelsDatasetsService:
@@ -54,7 +54,7 @@ class ModelsDatasetsService:
             image = base64.b64encode(f.read()).decode("utf-8")
 
         return image
-    
+
     async def fetch_any_activations_image(
         self, models_dataset: str, activations: str, label: str, filename: str, image: str, ref: str
     ) -> str:
@@ -70,7 +70,7 @@ class ModelsDatasetsService:
 
         images = [LabelFilenameTarget(label=label, filename=filename, target=None)]
 
-        request = GradientRequest(
+        request = HeatmapRequest(
             model=models_dataset.split("_")[0], dataset=models_dataset.split("_")[1], images=images, overwrite=False
         )
 
@@ -86,7 +86,7 @@ class ModelsDatasetsService:
 
         images = [LabelFilenameTarget(label=label, filename=filename, target=None)]
 
-        request = GradientRequest(
+        request = HeatmapRequest(
             model=models_dataset.split("_")[0], dataset=models_dataset.split("_")[1], images=images, overwrite=False
         )
 

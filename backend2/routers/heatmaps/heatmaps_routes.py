@@ -4,18 +4,19 @@ from fastapi import APIRouter, Depends
 
 from constans import Constants
 from interfaces.all_heatmaps import AllHeatmapsResponse
-from interfaces.gradient import (
-    GradientRequest,
-    GradientResponse,
-    GradientStatisticRequest,
-    GradientStatisticResponse,
-    GradientStatisticsDatasetManyRequest,
-    GradientStatisticsDatasetManyResponse,
-    GradientStatisticsDatasetRequest,
-    GradientStatisticsDatasetResponse,
-    GradientStatisticsLabelManyRequest,
-    GradientStatisticsLabelManyResponse,
-    GradientStatisticsLabelRequest,
+from interfaces.heatmap import (
+    HeatmapRequest,
+    HeatmapResponse,
+    HeatmapStatisticRequest,
+    HeatmapStatisticResponse,
+    HeatmapStatisticsDatasetManyRequest,
+    HeatmapStatisticsDatasetManyResponse,
+    HeatmapStatisticsDatasetRequest,
+    HeatmapStatisticsDatasetResponse,
+    HeatmapStatisticsLabelManyRequest,
+    HeatmapStatisticsLabelManyResponse,
+    HeatmapStatisticsLabelRequest,
+    HeatmapStatisticsLabelResponse,
     LabelFilenameTarget,
 )
 from interfaces.shapes import (
@@ -41,17 +42,16 @@ router = APIRouter()
 async def all_available_heatmaps(
     constants: Constants = Depends(get_constants),  # noqa: B008
     heatmaps_service: HeatmapsService = Depends(get_heatmaps_service),  # noqa: B008
-):
-    response = await heatmaps_service.all_available_heatmaps(constants=constants)
-    return response
+) -> AllHeatmapsResponse:
+    return await heatmaps_service.all_available_heatmaps(constants=constants)
 
 
-@router.post("/all-heatmaps", response_model=GradientResponse)
+@router.post("/all-heatmaps", response_model=HeatmapResponse)
 async def get_all_heatmaps(
-    request: GradientRequest,
+    request: HeatmapRequest,
     constants: Constants = Depends(get_constants),  # noqa: B008
     heatmaps_facede_service: HeatmapsFacedeService = Depends(get_heatmaps_facede_service),  # noqa: B008
-):
+) -> HeatmapResponse:
     responses = []
 
     for type in constants.AVAILABLE_HEATMAPS:
@@ -62,12 +62,12 @@ async def get_all_heatmaps(
             )
         )
 
-    return GradientResponse(
+    return HeatmapResponse(
         success=True,
     )
 
 
-@router.get("/all-heatmaps-type", response_model=GradientResponse)
+@router.get("/all-heatmaps-type", response_model=HeatmapResponse)
 async def get_all_heatmaps_type(
     model: str,
     dataset: str,
@@ -75,10 +75,10 @@ async def get_all_heatmaps_type(
     type: str,
     heatmaps_facede_service: HeatmapsFacedeService = Depends(get_heatmaps_facede_service),  # noqa: B008
     container=Depends(get_container),  # noqa: B008
-):
-    filenames = os.listdir(os.path.join(container.datasets_path, dataset, label))
+) -> HeatmapResponse:
+    filenames: list[str] = os.listdir(os.path.join(container.datasets_path, dataset, label))
 
-    request = GradientRequest(
+    request = HeatmapRequest(
         model=model,
         dataset=dataset,
         overwrite=False,
@@ -95,69 +95,61 @@ async def get_all_heatmaps_type(
 async def unsupervised_heatmaps(
     request: UnsupervisedHeatmapsRequest,
     heatmaps_service: HeatmapsService = Depends(get_heatmaps_service),  # noqa: B008
-):
-    response = await heatmaps_service.unsupervised_heatmaps(request=request)
-    return response
+) -> UnsupervisedHeatmapsResponse:
+    return await heatmaps_service.unsupervised_heatmaps(request=request)
 
 
-@router.post("/heatmaps-statistics-image", response_model=GradientStatisticResponse)
+@router.post("/heatmaps-statistics-image", response_model=HeatmapStatisticResponse)
 async def heatmap_statistics(
-    request: GradientStatisticRequest,
+    request: HeatmapStatisticRequest,
     heatmaps_facede_service: HeatmapsFacedeService = Depends(get_heatmaps_facede_service),  # noqa: B008
-):
-    response = await heatmaps_facede_service.generate_heatmap_statistics(request=request)
-    return response
+) -> HeatmapStatisticResponse:
+    return await heatmaps_facede_service.generate_heatmap_statistics(request=request)
 
 
-@router.post("/heatmaps-statistics-dataset", response_model=GradientStatisticsDatasetResponse)
+@router.post("/heatmaps-statistics-dataset", response_model=HeatmapStatisticsDatasetResponse)
 async def heatmap_statistics_dataset(
-    request: GradientStatisticsDatasetRequest,
+    request: HeatmapStatisticsDatasetRequest,
     heatmaps_facede_service: HeatmapsFacedeService = Depends(get_heatmaps_facede_service),  # noqa: B008
-):
-    response = await heatmaps_facede_service.generate_heatmap_statistics_dataset(request=request)
-    return response
+) -> HeatmapStatisticsDatasetResponse:
+    return await heatmaps_facede_service.generate_heatmap_statistics_dataset(request=request)
 
 
-@router.post("/heatmaps-statistics-dataset-many", response_model=GradientStatisticsDatasetManyResponse)
+@router.post("/heatmaps-statistics-dataset-many", response_model=HeatmapStatisticsDatasetManyResponse)
 async def heatmap_statistics_dataset_many(
-    request: GradientStatisticsDatasetManyRequest,
+    request: HeatmapStatisticsDatasetManyRequest,
     heatmaps_facede_service: HeatmapsFacedeService = Depends(get_heatmaps_facede_service),  # noqa: B008
-):
-    response = await heatmaps_facede_service.generate_heatmap_statistics_dataset_many(request=request)
-    return response
+) -> HeatmapStatisticsDatasetManyResponse:
+    return await heatmaps_facede_service.generate_heatmap_statistics_dataset_many(request=request)
 
 
 @router.post("/heatmaps-statistics-dataset-shapes", response_model=ShapeMetricsDatasetResponse)
 async def heatmap_statistics_dataset_shapes(
     request: ShapeMetricsDatasetRequest,
     heatmaps_facede_service: HeatmapsFacedeService = Depends(get_heatmaps_facede_service),  # noqa: B008
-):
-    response = await heatmaps_facede_service.generate_heatmap_statistics_dataset_shapes(request=request)
-    return response
+) -> ShapeMetricsDatasetResponse:
+    return await heatmaps_facede_service.generate_heatmap_statistics_dataset_shapes(request=request)
 
 
-@router.post("/heatmaps-statistics-label", response_model=GradientStatisticsDatasetResponse)
+@router.post("/heatmaps-statistics-label", response_model=HeatmapStatisticsLabelResponse)
 async def heatmap_statistics_label(
-    request: GradientStatisticsLabelRequest,
+    request: HeatmapStatisticsLabelRequest,
     heatmaps_facede_service: HeatmapsFacedeService = Depends(get_heatmaps_facede_service),  # noqa: B008
-):
-    response = await heatmaps_facede_service.generate_heatmap_statistics_label(request=request)
-    return response
+) -> HeatmapStatisticsLabelResponse:
+    return await heatmaps_facede_service.generate_heatmap_statistics_label(request=request)
 
 
-@router.post("/heatmaps-statistics-label-many", response_model=GradientStatisticsLabelManyResponse)
+@router.post("/heatmaps-statistics-label-many", response_model=HeatmapStatisticsLabelManyResponse)
 async def heatmap_statistics_label_many(
-    request: GradientStatisticsLabelManyRequest,
+    request: HeatmapStatisticsLabelManyRequest,
     heatmaps_facede_service: HeatmapsFacedeService = Depends(get_heatmaps_facede_service),  # noqa: B008
-):
-    response = await heatmaps_facede_service.generate_heatmap_statistics_label_many(request=request)
-    return response
+) -> HeatmapStatisticsLabelManyResponse:
+    return await heatmaps_facede_service.generate_heatmap_statistics_label_many(request=request)
 
 
 @router.post("/heatmaps-statistics-label-shapes", response_model=ShapeMetricsLabelResponse)
 async def heatmap_statistics_label_shapes(
     request: ShapeMetricsLabelRequest,
     heatmaps_facede_service: HeatmapsFacedeService = Depends(get_heatmaps_facede_service),  # noqa: B008
-):
-    response = await heatmaps_facede_service.generate_heatmap_statistics_label_shapes(request=request)
-    return response
+) -> ShapeMetricsLabelResponse:
+    return await heatmaps_facede_service.generate_heatmap_statistics_label_shapes(request=request)

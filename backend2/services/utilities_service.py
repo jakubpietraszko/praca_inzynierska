@@ -4,24 +4,24 @@ import cv2
 import numpy as np
 import torch
 
-from interfaces.gradient import GradientRequest
+from interfaces.heatmap import HeatmapRequest
 
 
 class UtilitiesService:
-    def __init__(self):
+    def __init__(self) -> None:
         from services.container import ServiceContainer, get_container
 
         self.container: ServiceContainer = get_container()
 
-    async def env(self):
-        env = os.getenv("APP_ENV", "development")
+    async def env(self) -> str:
+        env: str = os.getenv("APP_ENV", "development")
         return env
 
     async def models_datasets_path(self, model: str, dataset: str) -> str:
-        result = model + "_" + dataset
+        result: str = model + "_" + dataset
         return result
 
-    async def convert_image_to_tensor(self, image: np.ndarray, grad: bool = False):
+    async def convert_image_to_tensor(self, image: np.ndarray, grad: bool = False) -> torch.Tensor:
         assert len(image.shape) == 3
         assert image.dtype == np.uint8
 
@@ -42,7 +42,7 @@ class UtilitiesService:
         return base
 
     async def add_png_extension(self, filename: str) -> str:
-        base = await self.delete_extension(filename)
+        base: str = await self.delete_extension(filename)
         base += ".png"
         return base
 
@@ -82,10 +82,10 @@ class UtilitiesService:
     async def fill_target(self, model_info, label) -> int:
         return model_info.label_to_idx[label]
 
-    async def save_image(self, path: str, image: np.ndarray):
+    async def save_image(self, path: str, image: np.ndarray) -> None:
         cv2.imwrite(path, image)
 
-    async def make_root_path(self, request: GradientRequest, xai_method_type: str) -> str:
+    async def make_root_path(self, request: HeatmapRequest, xai_method_type: str) -> str:
         root_path = os.path.join(
             self.container.models_datasets_path,
             await self.models_datasets_path(request.model, request.dataset),
@@ -95,7 +95,7 @@ class UtilitiesService:
         return root_path
 
     async def make_label_path(self, root_path: str, label: str) -> str:
-        label_path = os.path.join(
+        label_path: str = os.path.join(
             root_path,
             label,
         )

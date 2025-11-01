@@ -3,7 +3,7 @@ import os
 import torch
 import torch.nn as nn
 
-from interfaces.gradient import GradientRequest, GradientResponse
+from interfaces.heatmap import HeatmapRequest, HeatmapResponse
 from services.config_service import XAIMethodConfig
 from services.models_service import ModelInfo
 
@@ -38,22 +38,22 @@ class LRPService:
         self.container: ServiceContainer = get_container()
         self.logger: LoggerService = get_logger_service()
 
-    async def lrp_epsilon(self, request: GradientRequest) -> GradientResponse:
+    async def lrp_epsilon(self, request: HeatmapRequest) -> HeatmapResponse:
         return await self.__generic_lrp(request, self.constants.LRP_EPSILON)
 
-    async def lrp_gamma(self, request: GradientRequest) -> GradientResponse:
+    async def lrp_gamma(self, request: HeatmapRequest) -> HeatmapResponse:
         return await self.__generic_lrp(request, self.constants.LRP_GAMMA)
 
-    async def lrp_alpha_beta(self, request: GradientRequest) -> GradientResponse:
+    async def lrp_alpha_beta(self, request: HeatmapRequest) -> HeatmapResponse:
         return await self.__generic_lrp(request, self.constants.LRP_ALPHA_BETA)
 
-    async def lrp_zplus(self, request: GradientRequest) -> GradientResponse:
+    async def lrp_zplus(self, request: HeatmapRequest) -> HeatmapResponse:
         return await self.__generic_lrp(request, self.constants.LRP_ZPLUS)
 
-    async def lrp_w2(self, request: GradientRequest) -> GradientResponse:
+    async def lrp_w2(self, request: HeatmapRequest) -> HeatmapResponse:
         return await self.__generic_lrp(request, self.constants.LRP_W2)
 
-    async def __generic_lrp(self, request: GradientRequest, xai_method: str) -> GradientResponse:
+    async def __generic_lrp(self, request: HeatmapRequest, xai_method: str) -> HeatmapResponse:
         root_path: str = await self.utilities_service.make_root_path(request, xai_method)
 
         model_info: ModelInfo = await self.models_service.load_model(request.model)
@@ -426,4 +426,4 @@ class LRPService:
             if isinstance(module, nn.ReLU):
                 module.inplace = original_inplace_states[name]
 
-        return GradientResponse(success=True)
+        return HeatmapResponse(success=True)

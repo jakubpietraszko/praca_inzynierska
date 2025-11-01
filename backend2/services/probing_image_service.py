@@ -1,7 +1,4 @@
-import builtins
-import contextlib
 import os
-import traceback
 
 import cv2
 import numpy as np
@@ -9,7 +6,7 @@ import torch
 from PIL import Image
 from sklearn.linear_model import Ridge
 
-from interfaces.gradient import GradientRequest, GradientResponse
+from interfaces.heatmap import HeatmapRequest, HeatmapResponse
 from interfaces.label_filename import LabelFilename
 from interfaces.super_pixels import SuperPixelsRequest
 from services.config_service import XAIMethodConfig
@@ -17,7 +14,7 @@ from services.models_service import ModelInfo
 
 
 class ProbingImageService:
-    def __init__(self):
+    def __init__(self) -> None:
         from services.container import (
             ConfigService,
             Constants,
@@ -51,7 +48,7 @@ class ProbingImageService:
         self.utilities_service: UtilitiesService = get_utilities_service()
 
     async def __make_superpixels(
-        self, request: GradientRequest, label: str, filename: str, config: XAIMethodConfig
+        self, request: HeatmapRequest, label: str, filename: str, config: XAIMethodConfig
     ) -> np.ndarray | None:
         request_superpixels: SuperPixelsRequest = SuperPixelsRequest(
             model=request.model,
@@ -86,7 +83,7 @@ class ProbingImageService:
             super_pixels_segments[super_pixels_np == val] = i
         return super_pixels_segments
 
-    async def xrai(self, request: GradientRequest) -> GradientResponse:
+    async def xrai(self, request: HeatmapRequest) -> HeatmapResponse:
         root_path = await self.utilities_service.make_root_path(request, self.constants.XRAI)
 
         model_info: ModelInfo = await self.models_service.load_model(request.model)
@@ -163,9 +160,9 @@ class ProbingImageService:
                 heatmap_type=self.constants.XRAI,
             )
 
-        return GradientResponse(success=True)
+        return HeatmapResponse(success=True)
 
-    async def kernel_shap(self, request: GradientRequest) -> GradientResponse:
+    async def kernel_shap(self, request: HeatmapRequest) -> HeatmapResponse:
         root_path: str = await self.utilities_service.make_root_path(request, self.constants.KERNEL_SHAP)
 
         model_info: ModelInfo = await self.models_service.load_model(request.model)
@@ -225,9 +222,9 @@ class ProbingImageService:
                 request=request, label=label, filename=filename, heatmap_type=self.constants.KERNEL_SHAP
             )
 
-        return GradientResponse(success=True)
+        return HeatmapResponse(success=True)
 
-    async def lime(self, request: GradientRequest) -> GradientResponse:
+    async def lime(self, request: HeatmapRequest) -> HeatmapResponse:
         root_path: str = await self.utilities_service.make_root_path(request, self.constants.LIME)
 
         model_info: ModelInfo = await self.models_service.load_model(request.model)
@@ -291,7 +288,7 @@ class ProbingImageService:
                 request=request, label=label, filename=filename, heatmap_type=self.constants.LIME
             )
 
-        return GradientResponse(success=True)
+        return HeatmapResponse(success=True)
 
     async def _lime_explain(self, image_np, super_pixels, model, target, utilities_service, num_samples=1000):
         unique_segments = np.unique(super_pixels)

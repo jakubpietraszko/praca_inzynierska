@@ -1,25 +1,4 @@
-from pydantic import BaseModel, Field
-
-
-class XAIMethodConfig(BaseModel):
-    epsilon: float | None = None
-    aggregation: str | None = None
-    group_size: int | None = None
-    k_size: int | None = None
-    sigma: float | None = None
-    n_samples: int | None = None
-    noise_level: float | None = None
-    baseline: float | None = None
-    steps: int | None = None
-    super_pixels: int | None = None
-    segmentation: str | None = None
-    gamma: float | None = None
-    alpha: float | None = None
-    beta: float | None = None
-
-
-class ConfigModel(BaseModel):
-    methods: dict[str, XAIMethodConfig] = Field(default_factory=dict)
+from interfaces.xai_method_config import ConfigModel, XAIMethodConfig
 
 
 class ConfigService:
@@ -28,8 +7,8 @@ class ConfigService:
 
         self.constants: Constants = get_constants()
 
-        self.base_dir = base_dir
-        self.NAME = self.constants.CONFIG_FILENAME
+        self.base_dir: str = base_dir
+        self.NAME: str = self.constants.CONFIG_FILENAME
         self._config = None
 
     @property

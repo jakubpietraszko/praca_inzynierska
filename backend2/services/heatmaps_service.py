@@ -4,7 +4,7 @@ import numpy as np
 from PIL import Image
 
 from interfaces.all_heatmaps import AllHeatmapsResponse
-from interfaces.gradient import GradientRequest
+from interfaces.heatmap import HeatmapRequest
 from interfaces.label_filename import LabelFilenameTarget
 from interfaces.unsupervised_heatmaps import FilenameCoords, UnsupervisedHeatmapsResponse
 from utils.unsupervised import apply_tsne_with_augmentation
@@ -39,7 +39,7 @@ class HeatmapsService:
             dataset_name=request.dataset, label=request.label
         )
 
-        req = GradientRequest(
+        req = HeatmapRequest(
             model=request.model,
             dataset=request.dataset,
             images=[LabelFilenameTarget(label=request.label, filename=filename, target=None) for filename in filenames],

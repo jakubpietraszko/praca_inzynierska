@@ -5,7 +5,7 @@
 /* Do not modify it by hand - just update the pydantic models and then re-run the script
 */
 
-export interface GradientRequest {
+export interface HeatmapRequest {
   model: string;
   dataset: string;
   images: LabelFilenameTarget[];
@@ -16,10 +16,10 @@ export interface LabelFilenameTarget {
   filename: string;
   target?: number | null;
 }
-export interface GradientResponse {
+export interface HeatmapResponse {
   success: boolean;
 }
-export interface GradientStatisticRequest {
+export interface HeatmapStatisticRequest {
   model: string;
   dataset: string;
   images: LabelFilenameTarget[];
@@ -28,53 +28,58 @@ export interface GradientStatisticRequest {
   threshold: number;
   threshold_type: string;
 }
-export interface GradientStatisticResponse {
+export interface HeatmapStatisticResponse {
   success: boolean;
   softmax_scores: ListOfScores[];
 }
 export interface ListOfScores {
   scores: number[];
 }
-export interface GradientStatisticsDatasetManyRequest {
+export interface HeatmapStatisticsDatasetManyRequest {
   model: string;
   dataset: string;
   heatmap: string;
   percentage: number;
 }
-export interface GradientStatisticsDatasetManyResponse {
+export interface HeatmapStatisticsDatasetManyResponse {
   success: boolean;
   list_of_rate_of_increase_in_scores: number[];
   list_of_average_drop: number[];
 }
-export interface GradientStatisticsDatasetRequest {
+export interface HeatmapStatisticsDatasetRequest {
   model: string;
   dataset: string;
   heatmap: string;
   threshold: number;
   percentage: number;
 }
-export interface GradientStatisticsDatasetResponse {
+export interface HeatmapStatisticsDatasetResponse {
   success: boolean;
   rate_of_increase_in_scores: number;
   average_drop: number;
 }
-export interface GradientStatisticsLabelManyRequest {
+export interface HeatmapStatisticsLabelManyRequest {
   model: string;
   dataset: string;
   heatmap: string;
   percentage: number;
   label: string;
 }
-export interface GradientStatisticsLabelManyResponse {
+export interface HeatmapStatisticsLabelManyResponse {
   success: boolean;
   list_of_rate_of_increase_in_scores: number[];
   list_of_average_drop: number[];
 }
-export interface GradientStatisticsLabelRequest {
+export interface HeatmapStatisticsLabelRequest {
   model: string;
   dataset: string;
   heatmap: string;
   threshold: number;
   percentage: number;
   label: string;
+}
+export interface HeatmapStatisticsLabelResponse {
+  success: boolean;
+  rate_of_increase_in_scores: number;
+  average_drop: number;
 }

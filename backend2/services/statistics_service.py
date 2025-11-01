@@ -2,13 +2,13 @@ import torch
 from torch.utils.data import DataLoader
 
 from interfaces.all_quantitative_statistics import AllQuantitativeStatisticsRequest, AllQuantitativeStatisticsResponse
-from interfaces.gradient import GradientRequest, LabelFilenameTarget
+from interfaces.heatmap import HeatmapRequest, LabelFilenameTarget
 from interfaces.heatmaps_statistics_dataset import HeatmapsStatisticsDatasetRequest, HeatmapsStatisticsDatasetResponse
 from interfaces.heatmaps_statistics_image import HeatmapsStatisticsImageRequest, HeatmapsStatisticsImageResponse
 
 
 class StatisticsService:
-    def __init__(self):
+    def __init__(self) -> None:
         from services.container import (
             Constants,
             DatasetsService,
@@ -93,7 +93,7 @@ class StatisticsService:
         self, request: HeatmapsStatisticsImageRequest
     ) -> HeatmapsStatisticsImageResponse:
         await self.heatmaps_facede_service.generate_heatmap(
-            GradientRequest(
+            HeatmapRequest(
                 model=request.model,
                 dataset=request.dataset,
                 images=[LabelFilenameTarget(label=request.label, filename=request.image, target=None)],

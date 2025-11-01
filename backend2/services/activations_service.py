@@ -1,6 +1,5 @@
 import os
 
-import cv2
 import numpy as np
 import torch
 from PIL import Image
@@ -23,9 +22,10 @@ from utils.unsupervised import apply_tsne_with_augmentation
 
 
 class ActivationsService:
-    def __init__(self):
+    def __init__(self) -> None:
         from constans import Constants
         from services.container import (
+            ServiceContainer,
             get_constants,
             get_container,
             get_datasets_service,
@@ -37,7 +37,7 @@ class ActivationsService:
         from services.utilities_service import UtilitiesService
 
         self.utilities_service: UtilitiesService = get_utilities_service()
-        self.container = get_container()
+        self.container: ServiceContainer = get_container()
         self.constants: Constants = get_constants()
         self.models_service: ModelsService = get_models_service()
         self.datasets_service: DatasetsService = get_datasets_service()
@@ -46,7 +46,7 @@ class ActivationsService:
         self,
         request: ActivationsRequest,
     ):
-        model_info = await self.models_service.load_model(request.model)
+        model_info: ModelInfo = await self.models_service.load_model(request.model)
 
         filepath = os.path.join(self.container.datasets_path, request.dataset, request.label, request.filename)
 

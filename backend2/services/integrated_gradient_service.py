@@ -5,7 +5,7 @@ import os
 import cv2
 import torch
 
-from interfaces.gradient import GradientRequest, GradientResponse
+from interfaces.heatmap import HeatmapRequest, HeatmapResponse
 from services.config_service import XAIMethodConfig
 from services.models_service import ModelInfo
 
@@ -40,7 +40,7 @@ class IntegratedGradientsService:
         self.utilities_service: UtilitiesService = get_utilities_service()
         self.models_service: ModelsService = get_models_service()
 
-    async def integrated_gradient(self, request: GradientRequest) -> GradientResponse:
+    async def integrated_gradient(self, request: HeatmapRequest) -> HeatmapResponse:
         root_path = os.path.join(
             self.container.models_datasets_path,
             await self.utilities_service.models_datasets_path(request.model, request.dataset),
@@ -110,4 +110,4 @@ class IntegratedGradientsService:
                 heatmap_type=self.constants.INTEGRATED_GRADIENT,
             )
 
-        return GradientResponse(success=True)
+        return HeatmapResponse(success=True)

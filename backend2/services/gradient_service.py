@@ -5,7 +5,7 @@ import cv2
 import numpy as np
 import torch
 
-from interfaces.gradient import GradientRequest, GradientResponse
+from interfaces.heatmap import HeatmapRequest, HeatmapResponse
 from services.config_service import XAIMethodConfig
 from services.models_service import ModelInfo
 
@@ -39,7 +39,7 @@ class GradientService:
         self.logger_service: LoggerService = get_logger_service()
         self.models_datasets_path = self.container.models_datasets_path
 
-    async def gradient(self, request: GradientRequest) -> GradientResponse:
+    async def gradient(self, request: HeatmapRequest) -> HeatmapResponse:
         root_path = os.path.join(
             self.container.models_datasets_path,
             await self.utilities_service.models_datasets_path(request.model, request.dataset),
@@ -98,9 +98,9 @@ class GradientService:
             )
 
 
-        return GradientResponse(success=True)
+        return HeatmapResponse(success=True)
 
-    async def gradient_squared(self, request: GradientRequest) -> GradientResponse:
+    async def gradient_squared(self, request: HeatmapRequest) -> HeatmapResponse:
         root_path = os.path.join(
             self.container.models_datasets_path,
             await self.utilities_service.models_datasets_path(request.model, request.dataset),
@@ -156,9 +156,9 @@ class GradientService:
                 heatmap_type=self.constants.GRADIENT_SQUARED,
             )
 
-        return GradientResponse(success=True)
+        return HeatmapResponse(success=True)
 
-    async def deconvolution(self, request: GradientRequest) -> GradientResponse:
+    async def deconvolution(self, request: HeatmapRequest) -> HeatmapResponse:
         root_path = os.path.join(
             self.container.models_datasets_path,
             await self.utilities_service.models_datasets_path(request.model, request.dataset),
@@ -236,9 +236,9 @@ class GradientService:
             if isinstance(module, torch.nn.ReLU):
                 module.inplace = original_inplace_states[name]
 
-        return GradientResponse(success=True)
+        return HeatmapResponse(success=True)
 
-    async def guided_backpropagation(self, request: GradientRequest) -> GradientResponse:
+    async def guided_backpropagation(self, request: HeatmapRequest) -> HeatmapResponse:
         root_path = os.path.join(
             self.models_datasets_path,
             await self.utilities_service.models_datasets_path(request.model, request.dataset),
@@ -334,9 +334,9 @@ class GradientService:
             if isinstance(module, torch.nn.ReLU):
                 module.inplace = original_inplace_states[name]
 
-        return GradientResponse(success=True)
+        return HeatmapResponse(success=True)
 
-    async def input_gradient(self, request: GradientRequest) -> GradientResponse:
+    async def input_gradient(self, request: HeatmapRequest) -> HeatmapResponse:
         root_path = os.path.join(
             self.container.models_datasets_path,
             await self.utilities_service.models_datasets_path(request.model, request.dataset),
@@ -396,4 +396,4 @@ class GradientService:
                 heatmap_type=self.constants.INPUT_GRADIENT,
             )
 
-        return GradientResponse(success=True)
+        return HeatmapResponse(success=True)

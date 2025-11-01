@@ -1,12 +1,10 @@
-import builtins
-import contextlib
 import os
 
 import cv2
 import numpy as np
 import torch
 
-from interfaces.gradient import GradientRequest, GradientResponse
+from interfaces.heatmap import HeatmapRequest, HeatmapResponse
 from services.config_service import XAIMethodConfig
 from services.models_service import ModelInfo
 
@@ -41,7 +39,7 @@ class CAMService:
         self.models_service: ModelsService = get_models_service()
         self.logger_service: LoggerService = get_logger_service()
 
-    async def grad_cam(self, request: GradientRequest) -> GradientResponse:
+    async def grad_cam(self, request: HeatmapRequest) -> HeatmapResponse:
         root_path = os.path.join(
             self.container.models_datasets_path,
             await self.utilities_service.models_datasets_path(request.model, request.dataset),
@@ -130,11 +128,11 @@ class CAMService:
                 heatmap_type=self.constants.GRAD_CAM,
             )
 
-        return GradientResponse(
+        return HeatmapResponse(
             success=True,
         )
 
-    async def grad_cam_plus_plus(self, request: GradientRequest) -> GradientResponse:
+    async def grad_cam_plus_plus(self, request: HeatmapRequest) -> HeatmapResponse:
         root_path = os.path.join(
             self.container.models_datasets_path,
             await self.utilities_service.models_datasets_path(request.model, request.dataset),
@@ -227,11 +225,11 @@ class CAMService:
                 heatmap_type=self.constants.GRAD_CAM_PLUS_PLUS,
             )
 
-        return GradientResponse(
+        return HeatmapResponse(
             success=True,
         )
 
-    async def group_cam(self, request: GradientRequest) -> GradientResponse:
+    async def group_cam(self, request: HeatmapRequest) -> HeatmapResponse:
         root_path = os.path.join(
             self.container.models_datasets_path,
             await self.utilities_service.models_datasets_path(request.model, request.dataset),
@@ -377,11 +375,11 @@ class CAMService:
                 heatmap_type=self.constants.GROUP_CAM,
             )
 
-        return GradientResponse(
+        return HeatmapResponse(
             success=True,
         )
 
-    async def hires_cam(self, request: GradientRequest) -> GradientResponse:
+    async def hires_cam(self, request: HeatmapRequest) -> HeatmapResponse:
         root_path = os.path.join(
             self.container.models_datasets_path,
             await self.utilities_service.models_datasets_path(request.model, request.dataset),
@@ -465,11 +463,11 @@ class CAMService:
                 heatmap_type=self.constants.HIRES_CAM,
             )
 
-        return GradientResponse(
+        return HeatmapResponse(
             success=True,
         )
 
-    async def wgrad_cam(self, request: GradientRequest) -> GradientResponse:
+    async def wgrad_cam(self, request: HeatmapRequest) -> HeatmapResponse:
         root_path = os.path.join(
             self.container.models_datasets_path,
             await self.utilities_service.models_datasets_path(request.model, request.dataset),
@@ -569,11 +567,11 @@ class CAMService:
                 heatmap_type=self.constants.WGRAD_CAM,
             )
 
-        return GradientResponse(
+        return HeatmapResponse(
             success=True,
         )
 
-    async def ablation_cam(self, request: GradientRequest) -> GradientResponse:
+    async def ablation_cam(self, request: HeatmapRequest) -> HeatmapResponse:
         root_path = os.path.join(
             self.container.models_datasets_path,
             await self.utilities_service.models_datasets_path(request.model, request.dataset),
@@ -677,11 +675,11 @@ class CAMService:
                 heatmap_type=self.constants.ABLATION_CAM,
             )
 
-        return GradientResponse(
+        return HeatmapResponse(
             success=True,
         )
 
-    async def xgrad_cam(self, request: GradientRequest) -> GradientResponse:
+    async def xgrad_cam(self, request: HeatmapRequest) -> HeatmapResponse:
         root_path = os.path.join(
             self.container.models_datasets_path,
             await self.utilities_service.models_datasets_path(request.model, request.dataset),
@@ -772,6 +770,6 @@ class CAMService:
                 heatmap_type=self.constants.XGRAD_CAM,
             )
 
-        return GradientResponse(
+        return HeatmapResponse(
             success=True,
         )

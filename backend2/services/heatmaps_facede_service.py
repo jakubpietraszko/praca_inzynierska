@@ -7,18 +7,19 @@ import numpy as np
 import torch
 from PIL import Image
 
-from interfaces.gradient import (
-    GradientRequest,
-    GradientResponse,
-    GradientStatisticRequest,
-    GradientStatisticResponse,
-    GradientStatisticsDatasetManyRequest,
-    GradientStatisticsDatasetManyResponse,
-    GradientStatisticsDatasetRequest,
-    GradientStatisticsDatasetResponse,
-    GradientStatisticsLabelManyRequest,
-    GradientStatisticsLabelManyResponse,
-    GradientStatisticsLabelRequest,
+from interfaces.heatmap import (
+    HeatmapRequest,
+    HeatmapResponse,
+    HeatmapStatisticRequest,
+    HeatmapStatisticResponse,
+    HeatmapStatisticsDatasetManyRequest,
+    HeatmapStatisticsDatasetManyResponse,
+    HeatmapStatisticsDatasetRequest,
+    HeatmapStatisticsDatasetResponse,
+    HeatmapStatisticsLabelManyRequest,
+    HeatmapStatisticsLabelManyResponse,
+    HeatmapStatisticsLabelRequest,
+    HeatmapStatisticsLabelResponse,
     LabelFilenameTarget,
     ListOfScores,
 )
@@ -72,9 +73,9 @@ class HeatmapsFacedeService:
 
     async def generate_heatmap(
         self,
-        request: GradientRequest,
+        request: HeatmapRequest,
         type: str,
-    ) -> GradientResponse:
+    ) -> HeatmapResponse:
         if type == self.get_constants().GRADIENT:
             return await self.get_gradient_service().gradient(request)
         elif type == self.get_constants().GRADIENT_SQUARED:
@@ -129,10 +130,10 @@ class HeatmapsFacedeService:
         elif type == self.get_constants().LRP_W2:
             return await self.get_lrp_service().lrp_w2(request)
 
-        return GradientResponse(success=True)
+        return HeatmapResponse(success=True)
 
-    async def generate_heatmap_statistics(self, request: GradientStatisticRequest) -> GradientStatisticResponse:
-        base_request: GradientRequest = GradientRequest(
+    async def generate_heatmap_statistics(self, request: HeatmapStatisticRequest) -> HeatmapStatisticResponse:
+        base_request: HeatmapRequest = HeatmapRequest(
             model=request.model,
             dataset=request.dataset,
             images=request.images,
@@ -188,11 +189,11 @@ class HeatmapsFacedeService:
 
             softmax_scores.append(ListOfScores(scores=list_of_scores))
 
-        return GradientStatisticResponse(success=False, softmax_scores=softmax_scores)
+        return HeatmapStatisticResponse(success=False, softmax_scores=softmax_scores)
 
     async def generate_heatmap_statistics_dataset(
-        self, request: GradientStatisticsDatasetRequest
-    ) -> GradientStatisticsDatasetResponse:
+        self, request: HeatmapStatisticsDatasetRequest
+    ) -> HeatmapStatisticsDatasetResponse:
         images = [
             LabelFilenameTarget(label=label, filename=filename, target=None)
             for label in await self.datasets_service.list_labels_in_dataset(request.dataset)
@@ -201,7 +202,7 @@ class HeatmapsFacedeService:
 
         images = random.sample(images, int(len(images) * (request.percentage / 100)))
 
-        base_request: GradientRequest = GradientRequest(
+        base_request: HeatmapRequest = HeatmapRequest(
             model=request.model,
             dataset=request.dataset,
             images=images,
@@ -269,18 +270,18 @@ class HeatmapsFacedeService:
             for original, modified in zip(original_softmax_scores, modified_softmax_scores, strict=False)
         ) / len(original_softmax_scores)
 
-        return GradientStatisticsDatasetResponse(
+        return HeatmapStatisticsDatasetResponse(
             success=True, rate_of_increase_in_scores=rate_of_increase_in_scores, average_drop=average_drop
         )
 
     async def generate_heatmap_statistics_dataset_many(
-        self, request: GradientStatisticsDatasetManyRequest
-    ) -> GradientStatisticsDatasetManyResponse:
+        self, request: HeatmapStatisticsDatasetManyRequest
+    ) -> HeatmapStatisticsDatasetManyResponse:
         list_of_rate_of_increase_in_scores = []
         list_of_average_drop = []
 
         for percentage in self.constants.STATISTICS_PERCENTAGES_STEP:
-            modified_request = GradientStatisticsDatasetRequest(
+            modified_request = HeatmapStatisticsDatasetRequest(
                 model=request.model,
                 dataset=request.dataset,
                 heatmap=request.heatmap,
@@ -291,15 +292,15 @@ class HeatmapsFacedeService:
             list_of_rate_of_increase_in_scores.append(response.rate_of_increase_in_scores)
             list_of_average_drop.append(response.average_drop)
 
-        return GradientStatisticsDatasetManyResponse(
+        return HeatmapStatisticsDatasetManyResponse(
             success=True,
             list_of_rate_of_increase_in_scores=list_of_rate_of_increase_in_scores,
             list_of_average_drop=list_of_average_drop,
         )
 
     async def generate_heatmap_statistics_label(
-        self, request: GradientStatisticsLabelRequest
-    ) -> GradientStatisticsDatasetResponse:
+        self, request: HeatmapStatisticsLabelRequest
+    ) -> HeatmapStatisticsLabelResponse:
         images = [
             LabelFilenameTarget(label=request.label, filename=filename, target=None)
             for filename in await self.datasets_service.list_filenames_in_label(request.dataset, request.label)
@@ -307,7 +308,7 @@ class HeatmapsFacedeService:
 
         images = random.sample(images, int(len(images) * (request.percentage / 100)))
 
-        base_request: GradientRequest = GradientRequest(
+        base_request: HeatmapRequest = HeatmapRequest(
             model=request.model,
             dataset=request.dataset,
             images=images,
@@ -375,18 +376,18 @@ class HeatmapsFacedeService:
             for original, modified in zip(original_softmax_scores, modified_softmax_scores, strict=False)
         ) / len(original_softmax_scores)
 
-        return GradientStatisticsDatasetResponse(
+        return HeatmapStatisticsLabelResponse(
             success=True, rate_of_increase_in_scores=rate_of_increase_in_scores, average_drop=average_drop
         )
 
     async def generate_heatmap_statistics_label_many(
-        self, request: GradientStatisticsLabelManyRequest
-    ) -> GradientStatisticsLabelManyResponse:
+        self, request: HeatmapStatisticsLabelManyRequest
+    ) -> HeatmapStatisticsLabelManyResponse:
         list_of_rate_of_increase_in_scores = []
         list_of_average_drop = []
 
         for percentage in self.constants.STATISTICS_PERCENTAGES_STEP:
-            modified_request = GradientStatisticsLabelRequest(
+            modified_request = HeatmapStatisticsLabelRequest(
                 model=request.model,
                 dataset=request.dataset,
                 heatmap=request.heatmap,
@@ -398,7 +399,7 @@ class HeatmapsFacedeService:
             list_of_rate_of_increase_in_scores.append(response.rate_of_increase_in_scores)
             list_of_average_drop.append(response.average_drop)
 
-        return GradientStatisticsLabelManyResponse(
+        return HeatmapStatisticsLabelManyResponse(
             success=True,
             list_of_rate_of_increase_in_scores=list_of_rate_of_increase_in_scores,
             list_of_average_drop=list_of_average_drop,
@@ -419,7 +420,7 @@ class HeatmapsFacedeService:
 
         images = random.sample(images, int(len(images) * (request.percentage / 100)))
 
-        base_request: GradientRequest = GradientRequest(
+        base_request: HeatmapRequest = HeatmapRequest(
             model=request.model,
             dataset=request.dataset,
             images=images,
@@ -490,7 +491,7 @@ class HeatmapsFacedeService:
 
         images = random.sample(images, int(len(images) * (request.percentage / 100)))
 
-        base_request: GradientRequest = GradientRequest(
+        base_request: HeatmapRequest = HeatmapRequest(
             model=request.model,
             dataset=request.dataset,
             images=images,

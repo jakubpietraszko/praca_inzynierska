@@ -1,6 +1,6 @@
 class ConstantsService:
 
-    def __init__(self):
+    def __init__(self) -> None:
         from constans import Constants
         self.constants = Constants()
 

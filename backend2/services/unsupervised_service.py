@@ -3,7 +3,7 @@ import os
 import numpy as np
 from PIL import Image
 
-from interfaces.gradient import GradientRequest
+from interfaces.heatmap import HeatmapRequest
 from interfaces.label_filename import LabelFilenameTarget
 from interfaces.unsupervised_activations import (
     LabelFilenameCoords,
@@ -15,7 +15,7 @@ from utils.unsupervised import apply_tsne_with_augmentation
 
 
 class UnsupervisedService:
-    def __init__(self):
+    def __init__(self) -> None:
         from services.container import (
             Constants,
             DatasetsService,
@@ -36,14 +36,14 @@ class UnsupervisedService:
         self.heatmaps_facede_service: HeatmapsFacedeService = get_heatmaps_facede_service()
 
     async def activations(self, request: UnsupervisedActivationsRequest) -> UnsupervisedActivationsResponse:
-        images_dir = os.path.join(
+        images_dir: str = os.path.join(
             self.container.models_datasets_path,
             await self.utilities_service.models_datasets_path(request.model, request.dataset),
             self.constants.ACTIVATIONS,
             request.label,
             await self.utilities_service.delete_extension(request.filename),
         )
-        image_paths = [os.path.join(images_dir, f) for f in os.listdir(images_dir)]
+        image_paths: list[str] = [os.path.join(images_dir, f) for f in os.listdir(images_dir)]
         images = []
 
         for image_path in image_paths:
@@ -77,7 +77,7 @@ class UnsupervisedService:
             dataset_name=request.dataset, label=request.label
         )
 
-        req = GradientRequest(
+        req = HeatmapRequest(
             model=request.model,
             dataset=request.dataset,
             images=[LabelFilenameTarget(label=request.label, filename=filename, target=None) for filename in filenames],
@@ -119,5 +119,5 @@ class UnsupervisedService:
 
         return UnsupervisedHeatmapsResponse(filenames_coords=filenames_coords, success=True)
 
-    async def any_activations(self):
+    async def any_activations(self) -> None:
         pass

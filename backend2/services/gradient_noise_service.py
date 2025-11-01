@@ -3,7 +3,7 @@ import os
 import numpy as np
 import torch
 
-from interfaces.gradient import GradientRequest, GradientResponse
+from interfaces.heatmap import HeatmapRequest, HeatmapResponse
 from services.config_service import XAIMethodConfig
 from services.models_service import ModelInfo
 
@@ -38,16 +38,16 @@ class GradientNoiseService:
         self.container: ServiceContainer = get_container()
         self.logger_service: LoggerService = get_logger_service()
 
-    async def smooth_grad(self, request: GradientRequest) -> GradientResponse:
+    async def smooth_grad(self, request: HeatmapRequest) -> HeatmapResponse:
         return await self.__gradient_noise_generic(request, self.constants.SMOOTH_GRADIENT)
 
-    async def smooth_grad_squared(self, request: GradientRequest) -> GradientResponse:
+    async def smooth_grad_squared(self, request: HeatmapRequest) -> HeatmapResponse:
         return await self.__gradient_noise_generic(request, self.constants.SMOOTH_GRADIENT_SQUARE)
 
-    async def var_grad(self, request: GradientRequest) -> GradientResponse:
+    async def var_grad(self, request: HeatmapRequest) -> HeatmapResponse:
         return await self.__gradient_noise_generic(request, self.constants.VAR_GRADIENT)
 
-    async def __gradient_noise_generic(self, request: GradientRequest, xai_method_type: str) -> GradientResponse:
+    async def __gradient_noise_generic(self, request: HeatmapRequest, xai_method_type: str) -> HeatmapResponse:
         root_path: str = await self.utilities_service.make_root_path(
             request=request, xai_method_type=xai_method_type
         )
@@ -130,6 +130,6 @@ class GradientNoiseService:
             )
 
 
-        return GradientResponse(
+        return HeatmapResponse(
             success=True,
         )
