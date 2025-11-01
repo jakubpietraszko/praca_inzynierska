@@ -15,10 +15,11 @@ import {
 import { Subscription } from 'rxjs';
 import { LoadAnyActivationsImage } from '../../../directives/load-any-activations-image';
 import { DragDropModule } from '@angular/cdk/drag-drop';
+import { ZoomImage } from '../../../directives/zoom-image';
 
 @Component({
   selector: 'app-content-unsupervised-any-activations',
-  imports: [LoadAnyActivationsImage, DragDropModule],
+  imports: [LoadAnyActivationsImage, DragDropModule, ZoomImage],
   templateUrl: './content-unsupervised-any-activations.html',
   styleUrl: './content-unsupervised-any-activations.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

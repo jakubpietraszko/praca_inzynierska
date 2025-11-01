@@ -17,6 +17,7 @@ from .lrp_service import LRPService
 from .masks_service import MasksService
 from .models_datasets_service import ModelsDatasetsService
 from .models_service import ModelsService
+from .noise_config_service import NoiseConfigService
 from .probing_image_service import ProbingImageService
 from .statistics_service import StatisticsService
 from .unsupervised_service import UnsupervisedService
@@ -59,6 +60,7 @@ class ServiceContainer:
         self._constants_service = None
         self._logger_service = None
         self._unsupervised_service = None
+        self._noise_config_service = None
 
     @property
     def datasets_service(self) -> DatasetsService:
@@ -125,64 +127,70 @@ class ServiceContainer:
         return self._cam_service
 
     @property
-    def probing_image_service(self):
+    def probing_image_service(self) -> ProbingImageService:
         if self._probing_image_service is None:
             self._probing_image_service = ProbingImageService()
         return self._probing_image_service
 
     @property
-    def gradient_noise_service(self):
+    def gradient_noise_service(self) -> GradientNoiseService:
         if self._gradient_noise_service is None:
             self._gradient_noise_service = GradientNoiseService()
         return self._gradient_noise_service
 
     @property
-    def heatmaps_facede_service(self):
+    def heatmaps_facede_service(self) -> HeatmapsFacedeService:
         if self._heatmaps_facede_service is None:
             self._heatmaps_facede_service = HeatmapsFacedeService()
         return self._heatmaps_facede_service
 
     @property
-    def lrp_service(self):
+    def lrp_service(self) -> LRPService:
         if self._lrp_service is None:
             self._lrp_service = LRPService()
         return self._lrp_service
 
     @property
-    def config_service(self):
+    def config_service(self) -> ConfigService:
         if self._config_service is None:
             self._config_service = ConfigService(self.base_dir)
         return self._config_service
 
     @property
-    def websocket_service(self):
+    def websocket_service(self) -> WebSocketService:
         if self._websocket_service is None:
             self._websocket_service = WebSocketService()
         return self._websocket_service
 
     @property
-    def statistics_service(self):
+    def statistics_service(self) -> StatisticsService:
         if self._statistics_service is None:
             self._statistics_service = StatisticsService()
         return self._statistics_service
 
     @property
-    def constants_service(self):
+    def constants_service(self) -> ConstantsService:
         if self._constants_service is None:
             self._constants_service = ConstantsService()
         return self._constants_service
 
     @property
-    def logger_service(self):
+    def logger_service(self) -> LoggerService:
         if self._logger_service is None:
             self._logger_service = LoggerService()
         return self._logger_service
 
     @property
-    def unsupervised_service(self):
+    def unsupervised_service(self) -> UnsupervisedService:
         if self._unsupervised_service is None:
             self._unsupervised_service = UnsupervisedService()
         return self._unsupervised_service
+
+    @property
+    def noise_config_service(self) -> NoiseConfigService:
+        if self._noise_config_service is None:
+            self._noise_config_service = NoiseConfigService(self.base_dir)
+        return self._noise_config_service
 
 
 _container: ServiceContainer | None = None
@@ -278,3 +286,7 @@ def get_logger_service() -> LoggerService:
 
 def get_unsupervised_service() -> UnsupervisedService:
     return get_container().unsupervised_service
+
+
+def get_noise_config_service() -> NoiseConfigService:
+    return get_container().noise_config_service

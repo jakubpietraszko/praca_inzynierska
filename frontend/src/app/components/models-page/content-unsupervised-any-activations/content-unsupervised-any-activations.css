@@ -19,6 +19,8 @@
 
 .draggable-image:hover {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  overflow: visible;
 }
 
 .draggable-image img {
@@ -29,7 +31,7 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   display: block;
   background-color: white;
-  pointer-events: none;
+  pointer-events: auto;
 }
 
 .draggable-image:active img,

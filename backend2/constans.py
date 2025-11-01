@@ -214,6 +214,7 @@ class Constants:
     DEFAULT_SUPER_PIXELS: int = 30
 
     CONFIG_FILENAME: str = "config.json"
+    NOISE_CONFIG_FILENAME: str = "noise_config.json"
 
     THRESHOLD_ACTIVATIONS: float = 0.1
 

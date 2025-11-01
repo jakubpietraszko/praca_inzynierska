@@ -50,17 +50,18 @@ app.include_router(activations_router, prefix="/heatmap")
 app.include_router(cam_router, prefix="/heatmap")
 app.include_router(gradient_noise_router, prefix="/heatmap")
 app.include_router(gradient_router, prefix="/heatmap")
-app.include_router(probing_router, prefix='/heatmap')
+app.include_router(probing_router, prefix="/heatmap")
 app.include_router(integrated_gradient_router, prefix="/heatmap")
 app.include_router(lrp_router, prefix="/heatmap")
 
 app.include_router(unsupervised_router, prefix="/unsupervised")
-app.include_router(statistics_router, prefix='/statistics')
+app.include_router(statistics_router, prefix="/statistics")
 
 app.include_router(websocket_router)
 
 app.include_router(config_router, prefix="/config")
-app.include_router(constants_router, prefix='/constants')
+app.include_router(constants_router, prefix="/constants")
+
 
 @app.get("/")
 async def root():
@@ -68,10 +69,6 @@ async def root():
         "message": "Welcome",
     }
 
+
 if __name__ == "__main__":
-    uvicorn.run(
-        "main:app",
-        host="0.0.0.0",
-        port=8000,
-        reload=True
-    )
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
