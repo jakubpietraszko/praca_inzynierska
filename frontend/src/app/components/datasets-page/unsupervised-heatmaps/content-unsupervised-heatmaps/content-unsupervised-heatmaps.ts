@@ -5,7 +5,6 @@ import {
   effect,
   inject,
   input,
-  OnDestroy,
   signal,
 } from '@angular/core';
 import {
@@ -13,7 +12,6 @@ import {
   UnsupervisedHeatmapsRequest,
   UnsupervisedHeatmapsResponse,
 } from '../generator-unsupervised-heatmaps';
-import { Subscription } from 'rxjs';
 import { LoadModelsDatasetsImage } from '../../../../directives/load-models-datasets-image';
 import {
   GenericUnsupervised,
@@ -28,7 +26,7 @@ import { ZoomImage } from '../../../../directives/zoom-image';
   styleUrl: './content-unsupervised-heatmaps.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ContentUnsupervisedHeatmaps implements OnDestroy {
+export class ContentUnsupervisedHeatmaps {
   model = input.required<string>();
   heatmap = input.required<string>();
   dataset = input.required<string>();
@@ -40,7 +38,7 @@ export class ContentUnsupervisedHeatmaps implements OnDestroy {
   coordinates = computed<UnsupervisedCoordinate[]>(() => {
     const res = this.response();
     if (!res) return [];
-    return res.filenames_coords.map(fc => ({
+    return res.filenames_coords.map((fc) => ({
       coordX: fc.coordX,
       coordY: fc.coordY,
       label: this.label(),
@@ -48,41 +46,26 @@ export class ContentUnsupervisedHeatmaps implements OnDestroy {
     }));
   });
 
-  private subscription = new Subscription();
-
   unsupervisedHeatmapsService = inject(GeneratorUnsupervisedHeatmaps);
 
   constructor() {
-    effect(() => {
-      if (this.model() && this.dataset() && this.label() && this.heatmap()) {
-        this.response.set(null);
-        const request: UnsupervisedHeatmapsRequest = {
-          model: this.model(),
-          dataset: this.dataset(),
-          label: this.label(),
-          heatmap: this.heatmap(),
-          type: this.type(),
-        };
+    effect((onCleanup) => {
+      this.response.set(null);
+      const request: UnsupervisedHeatmapsRequest = {
+        model: this.model(),
+        dataset: this.dataset(),
+        label: this.label(),
+        heatmap: this.heatmap(),
+        type: this.type(),
+      };
 
-        if (this.subscription) {
-          this.subscription.unsubscribe();
-          this.subscription = new Subscription();
-        }
+      const subscription = this.unsupervisedHeatmapsService
+        .unsupervisedHeatmaps(request)
+        .subscribe((response: UnsupervisedHeatmapsResponse) => {
+          this.response.set(response);
+        });
 
-        this.subscription.add(
-          this.unsupervisedHeatmapsService
-            .unsupervisedHeatmaps(request)
-            .subscribe((response: UnsupervisedHeatmapsResponse) => {
-              this.response.set(response);
-            }),
-        );
-      }
+      onCleanup(() => subscription.unsubscribe());
     });
-  }
-
-  ngOnDestroy(): void {
-    if (this.subscription) {
-      this.subscription.unsubscribe();
-    }
   }
 }

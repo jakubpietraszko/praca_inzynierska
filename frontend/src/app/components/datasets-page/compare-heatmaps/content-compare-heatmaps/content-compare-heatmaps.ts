@@ -1,10 +1,9 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  effect,
   inject,
   input,
-  OnDestroy,
-  OnInit,
   signal,
 } from '@angular/core';
 import {
@@ -12,10 +11,8 @@ import {
   CompareHeatmapsResponse,
   GeneratorCompareHeatmaps,
 } from '../generator-compare-heatmaps';
-import { Subscription } from 'rxjs';
-import { httpResource } from '@angular/common/http';
-import { environment } from '../../../../../environments/environment';
 import { ImageTitleTransparent } from '../../../shared/image-title-transparent/image-title-transparent';
+import { AllHeatmaps } from '../../../../services/all-heatmaps';
 
 @Component({
   selector: 'app-content-compare-heatmaps',
@@ -24,7 +21,7 @@ import { ImageTitleTransparent } from '../../../shared/image-title-transparent/i
   styleUrl: './content-compare-heatmaps.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ContentCompareHeatmaps implements OnInit, OnDestroy {
+export class ContentCompareHeatmaps {
   model = input.required<string>();
   dataset = input.required<string>();
   label = input.required<string>();
@@ -32,38 +29,35 @@ export class ContentCompareHeatmaps implements OnInit, OnDestroy {
 
   response = signal<CompareHeatmapsResponse | null>(null);
 
-  private subscription = new Subscription();
-
   compareHeatmapsService = inject(GeneratorCompareHeatmaps);
 
-  allHeatmaps = httpResource<{ heatmaps: string[] }>(
-    () => `${environment.apiUrl}/heatmap/all-heatmaps`,
-  );
+  allHeatmapsService = inject(AllHeatmaps);
 
-  ngOnInit(): void {
-    const request: CompareHeatmapsRequest = {
-      model: this.model(),
-      dataset: this.dataset(),
-      images: [
-        {
-          label: this.label(),
-          filename: this.filename(),
-          target: null,
-        },
-      ],
-      overwrite: false,
-    };
+  constructor() {
+    effect((onCleanup) => {
+      this.response.set(null);
+      const request: CompareHeatmapsRequest = {
+        model: this.model(),
+        dataset: this.dataset(),
+        images: [
+          {
+            label: this.label(),
+            filename: this.filename(),
+            target: null,
+          },
+        ],
+        overwrite: false,
+      };
 
-    this.subscription.add(
-      this.compareHeatmapsService
+      const subscription = this.compareHeatmapsService
         .compareHeatmaps(request)
         .subscribe((response: CompareHeatmapsResponse) => {
           this.response.set(response);
-        }),
-    );
-  }
+        });
 
-  ngOnDestroy(): void {
-    this.subscription.unsubscribe();
+      onCleanup(() => {
+        subscription.unsubscribe();
+      });
+    });
   }
 }

@@ -26,28 +26,6 @@ export class Generator {
   selectedLabel = signal<string | null>(null);
 
   directoryCreated = signal(false);
-
-  constructor() {
-    effect(() => {
-      const model = this.selectedModel();
-      const dataset = this.selectedDataset();
-      this.directoryCreated.set(false);
-
-      if (model && dataset) {
-        this.heatmapsGenerator
-          .createDatasetsModelsDir({
-            model,
-            dataset,
-          })
-          .subscribe({
-            next: () => {
-              this.directoryCreated.set(true);
-            },
-          });
-      }
-    });
-  }
-
   showLabelSelector = computed(
     () =>
       !!this.selectedModel() &&
@@ -62,4 +40,26 @@ export class Generator {
       !!this.selectedLabel() &&
       this.directoryCreated(),
   );
+
+  constructor() {
+    effect((onCleanup) => {
+      const model = this.selectedModel();
+      const dataset = this.selectedDataset();
+      this.directoryCreated.set(false);
+
+      if (model && dataset) {
+        const subscription = this.heatmapsGenerator
+          .createDatasetsModelsDir({
+            model,
+            dataset,
+          })
+          .subscribe({
+            next: () => {
+              this.directoryCreated.set(true);
+            },
+          });
+        onCleanup(() => subscription.unsubscribe());
+      }
+    });
+  }
 }

@@ -1,14 +1,12 @@
 import {
   Component,
   inject,
-  OnDestroy,
-  OnInit,
   signal,
   computed,
+  effect,
 } from '@angular/core';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { DatasetsBalance } from '../datasets-balance';
-import { Subscription } from 'rxjs';
 import { DatasetBalanceResponse } from '../../../../generated-interfaces/datasets_balance';
 import { BarPlot } from '../../../shared/bar-plot/bar-plot';
 
@@ -18,7 +16,7 @@ import { BarPlot } from '../../../shared/bar-plot/bar-plot';
   templateUrl: './wrapper-datasets-balance.html',
   styleUrl: './wrapper-datasets-balance.css',
 })
-export class WrapperDatasetsBalance implements OnInit, OnDestroy {
+export class WrapperDatasetsBalance {
   data = inject(MAT_DIALOG_DATA) as {
     dataset: string;
   };
@@ -42,19 +40,15 @@ export class WrapperDatasetsBalance implements OnInit, OnDestroy {
     return balance !== null && Object.keys(balance).length > 0;
   });
 
-  subscription = new Subscription();
-
-  ngOnInit(): void {
-    this.subscription.add(
-      this.datasetsBalance
+  constructor() {
+    effect((onCleanup) => {
+      const subscription = this.datasetsBalance
         .getDatasetBalance(this.data.dataset)
         .subscribe((response: DatasetBalanceResponse) => {
           this.$balance.set(response.balance);
-        }),
-    );
-  }
+        });
 
-  ngOnDestroy(): void {
-    this.subscription.unsubscribe();
+      onCleanup(() => subscription.unsubscribe());
+    });
   }
 }

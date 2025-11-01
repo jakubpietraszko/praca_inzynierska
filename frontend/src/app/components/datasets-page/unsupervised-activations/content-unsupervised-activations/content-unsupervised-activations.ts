@@ -2,10 +2,9 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  effect,
   inject,
   input,
-  OnDestroy,
-  OnInit,
   signal,
 } from '@angular/core';
 import {
@@ -13,7 +12,6 @@ import {
   UnsupervisedActivationsRequest,
   UnsupervisedActivationsResponse,
 } from '../generator-unsupervised-activations';
-import { Subscription } from 'rxjs';
 import { LoadActivationImage } from '../../../../directives/load-activation-image';
 import {
   GenericUnsupervised,
@@ -28,7 +26,7 @@ import { ZoomImage } from '../../../../directives/zoom-image';
   styleUrl: './content-unsupervised-activations.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ContentUnsupervisedActivations implements OnInit, OnDestroy {
+export class ContentUnsupervisedActivations {
   model = input.required<string>();
   dataset = input.required<string>();
   label = input.required<string>();
@@ -43,29 +41,26 @@ export class ContentUnsupervisedActivations implements OnInit, OnDestroy {
     return res.label_filenames_coords;
   });
 
-  private subscription = new Subscription();
-
   unsupervisedActivationsService = inject(GeneratorUnsupervisedActivations);
 
-  ngOnInit(): void {
-    const request: UnsupervisedActivationsRequest = {
-      model: this.model(),
-      dataset: this.dataset(),
-      label: this.label(),
-      filename: this.filename(),
-      type: this.type(),
-    };
+  constructor() {
+    effect((onCleanup) => {
+      this.response.set(null);
+      const request: UnsupervisedActivationsRequest = {
+        model: this.model(),
+        dataset: this.dataset(),
+        label: this.label(),
+        filename: this.filename(),
+        type: this.type(),
+      };
 
-    this.subscription.add(
-      this.unsupervisedActivationsService
+      const subscription = this.unsupervisedActivationsService
         .unsupervisedActivations(request)
         .subscribe((response: UnsupervisedActivationsResponse) => {
           this.response.set(response);
-        }),
-    );
-  }
+        });
 
-  ngOnDestroy(): void {
-    this.subscription.unsubscribe();
+      onCleanup(() => subscription.unsubscribe());
+    });
   }
 }

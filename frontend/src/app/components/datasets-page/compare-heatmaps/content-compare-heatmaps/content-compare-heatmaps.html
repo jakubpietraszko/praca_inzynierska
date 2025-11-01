@@ -1,6 +1,6 @@
-@if (response() && !allHeatmaps.isLoading() && allHeatmaps.value()?.heatmaps) {
+@if (response() && !allHeatmapsService.heatmaps.isLoading() && allHeatmapsService.heatmaps.value()?.heatmaps) {
   <div class="heatmaps-container">
-    @for (type of allHeatmaps.value()?.heatmaps; track type) {
+    @for (type of allHeatmapsService.heatmaps.value()?.heatmaps; track type) {
       <app-image-title-transparent
         [title]="type"
         [dataset]="dataset()"

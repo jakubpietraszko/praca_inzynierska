@@ -5,7 +5,6 @@ import {
   effect,
   inject,
   input,
-  OnDestroy,
   signal,
 } from '@angular/core';
 import {
@@ -13,7 +12,6 @@ import {
   UnsupervisedAnyActivationsRequest,
   UnsupervisedAnyActivationsResponse,
 } from '../../datasets-page/unsupervised-activations/generator-unsupervised-activations';
-import { Subscription } from 'rxjs';
 import { LoadAnyActivationsImage } from '../../../directives/load-any-activations-image';
 import { ZoomImage } from '../../../directives/zoom-image';
 import {
@@ -32,7 +30,7 @@ import {
   styleUrl: './content-unsupervised-any-activations.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ContentUnsupervisedAnyActivations implements OnDestroy {
+export class ContentUnsupervisedAnyActivations {
   model = input.required<string>();
   ref = input.required<string>();
   dataset = input.required<string>();
@@ -48,16 +46,10 @@ export class ContentUnsupervisedAnyActivations implements OnDestroy {
     return res.label_filenames_coords;
   });
 
-  private subscription: Subscription | null = null;
-
   unsupervisedActivationsService = inject(GeneratorUnsupervisedActivations);
 
   constructor() {
-    effect(() => {
-      if (this.subscription) {
-        this.subscription.unsubscribe();
-      }
-
+    effect((onCleanup) => {
       this.response.set(null);
 
       const request: UnsupervisedAnyActivationsRequest = {
@@ -69,17 +61,13 @@ export class ContentUnsupervisedAnyActivations implements OnDestroy {
         type: this.type(),
       };
 
-      this.subscription = this.unsupervisedActivationsService
+      const subscription = this.unsupervisedActivationsService
         .unsupervisedAnyActivations(request)
         .subscribe((response: UnsupervisedAnyActivationsResponse) => {
           this.response.set(response);
         });
-    });
-  }
 
-  ngOnDestroy(): void {
-    if (this.subscription) {
-      this.subscription.unsubscribe();
-    }
+      onCleanup(() => subscription.unsubscribe());
+    });
   }
 }
