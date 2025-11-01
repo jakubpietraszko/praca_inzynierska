@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   effect,
   inject,
   input,
@@ -13,12 +14,16 @@ import {
   UnsupervisedHeatmapsResponse,
 } from '../generator-unsupervised-heatmaps';
 import { Subscription } from 'rxjs';
-import { DragDropModule } from '@angular/cdk/drag-drop';
 import { LoadModelsDatasetsImage } from '../../../../directives/load-models-datasets-image';
+import {
+  GenericUnsupervised,
+  UnsupervisedCoordinate,
+} from '../../../shared/generic-unsupervised/generic-unsupervised';
+import { ZoomImage } from '../../../../directives/zoom-image';
 
 @Component({
   selector: 'app-content-unsupervised-heatmaps',
-  imports: [DragDropModule, LoadModelsDatasetsImage],
+  imports: [LoadModelsDatasetsImage, GenericUnsupervised, ZoomImage],
   templateUrl: './content-unsupervised-heatmaps.html',
   styleUrl: './content-unsupervised-heatmaps.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -31,6 +36,17 @@ export class ContentUnsupervisedHeatmaps implements OnDestroy {
   type = signal<string>('tsne');
 
   response = signal<UnsupervisedHeatmapsResponse | null>(null);
+
+  coordinates = computed<UnsupervisedCoordinate[]>(() => {
+    const res = this.response();
+    if (!res) return [];
+    return res.filenames_coords.map(fc => ({
+      coordX: fc.coordX,
+      coordY: fc.coordY,
+      label: this.label(),
+      filename: fc.filename,
+    }));
+  });
 
   private subscription = new Subscription();
 

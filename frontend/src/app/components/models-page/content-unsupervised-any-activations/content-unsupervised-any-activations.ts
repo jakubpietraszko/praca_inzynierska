@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   effect,
   inject,
   input,
@@ -14,12 +15,19 @@ import {
 } from '../../datasets-page/unsupervised-activations/generator-unsupervised-activations';
 import { Subscription } from 'rxjs';
 import { LoadAnyActivationsImage } from '../../../directives/load-any-activations-image';
-import { DragDropModule } from '@angular/cdk/drag-drop';
 import { ZoomImage } from '../../../directives/zoom-image';
+import {
+  GenericUnsupervised,
+  UnsupervisedCoordinate,
+} from '../../shared/generic-unsupervised/generic-unsupervised';
 
 @Component({
   selector: 'app-content-unsupervised-any-activations',
-  imports: [LoadAnyActivationsImage, DragDropModule, ZoomImage],
+  imports: [
+    LoadAnyActivationsImage,
+    ZoomImage,
+    GenericUnsupervised,
+  ],
   templateUrl: './content-unsupervised-any-activations.html',
   styleUrl: './content-unsupervised-any-activations.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -33,6 +41,12 @@ export class ContentUnsupervisedAnyActivations implements OnDestroy {
   type = signal<string>('tsne');
 
   response = signal<UnsupervisedAnyActivationsResponse | null>(null);
+
+  coordinates = computed<UnsupervisedCoordinate[]>(() => {
+    const res = this.response();
+    if (!res) return [];
+    return res.label_filenames_coords;
+  });
 
   private subscription: Subscription | null = null;
 

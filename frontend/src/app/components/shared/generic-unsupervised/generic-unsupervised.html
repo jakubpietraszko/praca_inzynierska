@@ -1,0 +1,16 @@
+@if (coordinates().length > 0) {
+  <div class="image-container" #container>
+    @for (coord of coordinates(); track coord.filename; let i = $index) {
+      <div
+        class="draggable-image"
+        cdkDrag
+        [cdkDragBoundary]="container"
+        [style.left.%]="coord.coordX * (100 - 6)"
+        [style.top.%]="coord.coordY * (100 - 8)"
+      >
+        <ng-container *ngTemplateOutlet="imageTemplate(); context: { $implicit: coord, index: i }"></ng-container>
+        <div class="drag-placeholder" *cdkDragPlaceholder></div>
+      </div>
+    }
+  </div>
+}
