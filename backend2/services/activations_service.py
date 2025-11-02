@@ -3,6 +3,7 @@ import os
 import numpy as np
 import torch
 from PIL import Image
+from torch.utils.hooks import RemovableHandle
 
 from interfaces.activations import (
     ActivationsRequest,
@@ -48,18 +49,18 @@ class ActivationsService:
     ):
         model_info: ModelInfo = await self.models_service.load_model(request.model)
 
-        filepath = os.path.join(self.container.datasets_path, request.dataset, request.label, request.filename)
+        filepath: str = os.path.join(self.container.datasets_path, request.dataset, request.label, request.filename)
 
         image_np = await self.datasets_service.load_image(filepath, model_info.input_shape)
-        image_tensor = await self.utilities_service.convert_image_to_tensor(image_np)
+        image_tensor: torch.Tensor = await self.utilities_service.convert_image_to_tensor(image_np)
 
         activations: torch.Tensor | None = None
 
-        def hook(module, input, output):
+        def hook(module, input, output) -> None:
             nonlocal activations
             activations = output.detach().cpu().numpy()
 
-        ref = model_info.last_conv_layer.register_forward_hook(hook)
+        ref: RemovableHandle = model_info.last_conv_layer.register_forward_hook(hook)
         model_info.model.eval()
         model_info.model(image_tensor)
         ref.remove()
@@ -69,7 +70,7 @@ class ActivationsService:
 
         activations = np.squeeze(activations, axis=0)
 
-        path = os.path.join(
+        path: str = os.path.join(
             self.container.models_datasets_path,
             await self.utilities_service.models_datasets_path(request.model, request.dataset),
             self.constants.ACTIVATIONS,
@@ -83,7 +84,7 @@ class ActivationsService:
                 activation, model_info.input_shape, epsilon=self.constants.EPSILON
             )
 
-            activation_path = os.path.join(path, f"{i}.png")
+            activation_path: str = os.path.join(path, f"{i}.png")
 
             await self.utilities_service.save_image(activation_path, activation)
 
@@ -92,14 +93,14 @@ class ActivationsService:
     async def any_activations(self, request: AnyActivationsRequest) -> AnyActivationsResponse:
         model_info: ModelInfo = await self.models_service.load_model(request.model)
 
-        filepath = os.path.join(self.container.datasets_path, request.dataset, request.label, request.filename)
+        filepath: str = os.path.join(self.container.datasets_path, request.dataset, request.label, request.filename)
 
         image_np = await self.datasets_service.load_image(filepath, model_info.input_shape)
-        image_tensor = await self.utilities_service.convert_image_to_tensor(image_np)
+        image_tensor: torch.Tensor = await self.utilities_service.convert_image_to_tensor(image_np)
 
         activations: torch.Tensor | None = None
 
-        def hook(module, input, output):
+        def hook(module, input, output) -> None:
             nonlocal activations
             activations = output.detach().cpu().numpy()
 
@@ -149,7 +150,7 @@ class ActivationsService:
 
         await self.activations(request=req)
 
-        images_dir = os.path.join(
+        images_dir: str = os.path.join(
             self.container.models_datasets_path,
             await self.utilities_service.models_datasets_path(request.model, request.dataset),
             self.constants.ACTIVATIONS,
@@ -157,7 +158,7 @@ class ActivationsService:
             await self.utilities_service.delete_extension(request.filename),
         )
 
-        image_path = [os.path.join(images_dir, f) for f in os.listdir(images_dir)]
+        image_path: list[str] = [os.path.join(images_dir, f) for f in os.listdir(images_dir)]
         images = []
 
         for img_path in image_path:

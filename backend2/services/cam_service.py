@@ -3,6 +3,7 @@ import os
 import cv2
 import numpy as np
 import torch
+import torch.nn as nn
 
 from interfaces.heatmap import HeatmapRequest, HeatmapResponse
 from services.config_service import XAIMethodConfig
@@ -10,7 +11,7 @@ from services.models_service import ModelInfo
 
 
 class CAMService:
-    def __init__(self):
+    def __init__(self) -> None:
         from services.container import (
             ConfigService,
             Constants,
@@ -40,459 +41,45 @@ class CAMService:
         self.logger_service: LoggerService = get_logger_service()
 
     async def grad_cam(self, request: HeatmapRequest) -> HeatmapResponse:
-        root_path = os.path.join(
-            self.container.models_datasets_path,
-            await self.utilities_service.models_datasets_path(request.model, request.dataset),
-            self.constants.GRAD_CAM,
-        )
-        os.makedirs(root_path, exist_ok=True)
-
-        model_info: ModelInfo = await self.models_service.load_model(request.model)
-
-        config: XAIMethodConfig = await self.config_service.get_method_config(self.constants.GRAD_CAM)
-
-        self.logger_service.log_config(config, self.constants.GRAD_CAM)
-
-        for image in request.images:
-            label = image.label
-            filename = image.filename
-            target = image.target
-
-            if target is None:
-                target = await self.utilities_service.fill_target(model_info, label)
-
-            label_path = os.path.join(
-                root_path,
-                label,
-            )
-            os.makedirs(label_path, exist_ok=True)
-
-            save_path = os.path.join(label_path, await self.utilities_service.add_png_extension(filename))
-
-            if self.constants.CACHE_ENABLED and await self.utilities_service.skip_forward(save_path):
-                continue
-
-            image_path = os.path.join(self.container.datasets_path, request.dataset, label, filename)
-
-            image_np = await self.datasets_service.load_image(image_path, model_info.input_shape)
-            image_tensor = await self.utilities_service.convert_image_to_tensor(image_np, grad=True)
-
-            model_info.model.eval()
-
-            activations: torch.Tensor | None = None
-            gradients: torch.Tensor | None = None
-
-            def forward_hook(module, i, o):
-                nonlocal activations
-                activations = o.clone().detach()
-
-            def backward_hook(module, i, o):
-                nonlocal gradients
-                gradients = o[0].clone().detach()
-
-            h1 = model_info.last_conv_layer.register_forward_hook(forward_hook)
-            h2 = model_info.last_conv_layer.register_full_backward_hook(backward_hook)
-            model_info.model.eval()
-            image_tensor.requires_grad_(True)
-            output = model_info.model(image_tensor)
-            output[0, target].backward()
-            h1.remove()
-            h2.remove()
-            # activations (1, b, h, w)
-            # gradients (1, b, h, w)
-            if activations is None or gradients is None:
-                raise RuntimeError("Failed to obtain activations or gradients from the model.")
-            weights = gradients.mean(dim=(2, 3), keepdim=True)
-            weights = torch.nn.functional.relu(weights)
-            print(weights.min(), weights.max())
-            # weights (1, b, 1, 1)
-            # normalize weights
-            weights = weights / (torch.sum(weights) + (config.epsilon or self.constants.DEFAULT_EPSILON))
-            print(weights.min(), weights.max())
-            cam = (weights * activations).sum(dim=1, keepdim=True)
-            print(cam.min(), cam.max())
-            # cam (1, 1, h, w)
-            cam = cam.squeeze().cpu().detach().numpy()
-            cam = await self.utilities_service.relu_normalize(
-                cam, model_info.input_shape, config.epsilon or self.constants.DEFAULT_EPSILON
-            )
-            print(cam.min(), cam.max())
-            # cam (H, W)
-
-            await self.utilities_service.save_image(save_path, cam)
-
-            await self.websocket_service.send_notification_supress_exceptions(
-                request=request,
-                label=label,
-                filename=filename,
-                heatmap_type=self.constants.GRAD_CAM,
-            )
-
-        return HeatmapResponse(
-            success=True,
-        )
+        return await self.__generic_cam(request, self.constants.GRAD_CAM)
 
     async def grad_cam_plus_plus(self, request: HeatmapRequest) -> HeatmapResponse:
-        root_path = os.path.join(
-            self.container.models_datasets_path,
-            await self.utilities_service.models_datasets_path(request.model, request.dataset),
-            self.constants.GRAD_CAM_PLUS_PLUS,
-        )
-        os.makedirs(root_path, exist_ok=True)
-
-        model_info: ModelInfo = await self.models_service.load_model(request.model)
-
-        config: XAIMethodConfig = await self.config_service.get_method_config(self.constants.GRAD_CAM_PLUS_PLUS)
-
-        self.logger_service.log_config(config, self.constants.GRAD_CAM_PLUS_PLUS)
-
-        for image in request.images:
-            label = image.label
-            filename = image.filename
-            target = image.target
-            if target is None:
-                target = await self.utilities_service.fill_target(model_info, label)
-            label_path = os.path.join(
-                root_path,
-                label,
-            )
-            os.makedirs(label_path, exist_ok=True)
-            save_path = os.path.join(label_path, await self.utilities_service.add_png_extension(filename))
-
-            if self.constants.CACHE_ENABLED and await self.utilities_service.skip_forward(save_path):
-                continue
-
-            image_path = os.path.join(self.container.datasets_path, request.dataset, label, filename)
-
-            image_np = await self.datasets_service.load_image(image_path, model_info.input_shape)
-            image_tensor = await self.utilities_service.convert_image_to_tensor(image_np, grad=True)
-
-            model_info.model.eval()
-
-            activations: torch.Tensor | None = None
-            gradients: torch.Tensor | None = None
-
-            def forward_hook(module, i, o):
-                nonlocal activations
-                activations = o.clone().detach()
-
-            def backward_hook(module, i, o):
-                nonlocal gradients
-                gradients = o[0].clone().detach()
-
-            h1 = model_info.last_conv_layer.register_forward_hook(forward_hook)
-            h2 = model_info.last_conv_layer.register_full_backward_hook(backward_hook)
-
-            model_info.model.eval()
-            image_tensor.requires_grad_(True)
-            output = model_info.model(image_tensor)
-            output[0, target].backward()
-            h1.remove()
-            h2.remove()
-
-            if activations is None or gradients is None:
-                raise RuntimeError("Failed to obtain activations or gradients from the model.")
-
-            grads = gradients
-
-            grads_2 = grads.pow(2)
-            grads_3 = grads.pow(3)
-
-            # activations (1, b, h, w)
-            # grads (1, b, h, w)
-            # grads_2 (1, b, h, w)
-            # grads_3 (1, b, h, w)
-            spatial_sums = (activations * grads_3).sum(dim=(2, 3), keepdim=True)
-            # spatial_sums (1, b, 1, 1)
-            alphas = grads_2 / (2 * grads_2 + spatial_sums + (config.epsilon or self.constants.DEFAULT_EPSILON))
-            # alphas (1, b, h, w)
-            relu_grads = torch.relu(grads)
-            weights = (alphas * relu_grads).sum(dim=(2, 3), keepdim=True)
-            # weights (1, b, 1, 1)
-            cam = (weights * activations).sum(dim=1, keepdim=True)
-            # cam (1, 1, h, w)
-            cam = cam.squeeze().cpu().detach().numpy()
-            cam = await self.utilities_service.relu_normalize(
-                cam, model_info.input_shape, (config.epsilon or self.constants.DEFAULT_EPSILON)
-            )
-            # cam (H, W)
-            await self.utilities_service.save_image(save_path, cam)
-
-            await self.websocket_service.send_notification_supress_exceptions(
-                request=request,
-                label=label,
-                filename=filename,
-                heatmap_type=self.constants.GRAD_CAM_PLUS_PLUS,
-            )
-
-        return HeatmapResponse(
-            success=True,
-        )
+        return await self.__generic_cam(request, self.constants.GRAD_CAM_PLUS_PLUS)
 
     async def group_cam(self, request: HeatmapRequest) -> HeatmapResponse:
-        root_path = os.path.join(
-            self.container.models_datasets_path,
-            await self.utilities_service.models_datasets_path(request.model, request.dataset),
-            self.constants.GROUP_CAM,
-        )
-        os.makedirs(root_path, exist_ok=True)
-
-        model_info: ModelInfo = await self.models_service.load_model(request.model)
-
-        config: XAIMethodConfig = await self.config_service.get_method_config(self.constants.GROUP_CAM)
-
-        self.logger_service.log_config(config, self.constants.GROUP_CAM)
-
-        for image in request.images:
-            label = image.label
-            filename = image.filename
-            target = image.target
-            if target is None:
-                target = await self.utilities_service.fill_target(model_info, label)
-
-            label_path = os.path.join(root_path, label)
-            os.makedirs(label_path, exist_ok=True)
-            save_path = os.path.join(label_path, await self.utilities_service.add_png_extension(filename))
-
-            if self.constants.CACHE_ENABLED and await self.utilities_service.skip_forward(save_path):
-                continue
-
-            image_path = os.path.join(self.container.datasets_path, request.dataset, label, filename)
-
-            image_np = await self.datasets_service.load_image(image_path, model_info.input_shape)
-            image_tensor = await self.utilities_service.convert_image_to_tensor(image_np, grad=True)
-
-            model_info.model.eval()
-
-            image_np_for_blur = image_tensor.squeeze().cpu().detach().numpy()
-            if image_np_for_blur.ndim == 3:
-                image_np_for_blur = np.transpose(image_np_for_blur, (1, 2, 0))
-
-            blurred_np = cv2.GaussianBlur(
-                image_np_for_blur,
-                (config.k_size or self.constants.DEFAULT_KSIZE, config.k_size or self.constants.DEFAULT_KSIZE),
-                config.sigma or self.constants.DEFAULT_SIGMA,
-            )
-
-            if blurred_np.ndim == 3:
-                blurred_np = np.transpose(blurred_np, (2, 0, 1))
-            blurred_image = torch.from_numpy(blurred_np).unsqueeze(0).float()
-            if image_tensor.device.type == "cuda":
-                blurred_image = blurred_image.cuda()
-
-            activations: torch.Tensor | None = None
-            gradients: torch.Tensor | None = None
-
-            def forward_hook(module, i, o):
-                nonlocal activations
-                activations = o.clone().detach()
-
-            def backward_hook(module, i, o):
-                nonlocal gradients
-                gradients = o[0].clone().detach()
-
-            h1 = model_info.last_conv_layer.register_forward_hook(forward_hook)
-            h2 = model_info.last_conv_layer.register_full_backward_hook(backward_hook)
-
-            image_tensor.requires_grad_(True)
-            output = model_info.model(image_tensor)
-            output[0, target].backward()
-            h1.remove()
-            h2.remove()
-
-            # activations (1, b, h, w)
-            # gradients (1, b, h, w)
-
-            if activations is None or gradients is None:
-                raise RuntimeError("Failed to obtain activations or gradients from the model.")
-
-            weights = gradients.mean(dim=(2, 3), keepdim=True)
-            # weights (1, b, 1, 1)
-
-            K = activations.shape[1]
-            g = K // (config.group_size or self.constants.DEFAULT_GROUP_SIZE)
-
-            group_cam_result = torch.zeros_like(image_tensor)
-
-            with torch.no_grad():
-                baseline_output = model_info.model(blurred_image)
-                baseline_confidence = torch.softmax(baseline_output, dim=1)[0, target].item()
-
-            for l in range(config.group_size or self.constants.DEFAULT_GROUP_SIZE):
-                start_idx = l * g
-                end_idx = min((l + 1) * g, K)
-
-                if activations is None or weights is None:
-                    raise RuntimeError("Failed to obtain activations or weights from the model.")
-
-                group_activations = activations[:, start_idx:end_idx, :, :]
-                group_weights = weights[:, start_idx:end_idx, :, :]
-
-                M_l = torch.relu((group_weights * group_activations).sum(dim=1, keepdim=True))
-
-                M_l_processed = await self.utilities_service.relu_normalize(
-                    M_l.squeeze().cpu().detach().numpy(),
-                    model_info.input_shape,
-                    config.epsilon or self.constants.DEFAULT_EPSILON,
-                )
-
-                M_l_prime = torch.from_numpy(M_l_processed).unsqueeze(0).unsqueeze(0).float()
-                M_l_prime = torch.nn.functional.interpolate(
-                    M_l_prime,
-                    size=(model_info.input_shape[1], model_info.input_shape[2]),
-                    mode="bilinear",
-                    align_corners=False,
-                )
-
-                M_l_prime = (M_l_prime - M_l_prime.min()) / (
-                    M_l_prime.max() - M_l_prime.min() + (config.epsilon or self.constants.DEFAULT_EPSILON)
-                )
-
-                I_l_prime = image_tensor * M_l_prime + blurred_image * (1 - M_l_prime)
-
-                with torch.no_grad():
-                    perturbed_output = model_info.model(I_l_prime)
-                    perturbed_confidence = torch.softmax(perturbed_output, dim=1)[0, target].item()
-
-                alpha_l = perturbed_confidence - baseline_confidence
-
-                group_cam_result += alpha_l * M_l_prime
-
-            group_cam_final = torch.relu(group_cam_result)
-            group_cam_final = group_cam_final.squeeze().cpu().detach().numpy()
-
-            if group_cam_final.ndim == 3:
-                group_cam_final = np.mean(group_cam_final, axis=0)
-
-            group_cam_final = cv2.normalize(group_cam_final, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8)
-
-            await self.utilities_service.save_image(save_path, group_cam_final)
-
-            await self.websocket_service.send_notification_supress_exceptions(
-                request=request,
-                label=label,
-                filename=filename,
-                heatmap_type=self.constants.GROUP_CAM,
-            )
-
-        return HeatmapResponse(
-            success=True,
-        )
+        return await self.__generic_cam(request, self.constants.GROUP_CAM)
 
     async def hires_cam(self, request: HeatmapRequest) -> HeatmapResponse:
-        root_path = os.path.join(
-            self.container.models_datasets_path,
-            await self.utilities_service.models_datasets_path(request.model, request.dataset),
-            self.constants.HIRES_CAM,
-        )
-        os.makedirs(root_path, exist_ok=True)
-
-        model_info: ModelInfo = await self.models_service.load_model(request.model)
-
-        config: XAIMethodConfig = await self.config_service.get_method_config(self.constants.HIRES_CAM)
-
-        self.logger_service.log_config(config, self.constants.HIRES_CAM)
-
-        for image in request.images:
-            label = image.label
-            filename = image.filename
-            target = image.target
-            if target is None:
-                target = await self.utilities_service.fill_target(model_info, label)
-            label_path = os.path.join(
-                root_path,
-                label,
-            )
-            os.makedirs(label_path, exist_ok=True)
-            save_path = os.path.join(label_path, await self.utilities_service.add_png_extension(filename))
-
-            if self.constants.CACHE_ENABLED and await self.utilities_service.skip_forward(save_path):
-                continue
-
-            image_path = os.path.join(self.container.datasets_path, request.dataset, label, filename)
-
-            image_np = await self.datasets_service.load_image(image_path, model_info.input_shape)
-            image_tensor = await self.utilities_service.convert_image_to_tensor(image_np, grad=True)
-
-            model_info.model.eval()
-
-            activations: torch.Tensor | None = None
-            gradients: torch.Tensor | None = None
-
-            def forward_hook(module, i, o):
-                nonlocal activations
-                activations = o.clone().detach()
-
-            def backward_hook(module, i, o):
-                nonlocal gradients
-                gradients = o[0].clone().detach()
-
-            h1 = model_info.last_conv_layer.register_forward_hook(forward_hook)
-            h2 = model_info.last_conv_layer.register_full_backward_hook(backward_hook)
-
-            output = model_info.model(image_tensor)
-            output[0, target].backward()
-            h1.remove()
-            h2.remove()
-
-            # activations (1, b, h, w)
-            # gradients (1, b, h, w)
-
-            weights = gradients
-            # weights (1, b, h, w)
-
-            if activations is None or weights is None:
-                raise RuntimeError("Failed to obtain activations or weights from the model.")
-
-            cam = (activations * weights).sum(dim=1, keepdim=True)
-            # cam (1, 1, h, w)
-            cam = cam.squeeze().cpu().detach().numpy()
-            # cam (h, w)
-
-            cam = await self.utilities_service.relu_normalize(
-                cam, model_info.input_shape, config.epsilon or self.constants.DEFAULT_EPSILON
-            )
-            # cam (H, W)
-
-            await self.utilities_service.save_image(save_path, cam)
-
-            await self.websocket_service.send_notification_supress_exceptions(
-                request=request,
-                label=label,
-                filename=filename,
-                heatmap_type=self.constants.HIRES_CAM,
-            )
-
-        return HeatmapResponse(
-            success=True,
-        )
+        return await self.__generic_cam(request, self.constants.HIRES_CAM)
 
     async def wgrad_cam(self, request: HeatmapRequest) -> HeatmapResponse:
-        root_path = os.path.join(
-            self.container.models_datasets_path,
-            await self.utilities_service.models_datasets_path(request.model, request.dataset),
-            self.constants.WGRAD_CAM,
-        )
-        os.makedirs(root_path, exist_ok=True)
+        return await self.__generic_cam(request, self.constants.WGRAD_CAM)
+
+    async def ablation_cam(self, request: HeatmapRequest) -> HeatmapResponse:
+        return await self.__generic_cam(request, self.constants.ABLATION_CAM)
+
+    async def xgrad_cam(self, request: HeatmapRequest) -> HeatmapResponse:
+        return await self.__generic_cam(request, self.constants.XGRAD_CAM)
+
+    async def __generic_cam(self, request: HeatmapRequest, xai_method: str) -> HeatmapResponse:
+        root_path: str = await self.utilities_service.make_root_path(request, xai_method)
 
         model_info: ModelInfo = await self.models_service.load_model(request.model)
+        model: nn.Module = model_info.model
+        model.eval()
 
-        config: XAIMethodConfig = await self.config_service.get_method_config(self.constants.WGRAD_CAM)
+        config: XAIMethodConfig = await self.config_service.get_method_config(xai_method)
 
-        self.logger_service.log_config(config, self.constants.WGRAD_CAM)
+        self.logger_service.log_config(config, xai_method)
 
         for image in request.images:
-            label = image.label
-            filename = image.filename
-            target = image.target
+            label, filename, target = image.label, image.filename, image.target
+
             if target is None:
                 target = await self.utilities_service.fill_target(model_info, label)
 
-            label_path = os.path.join(
-                root_path,
-                label,
-            )
-            os.makedirs(label_path, exist_ok=True)
+            label_path = await self.utilities_service.make_label_path(root_path, label)
+
             save_path = os.path.join(label_path, await self.utilities_service.add_png_extension(filename))
 
             if self.constants.CACHE_ENABLED and await self.utilities_service.skip_forward(save_path):
@@ -519,255 +106,180 @@ class CAMService:
             h1 = model_info.last_conv_layer.register_forward_hook(forward_hook)
             h2 = model_info.last_conv_layer.register_full_backward_hook(backward_hook)
 
+            model_info.model.eval()
             image_tensor.requires_grad_(True)
             output = model_info.model(image_tensor)
-
             output[0, target].backward()
             h1.remove()
             h2.remove()
-
             # activations (1, b, h, w)
             # gradients (1, b, h, w)
-
-            if gradients is None:
-                raise RuntimeError("Failed to obtain gradients from the model.")
-
-            K = activations.shape[1]
-
-            weights = torch.zeros(K, device=activations.device)
-            # weights (b,)
-
-            for k in range(K):
-                A_k = activations[0, k, :, :]
-                G_k = gradients[0, k, :, :]
-                weights[k] = torch.mean(A_k * G_k)
-
-            weights = weights / (torch.sum(weights) + (config.epsilon or self.constants.DEFAULT_EPSILON))
-
-            weights = weights.unsqueeze(-1).unsqueeze(-1)
-            # weights (b, 1, 1)
-            cam = torch.sum(weights * activations[0], dim=0)
-            # cam (h, w)
-
-            cam = torch.relu(cam)
-
-            cam = cam.cpu().detach().numpy()
-
-            cam = await self.utilities_service.relu_normalize(
-                cam, model_info.input_shape, config.epsilon or self.constants.DEFAULT_EPSILON
-            )
-            # cam (H, W)
-
-            await self.utilities_service.save_image(save_path, cam)
-
-            await self.websocket_service.send_notification_supress_exceptions(
-                request=request,
-                label=label,
-                filename=filename,
-                heatmap_type=self.constants.WGRAD_CAM,
-            )
-
-        return HeatmapResponse(
-            success=True,
-        )
-
-    async def ablation_cam(self, request: HeatmapRequest) -> HeatmapResponse:
-        root_path = os.path.join(
-            self.container.models_datasets_path,
-            await self.utilities_service.models_datasets_path(request.model, request.dataset),
-            self.constants.ABLATION_CAM,
-        )
-        os.makedirs(root_path, exist_ok=True)
-
-        model_info: ModelInfo = await self.models_service.load_model(request.model)
-
-        config: XAIMethodConfig = await self.config_service.get_method_config(self.constants.ABLATION_CAM)
-
-        self.logger_service.log_config(config, self.constants.ABLATION_CAM)
-
-        for image in request.images:
-            label = image.label
-            filename = image.filename
-            target = image.target
-            if target is None:
-                target = await self.utilities_service.fill_target(model_info, label)
-            label_path = os.path.join(
-                root_path,
-                label,
-            )
-            os.makedirs(label_path, exist_ok=True)
-            save_path = os.path.join(label_path, await self.utilities_service.add_png_extension(filename))
-
-            if self.constants.CACHE_ENABLED and await self.utilities_service.skip_forward(save_path):
-                continue
-
-            image_path = os.path.join(self.container.datasets_path, request.dataset, label, filename)
-
-            image_np = await self.datasets_service.load_image(image_path, model_info.input_shape)
-            image_tensor = await self.utilities_service.convert_image_to_tensor(image_np, grad=True)
-
-            model_info.model.eval()
-
-            activations: torch.Tensor | None = None
-
-            def forward_hook(module, inp, output):
-                nonlocal activations
-                activations = output
-
-            h1 = model_info.last_conv_layer.register_forward_hook(forward_hook)
-
-            pred = model_info.model(image_tensor)
-            y_c = pred[0, target].item()
-
-            h1.remove()
-
-            if activations is None:
-                raise RuntimeError("Failed to obtain activations from the model.")
-
-            activations = activations.cpu().detach().numpy()
-            # activations (1, b, h, w)
-
-            if activations is None:
-                raise RuntimeError("Failed to obtain activations from the model.")
-
-            weights = np.zeros(activations.shape[1], dtype=np.float32)
-            # weights (b,)
-
-            for i in range(activations.shape[1]):
-
-                def hook_zeros_k_map(module, inp, out):
-                    modified_output = out.clone()
-                    modified_output[:, i] = 0
-                    return modified_output
-
-                hook = model_info.last_conv_layer.register_forward_hook(hook_zeros_k_map)
-
-                pred_mod = model_info.model(image_tensor)
-                y_k = pred_mod[0, target].item()
-
-                weights[i] = abs((y_c - y_k) / y_c) if y_c != 0 else 0
-
-                hook.remove()
-
-            activations = activations[0]
-            # activations (b, h, w)
-            ablationcam = np.zeros(activations.shape[1:], dtype=np.float32)
-            # ablationcam (h, w)
-
-            # normalize weights
-            weights = weights / (np.sum(weights) + (config.epsilon or self.constants.DEFAULT_EPSILON))
-
-            for i, w in enumerate(weights):
-                ablationcam += float(w) * activations[i, :, :]
-
-            ablationcam = np.maximum(ablationcam, 0)
-            ablationcam = cv2.normalize(ablationcam, None, 0, 255, cv2.NORM_MINMAX)
-
-            ablationcam = cv2.resize(ablationcam, (model_info.input_shape[2], model_info.input_shape[1]))
-            # ablationcam (H, W)
-
-            await self.utilities_service.save_image(save_path, ablationcam)
-
-            await self.websocket_service.send_notification_supress_exceptions(
-                request=request,
-                label=label,
-                filename=filename,
-                heatmap_type=self.constants.ABLATION_CAM,
-            )
-
-        return HeatmapResponse(
-            success=True,
-        )
-
-    async def xgrad_cam(self, request: HeatmapRequest) -> HeatmapResponse:
-        root_path = os.path.join(
-            self.container.models_datasets_path,
-            await self.utilities_service.models_datasets_path(request.model, request.dataset),
-            self.constants.XGRAD_CAM,
-        )
-        os.makedirs(root_path, exist_ok=True)
-
-        model_info: ModelInfo = await self.models_service.load_model(request.model)
-
-        config: XAIMethodConfig = await self.config_service.get_method_config(self.constants.XGRAD_CAM)
-        self.logger_service.log_config(config, self.constants.XGRAD_CAM)
-
-        for image in request.images:
-            label = image.label
-            filename = image.filename
-            target = image.target
-            if target is None:
-                target = await self.utilities_service.fill_target(model_info, label)
-
-            label_path = os.path.join(
-                root_path,
-                label,
-            )
-            os.makedirs(label_path, exist_ok=True)
-            save_path = os.path.join(label_path, await self.utilities_service.add_png_extension(filename))
-
-            if self.constants.CACHE_ENABLED and await self.utilities_service.skip_forward(save_path):
-                continue
-
-            image_path = os.path.join(self.container.datasets_path, request.dataset, label, filename)
-
-            image_np = await self.datasets_service.load_image(image_path, model_info.input_shape)
-            image_tensor = await self.utilities_service.convert_image_to_tensor(image_np, grad=True)
-
-            model_info.model.eval()
-
-            activations = None
-            gradients = None
-
-            def forward_hook(module, i, o):
-                nonlocal activations
-                activations = o.clone().detach()
-
-            def backward_hook(module, i, o):
-                nonlocal gradients
-                gradients = o[0].clone().detach()
-
-            h1 = model_info.last_conv_layer.register_forward_hook(forward_hook)
-            h2 = model_info.last_conv_layer.register_full_backward_hook(backward_hook)
-
-            image_tensor.requires_grad_(True)
-            output = model_info.model(image_tensor)
-
-            output[0, target].backward()
-            h1.remove()
-            h2.remove()
-
-            # activations (1, b, h, w)
-            # gradients (1, b, h, w)
-
             if activations is None or gradients is None:
                 raise RuntimeError("Failed to obtain activations or gradients from the model.")
+            assert activations.shape == gradients.shape, "Activations and gradients must have the same shape."
+            assert activations.shape[0] == 1, "Batch size must be 1."
+            assert activations.ndim == 4, "Activations must be 4-dimensional."
 
-            activations_x_gradient = activations * gradients
-            # activations_x_gradient (1, b, h, w)
+            if xai_method == self.constants.GRAD_CAM:
+                weights = gradients.mean(dim=(2, 3), keepdim=True)
+                weights = torch.nn.functional.relu(weights)
+                weights = weights / (torch.sum(weights) + (config.epsilon or self.constants.DEFAULT_EPSILON))
+                cam = (weights * activations).sum(dim=1, keepdim=True)
+            elif xai_method == self.constants.GRAD_CAM_PLUS_PLUS:
+                grads = gradients
+                grads_2 = grads.pow(2)
+                grads_3 = grads.pow(3)
+                spatial_sums = (activations * grads_3).sum(dim=(2, 3), keepdim=True)
+                alphas = grads_2 / (2 * grads_2 + spatial_sums + (config.epsilon or self.constants.DEFAULT_EPSILON))
+                relu_grads = torch.relu(grads)
+                weights = (alphas * relu_grads).sum(dim=(2, 3), keepdim=True)
+                cam = (weights * activations).sum(dim=1, keepdim=True)
+            elif xai_method == self.constants.HIRES_CAM:
+                weights = gradients
+                cam = (activations * weights).sum(dim=1, keepdim=True)
+            elif xai_method == self.constants.WGRAD_CAM:
+                K = activations.shape[1]
+                weights = torch.zeros(K, device=activations.device)
+                for k in range(K):
+                    A_k = activations[0, k, :, :]
+                    G_k = gradients[0, k, :, :]
+                    weights[k] = torch.mean(A_k * G_k)
+                weights = weights / (torch.sum(weights) + (config.epsilon or self.constants.DEFAULT_EPSILON))
+                weights = weights.unsqueeze(-1).unsqueeze(-1)
+                cam = torch.sum(weights * activations[0], dim=0, keepdim=True)
+            elif xai_method == self.constants.XGRAD_CAM:
+                activations_x_gradient = activations * gradients
+                weights = activations_x_gradient.mean(dim=(2, 3), keepdim=True)
+                cam = (weights * activations).sum(dim=1, keepdim=True)
+                cam = torch.relu(cam)
+            elif xai_method == self.constants.ABLATION_CAM:
+                y_c = output[0, target].item()
+                weights = torch.zeros(activations.shape[1], dtype=torch.float32, device=activations.device)
+                for i in range(activations.shape[1]):
 
-            weights = activations_x_gradient.mean(dim=(2, 3), keepdim=True)
-            # weights (1, b, 1, 1)
+                    def hook_zeros_k_map(module, inp, out):
+                        modified_output = out.clone()
+                        modified_output[:, i] = 0
+                        return modified_output
 
-            cam = (weights * activations).sum(dim=1, keepdim=True)
-            # cam (1, 1, h, w)
+                    hook = model_info.last_conv_layer.register_forward_hook(hook_zeros_k_map)
 
-            cam = torch.relu(cam)
+                    pred_mod = model_info.model(image_tensor)
+                    y_k = pred_mod[0, target].item()
 
+                    weights[i] = abs((y_c - y_k) / y_c) if y_c != 0 else 0
+
+                    hook.remove()
+
+                weights = weights / (torch.sum(weights) + (config.epsilon or self.constants.DEFAULT_EPSILON))
+                weights = weights.view(1, -1, 1, 1)
+                cam = torch.sum(weights * activations, dim=1, keepdim=True)
+                cam = torch.relu(cam)
+            elif xai_method == self.constants.GROUP_CAM:
+                image_np_for_blur = image_tensor.squeeze().cpu().detach().numpy()
+                if image_np_for_blur.ndim == 3:
+                    image_np_for_blur = np.transpose(image_np_for_blur, (1, 2, 0))
+                blurred_np = cv2.GaussianBlur(
+                    image_np_for_blur,
+                    (config.k_size or self.constants.DEFAULT_KSIZE, config.k_size or self.constants.DEFAULT_KSIZE),
+                    config.sigma or self.constants.DEFAULT_SIGMA,
+                )
+                if blurred_np.ndim == 3:
+                    blurred_np = np.transpose(blurred_np, (2, 0, 1))
+                blurred_image = torch.from_numpy(blurred_np).unsqueeze(0).float()
+                if image_tensor.device.type == "cuda":
+                    blurred_image = blurred_image.cuda()
+                activations: torch.Tensor | None = None
+                gradients: torch.Tensor | None = None
+
+                def forward_hook(module, i, o):
+                    nonlocal activations
+                    activations = o.clone().detach()
+
+                def backward_hook(module, i, o):
+                    nonlocal gradients
+                    gradients = o[0].clone().detach()
+
+                h1 = model_info.last_conv_layer.register_forward_hook(forward_hook)
+                h2 = model_info.last_conv_layer.register_full_backward_hook(backward_hook)
+
+                image_tensor.requires_grad_(True)
+                output = model_info.model(image_tensor)
+                output[0, target].backward()
+                h1.remove()
+                h2.remove()
+
+                if activations is None or gradients is None:
+                    raise RuntimeError("Failed to obtain activations or gradients from the model.")
+
+                weights = gradients.mean(dim=(2, 3), keepdim=True)
+                K = activations.shape[1]
+                g = K // (config.group_size or self.constants.DEFAULT_GROUP_SIZE)
+                group_cam_result = torch.zeros_like(image_tensor)
+
+                with torch.no_grad():
+                    baseline_output = model_info.model(blurred_image)
+                    baseline_confidence = torch.softmax(baseline_output, dim=1)[0, target].item()
+
+                for l in range(config.group_size or self.constants.DEFAULT_GROUP_SIZE):
+                    start_idx = l * g
+                    end_idx = min((l + 1) * g, K)
+
+                    if activations is None or weights is None:
+                        raise RuntimeError("Failed to obtain activations or weights from the model.")
+
+                    group_activations = activations[:, start_idx:end_idx, :, :]
+                    group_weights = weights[:, start_idx:end_idx, :, :]
+
+                    M_l = torch.relu((group_weights * group_activations).sum(dim=1, keepdim=True))
+
+                    M_l_processed = await self.utilities_service.relu_normalize(
+                        M_l.squeeze().cpu().detach().numpy(),
+                        model_info.input_shape,
+                        config.epsilon or self.constants.DEFAULT_EPSILON,
+                    )
+
+                    M_l_prime = torch.from_numpy(M_l_processed).unsqueeze(0).unsqueeze(0).float()
+                    M_l_prime = torch.nn.functional.interpolate(
+                        M_l_prime,
+                        size=(model_info.input_shape[1], model_info.input_shape[2]),
+                        mode="bilinear",
+                        align_corners=False,
+                    )
+
+                    M_l_prime = (M_l_prime - M_l_prime.min()) / (
+                        M_l_prime.max() - M_l_prime.min() + (config.epsilon or self.constants.DEFAULT_EPSILON)
+                    )
+
+                    I_l_prime = image_tensor * M_l_prime + blurred_image * (1 - M_l_prime)
+
+                    with torch.no_grad():
+                        perturbed_output = model_info.model(I_l_prime)
+                        perturbed_confidence = torch.softmax(perturbed_output, dim=1)[0, target].item()
+
+                    alpha_l = perturbed_confidence - baseline_confidence
+
+                    group_cam_result += alpha_l * M_l_prime
+                cam = torch.relu(group_cam_result)
+
+            else:
+                raise NotImplementedError(f"XAI method {xai_method} is not implemented in generic CAM.")
             cam = cam.squeeze().cpu().detach().numpy()
 
+            if cam.ndim == 3:
+                cam = np.mean(cam, axis=0)
             cam = await self.utilities_service.relu_normalize(
                 cam, model_info.input_shape, config.epsilon or self.constants.DEFAULT_EPSILON
             )
-            # cam (H, W)
 
             await self.utilities_service.save_image(save_path, cam)
+
 
             await self.websocket_service.send_notification_supress_exceptions(
                 request=request,
                 label=label,
                 filename=filename,
-                heatmap_type=self.constants.XGRAD_CAM,
+                heatmap_type=xai_method,
             )
 
         return HeatmapResponse(

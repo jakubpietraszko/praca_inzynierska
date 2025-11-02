@@ -40,27 +40,27 @@ class ServiceContainer:
         self.models_path = os.path.join(self.base_dir, self.constants.MODELS)
         self.models_datasets_path = os.path.join(self.base_dir, self.constants.MODELS_DATASETS)
 
-        self._datasets_service = None
-        self._heatmaps_service = None
-        self._models_service = None
-        self._masks_service = None
-        self._utilities_service = None
-        self._models_datasets_service = None
-        self._gradient_service = None
-        self._activations_service = None
-        self._integrated_gradients_service = None
-        self._cam_service = None
-        self._probing_image_service = None
-        self._gradient_noise_service = None
-        self._heatmaps_facede_service = None
-        self._lrp_service = None
-        self._config_service = None
-        self._websocket_service = None
-        self._statistics_service = None
-        self._constants_service = None
-        self._logger_service = None
-        self._unsupervised_service = None
-        self._noise_config_service = None
+        self._datasets_service: DatasetsService | None = None
+        self._heatmaps_service: HeatmapsService | None = None
+        self._models_service: ModelsService | None = None
+        self._masks_service: MasksService | None = None
+        self._utilities_service: UtilitiesService | None = None
+        self._models_datasets_service: ModelsDatasetsService | None = None
+        self._gradient_service: GradientService | None = None
+        self._activations_service: ActivationsService | None = None
+        self._integrated_gradients_service: IntegratedGradientsService | None = None
+        self._cam_service: CAMService | None = None
+        self._probing_image_service: ProbingImageService | None = None
+        self._gradient_noise_service: GradientNoiseService | None = None
+        self._heatmaps_facede_service: HeatmapsFacedeService | None = None
+        self._lrp_service: LRPService | None = None
+        self._config_service: ConfigService | None = None
+        self._websocket_service: WebSocketService | None = None
+        self._statistics_service: StatisticsService | None = None
+        self._constants_service: ConstantsService | None = None
+        self._logger_service: LoggerService | None = None
+        self._unsupervised_service: UnsupervisedService | None = None
+        self._noise_config_service: NoiseConfigService | None = None
 
     @property
     def datasets_service(self) -> DatasetsService:
