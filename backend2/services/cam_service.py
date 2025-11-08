@@ -40,28 +40,28 @@ class CAMService:
         self.models_service: ModelsService = get_models_service()
         self.logger_service: LoggerService = get_logger_service()
 
-    async def grad_cam(self, request: HeatmapRequest) -> HeatmapResponse:
-        return await self.__generic_cam(request, self.constants.GRAD_CAM)
+    async def grad_cam(self, request: HeatmapRequest, ref: None | str = None) -> HeatmapResponse:
+        return await self.__generic_cam(request, self.constants.GRAD_CAM, ref)
 
-    async def grad_cam_plus_plus(self, request: HeatmapRequest) -> HeatmapResponse:
-        return await self.__generic_cam(request, self.constants.GRAD_CAM_PLUS_PLUS)
+    async def grad_cam_plus_plus(self, request: HeatmapRequest, ref: None | str = None) -> HeatmapResponse:
+        return await self.__generic_cam(request, self.constants.GRAD_CAM_PLUS_PLUS, ref)
 
-    async def group_cam(self, request: HeatmapRequest) -> HeatmapResponse:
-        return await self.__generic_cam(request, self.constants.GROUP_CAM)
+    async def group_cam(self, request: HeatmapRequest, ref: None | str = None) -> HeatmapResponse:
+        return await self.__generic_cam(request, self.constants.GROUP_CAM, ref)
 
-    async def hires_cam(self, request: HeatmapRequest) -> HeatmapResponse:
-        return await self.__generic_cam(request, self.constants.HIRES_CAM)
+    async def hires_cam(self, request: HeatmapRequest, ref: None | str = None) -> HeatmapResponse:
+        return await self.__generic_cam(request, self.constants.HIRES_CAM, ref)
 
-    async def wgrad_cam(self, request: HeatmapRequest) -> HeatmapResponse:
-        return await self.__generic_cam(request, self.constants.WGRAD_CAM)
+    async def wgrad_cam(self, request: HeatmapRequest, ref: None | str = None) -> HeatmapResponse:
+        return await self.__generic_cam(request, self.constants.WGRAD_CAM, ref)
 
-    async def ablation_cam(self, request: HeatmapRequest) -> HeatmapResponse:
-        return await self.__generic_cam(request, self.constants.ABLATION_CAM)
+    async def ablation_cam(self, request: HeatmapRequest, ref: None | str = None) -> HeatmapResponse:
+        return await self.__generic_cam(request, self.constants.ABLATION_CAM, ref)
 
-    async def xgrad_cam(self, request: HeatmapRequest) -> HeatmapResponse:
-        return await self.__generic_cam(request, self.constants.XGRAD_CAM)
+    async def xgrad_cam(self, request: HeatmapRequest, ref: None | str = None) -> HeatmapResponse:
+        return await self.__generic_cam(request, self.constants.XGRAD_CAM, ref)
 
-    async def __generic_cam(self, request: HeatmapRequest, xai_method: str) -> HeatmapResponse:
+    async def __generic_cam(self, request: HeatmapRequest, xai_method: str, ref: None | str = None) -> HeatmapResponse:
         root_path: str = await self.utilities_service.make_root_path(request, xai_method)
 
         model_info: ModelInfo = await self.models_service.load_model(request.model)

@@ -1,0 +1,41 @@
+<mat-card class="confusion-matrix-card">
+  <mat-card-header>
+    <mat-card-title>Macierz pomyłek</mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    <div class="confusion-matrix-wrapper">
+      <div class="matrix-container">
+        <div class="matrix-header">
+          <div class="corner-cell">
+            <div class="axis-label-predicted">Przewidywane</div>
+            <div class="axis-label-actual">Prawda</div>
+          </div>
+          @for (className of classNames(); track className) {
+            <div class="predicted-label">{{ className }}</div>
+          }
+        </div>
+
+        @for (
+          actualClass of classNames();
+          track actualClass;
+          let i = $index
+        ) {
+          <div class="matrix-row">
+            <div class="actual-label">{{ actualClass }}</div>
+            @for (predictedClass of classNames(); track predictedClass) {
+              <div
+                class="matrix-cell"
+                [class.diagonal]="actualClass === predictedClass"
+                [style.background-color]="
+                  getCellColor(actualClass, predictedClass)
+                "
+              >
+                {{ getConfusionValue(actualClass, predictedClass) }}
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  </mat-card-content>
+</mat-card>

@@ -27,10 +27,10 @@ npx prettier --write .
 - [ ] test api
 - [x] automatyczna generacji interfejsow na frontendzie
 - [ ] dodanie zod do frontendu
-- [ ] template method w serwisach
+- [x] template method w serwisach
 - [ ] przykłądy poprawnych i złych klasyfikacji
 - [ ] roc curves
 - [ ] dodanie szumu do obrazów
 - [x] oglądanie wszystkich konwolucji
 - [x] sprawdzenie zbalansowania zbioru
-- [ ] top k accuracy
+- [ ] top 2 accuracy

@@ -1,0 +1,19 @@
+<div class="metrics-grid">
+  <mat-card class="metric-card">
+    <mat-card-header>
+      <mat-card-title>Dokładność</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="metric-value">{{ accuracy() | percent: "1.2-2" }}</div>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card class="metric-card">
+    <mat-card-header>
+      <mat-card-title>Zbalansowana dokładność</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="metric-value">{{ balancedAccuracy() | percent: "1.2-2" }}</div>
+    </mat-card-content>
+  </mat-card>
+</div>

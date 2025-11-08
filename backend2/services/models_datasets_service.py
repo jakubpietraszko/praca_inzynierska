@@ -172,3 +172,11 @@ class ModelsDatasetsService:
             numerator[xai_method] = len(os.listdir(xai_path))
 
         return numerator, denominator
+
+    async def get_model_dataset_predictions_path(self, model: str, dataset: str) -> str:
+        path = os.path.join(
+            self.models_datasets_path,
+            await self.utilities_service.models_datasets_path(model, dataset),
+            "predictions.json",
+        )
+        return path

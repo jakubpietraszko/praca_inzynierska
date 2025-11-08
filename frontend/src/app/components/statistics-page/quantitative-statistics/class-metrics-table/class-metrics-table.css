@@ -1,0 +1,11 @@
+.table-card {
+  margin-bottom: 1rem;
+}
+
+.metrics-table {
+  width: 100%;
+}
+
+th.mat-header-cell {
+  font-weight: bold;
+}

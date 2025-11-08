@@ -1,33 +1,29 @@
 import { HttpClient } from '@angular/common/http';
-import { inject, Injectable } from '@angular/core';
+import { DestroyRef, inject, Injectable, signal } from '@angular/core';
 import { environment } from '../../../environments/environment';
+import {
+  ModelDatasetStatisticsRequest,
+  ModelDatasetStatisticsResponse,
+} from '../../generated-interfaces/model_dataset_statistics';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
-export interface QuantitativeStatisticsRequest {
-  dataset: string;
-  model: string;
-}
-
-export interface QuantitativeStatisticsResponse {
-  success: boolean;
-  confusion_dict: Record<string, Record<string, number>>;
-}
-
-export interface HeatmapsStatisticsRequest {
-  dataset: string;
-  model: string;
-  heatmap: string;
-}
-
-@Injectable({
-  providedIn: 'root',
-})
+@Injectable()
 export class GeneratorStatistics {
   private http = inject(HttpClient);
+  private destroyRef = inject(DestroyRef);
 
-  quantitativeStatistics(request: QuantitativeStatisticsRequest) {
-    return this.http.post<QuantitativeStatisticsResponse>(
-      `${environment.apiUrl}/statistics/all-quantitative-statistics`,
-      request,
-    );
+  public response = signal<ModelDatasetStatisticsResponse | null>(null);
+
+  public fetchStatistics(request: ModelDatasetStatisticsRequest): void {
+    this.response.set(null);
+    this.http
+      .post<ModelDatasetStatisticsResponse>(
+        `${environment.apiUrl}/statistics/model-dataset-statistics`,
+        request,
+      )
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((data) => {
+        this.response.set(data);
+      });
   }
 }
