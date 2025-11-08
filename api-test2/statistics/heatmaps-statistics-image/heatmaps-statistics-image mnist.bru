@@ -5,7 +5,7 @@ meta {
 }
 
 post {
-  url: http://localhost:8000/statistics/heatmaps-statistics-image
+  url: http://localhost:8000/heatmap/heatmaps-statistics-image-insertion-deletion
   body: json
   auth: inherit
 }
@@ -15,8 +15,11 @@ body:json {
     "model": "fashion",
     "dataset": "fashion-dataset",
     "heatmap": "gradient",
-    "label": "shirt",
-    "image": "977.png"
+    "threshold": 90,
+    "images":[ {
+      "label": "bag",
+      "filename": "18.png"
+    }]
   }
 }
 

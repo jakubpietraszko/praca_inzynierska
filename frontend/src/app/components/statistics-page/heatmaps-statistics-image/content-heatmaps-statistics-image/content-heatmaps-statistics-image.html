@@ -26,7 +26,7 @@
 </div>
 <hr class="divider" />
 <div class="statistics">
-  @if (insertionScores() && deletionsScores()) {
+  @if (insertionDeletionService.response()) {
   <app-image-statistics-plot [xData]="insertionXData()" [yData]="insertionYData()" title="Insertion Score {{
           insertionAUC() | number: '1.2-2'
         }}, wynik idealny 1.00" xAxisLabel="Procent (%) najważniejszych pikseli"

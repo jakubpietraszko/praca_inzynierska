@@ -21,8 +21,8 @@ from interfaces.heatmap import (
     HeatmapStatisticsLabelRequest,
     HeatmapStatisticsLabelResponse,
     LabelFilenameTarget,
-    ListOfScores,
 )
+from interfaces.insertion_deletion import InsertionDeletionRequest, InsertionDeletionResponse, ListOfScores
 from interfaces.shapes import (
     ShapeMetricsDatasetRequest,
     ShapeMetricsDatasetResponse,
@@ -190,6 +190,115 @@ class HeatmapsFacedeService:
             softmax_scores.append(ListOfScores(scores=list_of_scores))
 
         return HeatmapStatisticResponse(success=False, softmax_scores=softmax_scores)
+
+    async def generate_heatmap_statistics_insertion_deletion(
+        self,
+        request: InsertionDeletionRequest,
+    ) -> InsertionDeletionResponse:
+        base_request: HeatmapRequest = HeatmapRequest(
+            model=request.model,
+            dataset=request.dataset,
+            images=request.images,
+            overwrite=False,
+        )
+
+        await self.generate_heatmap(request=base_request, type=request.heatmap)
+
+        model_info: ModelInfo = await self.model_service.load_model(request.model)
+        model_info.model.eval()
+
+        insertion_scores_all = []
+        deletion_scores_all = []
+
+        for image in request.images:
+            insertion_scores = []
+            deletion_scores = []
+            label = image.label
+            filename = image.filename
+            target = image.target
+            if target is None:
+                target = await self.utilities_service.fill_target(model_info, label)
+
+            image_from_dataset_path = os.path.join(
+                self.datasets_service.datasets_path, request.dataset, label, filename
+            )
+            image_from_heatmap_path = os.path.join(
+                self.container.models_datasets_path,
+                await self.utilities_service.models_datasets_path(request.model, request.dataset),
+                request.heatmap,
+                label,
+                filename,
+            )
+
+            image_from_dataset = await self.datasets_service.load_image(image_from_dataset_path, model_info.input_shape)
+            image_from_heatmap = np.array(Image.open(image_from_heatmap_path))
+
+            for threshold in self.constants.STATISTICS_PERCENTAGES_STEP:
+                normalized_threshold = threshold / 100 * 255
+                normalized_threshold = int(normalized_threshold)
+
+                image_from_heatmap_deletion = np.where(image_from_heatmap < normalized_threshold, 0, 1)
+                image_from_heatmap_insertion = np.where(image_from_heatmap > normalized_threshold, 0, 1)
+
+                image_from_dataset_copy_deletion = np.copy(image_from_dataset)
+                img_to_model_deletion = image_from_dataset_copy_deletion * image_from_heatmap_deletion
+                img_to_model_deletion = img_to_model_deletion.astype(np.uint8)
+                img_tensor_deletion = await self.utilities_service.convert_image_to_tensor(
+                    img_to_model_deletion, grad=False
+                )
+
+                image_from_dataset_copy_insertion = np.copy(image_from_dataset)
+                img_to_model_insertion = image_from_dataset_copy_insertion * image_from_heatmap_insertion
+                img_to_model_insertion = img_to_model_insertion.astype(np.uint8)
+                img_tensor_insertion = await self.utilities_service.convert_image_to_tensor(
+                    img_to_model_insertion, grad=False
+                )
+
+                with torch.no_grad():
+                    output_deletion = model_info.model(img_tensor_deletion)
+                    output_softmax_deletion = torch.softmax(output_deletion, dim=1)
+                    deletion_scores.append(output_softmax_deletion[0, target].item())
+
+                    output_insertion = model_info.model(img_tensor_insertion)
+                    output_softmax_insertion = torch.softmax(output_insertion, dim=1)
+                    insertion_scores.append(output_softmax_insertion[0, target].item())
+
+            insertion_scores_all.append(ListOfScores(scores=insertion_scores))
+            deletion_scores_all.append(ListOfScores(scores=deletion_scores))
+
+        insertion_auc = self._calculate_auc(insertion_scores_all)
+        deletion_auc = self._calculate_auc(deletion_scores_all)
+
+        return InsertionDeletionResponse(
+            insertion_scores=insertion_scores_all,
+            deletion_scores=deletion_scores_all,
+            insertion_auc=insertion_auc,
+            deletion_auc=deletion_auc,
+        )
+
+    def _calculate_auc(self, scores_list: list[ListOfScores]) -> float:
+        if not scores_list or not scores_list[0].scores:
+            return 0.0
+
+        num_points = len(scores_list[0].scores)
+        if num_points == 0:
+            return 0.0
+
+        if num_points == 1:
+            x_data = [0]
+        else:
+            step = 100 / (num_points - 1)
+            x_data = [i * step for i in range(num_points)]
+
+        total_auc = 0.0
+        for scores_obj in scores_list:
+            y_data = scores_obj.scores
+            auc = 0.0
+            for i in range(1, len(y_data)):
+                auc += 0.5 * (y_data[i] + y_data[i - 1]) * (x_data[i] - x_data[i - 1])
+            total_auc += auc / 100
+
+        return total_auc / len(scores_list)
 
     async def generate_heatmap_statistics_dataset(
         self, request: HeatmapStatisticsDatasetRequest

@@ -9,11 +9,11 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Injectable()
 export class ProbaImage {
-  private http = inject(HttpClient);
+  private readonly http = inject(HttpClient);
 
-  private destroyRef = inject(DestroyRef);
+  private readonly destroyRef = inject(DestroyRef);
 
-  public response = signal<ProbaForImageResponse | null>(null);
+  public readonly response = signal<ProbaForImageResponse | null>(null);
 
   public fetchProbaForImage(request: ProbaForImageRequest): void {
     this.response.set(null);

@@ -19,6 +19,7 @@ from interfaces.heatmap import (
     HeatmapStatisticsLabelResponse,
     LabelFilenameTarget,
 )
+from interfaces.insertion_deletion import InsertionDeletionRequest, InsertionDeletionResponse
 from interfaces.shapes import (
     ShapeMetricsDatasetRequest,
     ShapeMetricsDatasetResponse,
@@ -105,6 +106,13 @@ async def heatmap_statistics(
     heatmaps_facede_service: HeatmapsFacedeService = Depends(get_heatmaps_facede_service),  # noqa: B008
 ) -> HeatmapStatisticResponse:
     return await heatmaps_facede_service.generate_heatmap_statistics(request=request)
+
+@router.post('/heatmaps-statistics-image-insertion-deletion', response_model=InsertionDeletionResponse)
+async def heatmap_statistics_insertion_deletion(
+    request: InsertionDeletionRequest,
+    heatmaps_facede_service: HeatmapsFacedeService = Depends(get_heatmaps_facede_service),  # noqa: B008
+) -> InsertionDeletionResponse:
+    return await heatmaps_facede_service.generate_heatmap_statistics_insertion_deletion(request=request)
 
 
 @router.post("/heatmaps-statistics-dataset", response_model=HeatmapStatisticsDatasetResponse)

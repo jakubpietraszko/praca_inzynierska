@@ -145,11 +145,11 @@ class StatisticsService:
                 probs = torch.softmax(outputs, dim=1)
                 preds = torch.argmax(outputs, 1)
                 for i in range(len(targets)):
-                    dataset_idx = targets[i].item()
-                    model_pred_idx = preds[i].item()
+                    true_idx = targets[i].item()
+                    pred_idx = preds[i].item()
 
-                    true_label = idx_to_class[dataset_idx]
-                    pred_label = idx_to_label[model_pred_idx]
+                    true_label = idx_to_class[true_idx]
+                    pred_label = idx_to_label[pred_idx]
 
                     true_common_idx = label_to_common_idx[true_label]
                     pred_common_idx = label_to_common_idx[pred_label]

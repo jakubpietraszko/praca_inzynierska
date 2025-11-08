@@ -5,14 +5,9 @@ import {
   effect,
   inject,
   input,
-  OnDestroy,
   signal,
 } from '@angular/core';
-import {
-  GradientStatisticsResponse,
-  HeatmapsStatisticsImage,
-} from '../heatmaps-statistics-image';
-import { Subscription } from 'rxjs';
+import { HeatmapsStatisticsImage } from '../heatmaps-statistics-image';
 import { ImageStatisticsPlot } from '../../../shared/image-statistics-plot/image-statistics-plot';
 import { DecimalPipe } from '@angular/common';
 import { LoadModelsDatasetsImage } from '../../../../directives/load-models-datasets-image';
@@ -21,6 +16,7 @@ import { LoadFourier } from '../../../../directives/load-fourier';
 import { LoadFourierDataset } from '../../../../directives/load-fourier-dataset';
 import { BarPlot } from '../../../shared/bar-plot/bar-plot';
 import { ProbaImage } from '../proba-image';
+import { InsertionDeletion } from '../insertion-deletion';
 
 @Component({
   selector: 'app-content-heatmaps-statistics-image',
@@ -33,33 +29,25 @@ import { ProbaImage } from '../proba-image';
     LoadFourierDataset,
     BarPlot,
   ],
-  providers: [ProbaImage],
+  providers: [ProbaImage, InsertionDeletion],
   templateUrl: './content-heatmaps-statistics-image.html',
   styleUrl: './content-heatmaps-statistics-image.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ContentHeatmapsStatisticsImage implements OnDestroy {
-  model = input.required<string>();
-  dataset = input.required<string>();
-  heatmap = input.required<string>();
-  label = input.required<string>();
-  image = input.required<string>();
+export class ContentHeatmapsStatisticsImage {
+  readonly model = input.required<string>();
+  readonly dataset = input.required<string>();
+  readonly heatmap = input.required<string>();
+  readonly label = input.required<string>();
+  readonly image = input.required<string>();
 
-  heatmapsStatisticsService = inject(HeatmapsStatisticsImage);
+  private readonly heatmapsStatisticsService = inject(HeatmapsStatisticsImage);
+  protected readonly probaImageService = inject(ProbaImage);
+  protected readonly insertionDeletionService = inject(InsertionDeletion);
 
-  probaImageService = inject(ProbaImage);
+  readonly heatmapGenerated = signal(false);
 
-  insertionScores = signal<GradientStatisticsResponse | null>(null);
-
-  deletionsScores = signal<GradientStatisticsResponse | null>(null);
-
-  insertionSubscription = new Subscription();
-
-  deletionSubscription = new Subscription();
-
-  heatmapGenerated = signal(false);
-
-  allInputsSelected = computed(() => {
+  readonly allInputsSelected = computed(() => {
     return (
       this.model() &&
       this.dataset() &&
@@ -69,16 +57,16 @@ export class ContentHeatmapsStatisticsImage implements OnDestroy {
     );
   });
 
-  insertionXData = computed(() => {
-    const scores = this.insertionScores();
+  readonly insertionXData = computed(() => {
+    const response = this.insertionDeletionService.response();
     if (
-      !scores ||
-      !scores.softmax_scores ||
-      scores.softmax_scores.length === 0
+      !response ||
+      !response.insertion_scores ||
+      response.insertion_scores.length === 0
     ) {
       return [];
     }
-    const scoresArray = scores.softmax_scores[0].scores;
+    const scoresArray = response.insertion_scores[0].scores;
     if (scoresArray.length === 0) {
       return [];
     }
@@ -89,28 +77,28 @@ export class ContentHeatmapsStatisticsImage implements OnDestroy {
     return Array.from({ length: scoresArray.length }, (_, i) => i * step);
   });
 
-  insertionYData = computed(() => {
-    const scores = this.insertionScores();
+  readonly insertionYData = computed(() => {
+    const response = this.insertionDeletionService.response();
     if (
-      !scores ||
-      !scores.softmax_scores ||
-      scores.softmax_scores.length === 0
+      !response ||
+      !response.insertion_scores ||
+      response.insertion_scores.length === 0
     ) {
       return [];
     }
-    return scores.softmax_scores[0].scores;
+    return response.insertion_scores[0].scores;
   });
 
-  deletionXData = computed(() => {
-    const scores = this.deletionsScores();
+  readonly deletionXData = computed(() => {
+    const response = this.insertionDeletionService.response();
     if (
-      !scores ||
-      !scores.softmax_scores ||
-      scores.softmax_scores.length === 0
+      !response ||
+      !response.deletion_scores ||
+      response.deletion_scores.length === 0
     ) {
       return [];
     }
-    const scoresArray = scores.softmax_scores[0].scores;
+    const scoresArray = response.deletion_scores[0].scores;
     if (scoresArray.length === 0) {
       return [];
     }
@@ -121,42 +109,34 @@ export class ContentHeatmapsStatisticsImage implements OnDestroy {
     return Array.from({ length: scoresArray.length }, (_, i) => i * step);
   });
 
-  deletionYData = computed(() => {
-    const scores = this.deletionsScores();
+  readonly deletionYData = computed(() => {
+    const response = this.insertionDeletionService.response();
     if (
-      !scores ||
-      !scores.softmax_scores ||
-      scores.softmax_scores.length === 0
+      !response ||
+      !response.deletion_scores ||
+      response.deletion_scores.length === 0
     ) {
       return [];
     }
-    return scores.softmax_scores[0].scores;
+    return response.deletion_scores[0].scores;
   });
 
-  insertionAUC = computed(() => {
-    const xData = this.insertionXData();
-    const yData = this.insertionYData();
-    if (xData.length === 0 || yData.length === 0) {
-      return 0;
-    }
-    return this.trapezoid(yData, xData);
+  readonly insertionAUC = computed(() => {
+    const response = this.insertionDeletionService.response();
+    return response?.insertion_auc ?? 0;
   });
 
-  deletionAUC = computed(() => {
-    const xData = this.deletionXData();
-    const yData = this.deletionYData();
-    if (xData.length === 0 || yData.length === 0) {
-      return 0;
-    }
-    return this.trapezoid(yData, xData);
+  readonly deletionAUC = computed(() => {
+    const response = this.insertionDeletionService.response();
+    return response?.deletion_auc ?? 0;
   });
 
-  probaClasses = computed(() => {
+  readonly probaClasses = computed(() => {
     const proba = this.probaImageService.response();
     return proba?.classes ?? [];
   });
 
-  probaProbabilities = computed(() => {
+  readonly probaProbabilities = computed(() => {
     const proba = this.probaImageService.response();
     return proba?.probabilities ?? [];
   });
@@ -171,12 +151,6 @@ export class ContentHeatmapsStatisticsImage implements OnDestroy {
 
       this.heatmapGenerated.set(false);
 
-      this.insertionSubscription.unsubscribe();
-      this.deletionSubscription.unsubscribe();
-
-      this.insertionScores.set(null);
-      this.deletionsScores.set(null);
-
       if (!model || !dataset || !heatmap || !label || !image) {
         return;
       }
@@ -188,69 +162,15 @@ export class ContentHeatmapsStatisticsImage implements OnDestroy {
         filename: image,
       });
 
-      this.insertionSubscription = this.heatmapsStatisticsService
-        .getScore({
-          model,
-          dataset,
-          images: [{ label, filename: image, target: null }],
-          overwrite: false,
-          heatmap,
-          threshold: 0,
-          threshold_type: 'up',
-        })
-        .subscribe({
-          next: (response) => {
-            this.insertionScores.set(response);
-            this.heatmapGenerated.set(true);
-          },
-          error: () => {
-            this.insertionScores.set(null);
-            this.heatmapGenerated.set(false);
-          },
-        });
+      this.insertionDeletionService.fetchInsertionDeletion({
+        model,
+        dataset,
+        images: [{ label, filename: image, target: null }],
+        heatmap,
+        threshold: 0,
+      });
 
-      this.deletionSubscription = this.heatmapsStatisticsService
-        .getScore({
-          model,
-          dataset,
-          images: [{ label, filename: image, target: null }],
-          overwrite: false,
-          heatmap,
-          threshold: 0,
-          threshold_type: 'down',
-        })
-        .subscribe({
-          next: (response) => {
-            this.deletionsScores.set(response);
-            this.heatmapGenerated.set(true);
-          },
-          error: () => {
-            this.deletionsScores.set(null);
-            this.heatmapGenerated.set(false);
-          },
-        });
+      this.heatmapGenerated.set(true);
     });
-  }
-
-  ngOnDestroy(): void {
-    this.insertionSubscription.unsubscribe();
-    this.deletionSubscription.unsubscribe();
-  }
-
-  linspace(start: number, end: number, num: number): number[] {
-    const arr = [];
-    const step = (end - start) / (num - 1);
-    for (let i = 0; i < num; i++) {
-      arr.push(start + step * i);
-    }
-    return arr;
-  }
-
-  trapezoid(y: number[], x: number[]): number {
-    let auc = 0;
-    for (let i = 1; i < y.length; i++) {
-      auc += 0.5 * (y[i] + y[i - 1]) * (x[i] - x[i - 1]);
-    }
-    return auc / 100;
   }
 }
