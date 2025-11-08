@@ -7,7 +7,6 @@ import {
   input,
   signal,
 } from '@angular/core';
-import { HeatmapsStatisticsImage } from '../heatmaps-statistics-image';
 import { ImageStatisticsPlot } from '../../../shared/image-statistics-plot/image-statistics-plot';
 import { DecimalPipe } from '@angular/common';
 import { LoadModelsDatasetsImage } from '../../../../directives/load-models-datasets-image';
@@ -41,7 +40,6 @@ export class ContentHeatmapsStatisticsImage {
   readonly label = input.required<string>();
   readonly image = input.required<string>();
 
-  private readonly heatmapsStatisticsService = inject(HeatmapsStatisticsImage);
   protected readonly probaImageService = inject(ProbaImage);
   protected readonly insertionDeletionService = inject(InsertionDeletion);
 

@@ -5,19 +5,17 @@ import {
   effect,
   inject,
   input,
-  OnDestroy,
-  signal,
 } from '@angular/core';
 import {
-  GradientStatisticsRequest,
-  GradientStatisticsResponse,
-  HeatmapsStatisticsLabel,
+  HeatmapStatisticsLabelManyRequest,
+} from '../../../../generated-interfaces/heatmap';
+import {
   ShapeMetricsLabelRequest,
-  ShapeMetricsLabelResponse,
-} from '../heatmaps-statistics-label';
-import { Subscription } from 'rxjs';
+} from '../../../../generated-interfaces/shapes';
 import { ImageStatisticsPlot } from '../../../shared/image-statistics-plot/image-statistics-plot';
 import { HistogramPlot } from '../../../shared/histogram-plot/histogram-plot';
+import { Shapes } from '../shapes';
+import { Scores } from '../scores';
 
 @Component({
   selector: 'app-content-heatmaps-statistics-label',
@@ -25,27 +23,23 @@ import { HistogramPlot } from '../../../shared/histogram-plot/histogram-plot';
   templateUrl: './content-heatmaps-statistics-label.html',
   styleUrl: './content-heatmaps-statistics-label.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [Shapes, Scores],
 })
-export class ContentHeatmapsStatisticsLabel implements OnDestroy {
+export class ContentHeatmapsStatisticsLabel {
   model = input.required<string>();
   dataset = input.required<string>();
   heatmap = input.required<string>();
   label = input.required<string>();
 
-  heatmapsStatisticsLabelService = inject(HeatmapsStatisticsLabel);
-
-  gradientScores = signal<GradientStatisticsResponse | null>(null);
-  shapeScores = signal<ShapeMetricsLabelResponse | null>(null);
-
-  gradientSubscription = new Subscription();
-  shapeSubscription = new Subscription();
+  private readonly shapesService = inject(Shapes);
+  private readonly scoresService = inject(Scores);
 
   allInputsSelected = computed(() => {
     return this.model() && this.dataset() && this.heatmap() && this.label();
   });
 
   averageDropXData = computed(() => {
-    const scores = this.gradientScores();
+    const scores = this.scoresService.response();
     if (
       !scores ||
       !scores.list_of_average_drop ||
@@ -65,7 +59,7 @@ export class ContentHeatmapsStatisticsLabel implements OnDestroy {
   });
 
   averageDropYData = computed(() => {
-    const scores = this.gradientScores();
+    const scores = this.scoresService.response();
     if (
       !scores ||
       !scores.list_of_average_drop ||
@@ -77,7 +71,7 @@ export class ContentHeatmapsStatisticsLabel implements OnDestroy {
   });
 
   rateOfIncreaseXData = computed(() => {
-    const scores = this.gradientScores();
+    const scores = this.scoresService.response();
     if (
       !scores ||
       !scores.list_of_rate_of_increase_in_scores ||
@@ -97,7 +91,7 @@ export class ContentHeatmapsStatisticsLabel implements OnDestroy {
   });
 
   rateOfIncreaseYData = computed(() => {
-    const scores = this.gradientScores();
+    const scores = this.scoresService.response();
     if (
       !scores ||
       !scores.list_of_rate_of_increase_in_scores ||
@@ -109,7 +103,7 @@ export class ContentHeatmapsStatisticsLabel implements OnDestroy {
   });
 
   areasData = computed(() => {
-    const scores = this.shapeScores();
+    const scores = this.shapesService.response();
     if (!scores || !scores.areas || scores.areas.length === 0) {
       return [];
     }
@@ -117,7 +111,7 @@ export class ContentHeatmapsStatisticsLabel implements OnDestroy {
   });
 
   perimetersData = computed(() => {
-    const scores = this.shapeScores();
+    const scores = this.shapesService.response();
     if (!scores || !scores.perimeters || scores.perimeters.length === 0) {
       return [];
     }
@@ -125,7 +119,7 @@ export class ContentHeatmapsStatisticsLabel implements OnDestroy {
   });
 
   circularitiesData = computed(() => {
-    const scores = this.shapeScores();
+    const scores = this.shapesService.response();
     if (!scores || !scores.circularities || scores.circularities.length === 0) {
       return [];
     }
@@ -133,7 +127,7 @@ export class ContentHeatmapsStatisticsLabel implements OnDestroy {
   });
 
   rectangularitiesData = computed(() => {
-    const scores = this.shapeScores();
+    const scores = this.shapesService.response();
     if (
       !scores ||
       !scores.rectangularities ||
@@ -151,20 +145,11 @@ export class ContentHeatmapsStatisticsLabel implements OnDestroy {
       const heatmap = this.heatmap();
       const label = this.label();
 
-      this.gradientSubscription.unsubscribe();
-      this.gradientSubscription = new Subscription();
-
-      this.shapeSubscription.unsubscribe();
-      this.shapeSubscription = new Subscription();
-
-      this.gradientScores.set(null);
-      this.shapeScores.set(null);
-
       if (!model || !dataset || !heatmap || !label) {
         return;
       }
 
-      const request: GradientStatisticsRequest = {
+      const scoresRequest: HeatmapStatisticsLabelManyRequest = {
         model: model,
         dataset: dataset,
         heatmap: heatmap,
@@ -172,18 +157,9 @@ export class ContentHeatmapsStatisticsLabel implements OnDestroy {
         label: label,
       };
 
-      this.gradientSubscription.add(
-        this.heatmapsStatisticsLabelService.getScore(request).subscribe({
-          next: (response: GradientStatisticsResponse) => {
-            this.gradientScores.set(response);
-          },
-          error: () => {
-            this.gradientScores.set(null);
-          },
-        }),
-      );
+      this.scoresService.fetchShapesStatisticsLabel(scoresRequest);
 
-      const shapeRequest: ShapeMetricsLabelRequest = {
+      const shapesRequest: ShapeMetricsLabelRequest = {
         model: model,
         dataset: dataset,
         heatmap: heatmap,
@@ -191,23 +167,7 @@ export class ContentHeatmapsStatisticsLabel implements OnDestroy {
         percentage: 15,
       };
 
-      this.shapeSubscription.add(
-        this.heatmapsStatisticsLabelService
-          .getShapeScore(shapeRequest)
-          .subscribe({
-            next: (response: ShapeMetricsLabelResponse) => {
-              this.shapeScores.set(response);
-            },
-            error: () => {
-              this.shapeScores.set(null);
-            },
-          }),
-      );
+      this.shapesService.fetchShapesStatisticsLabel(shapesRequest);
     });
-  }
-
-  ngOnDestroy(): void {
-    this.gradientSubscription.unsubscribe();
-    this.shapeSubscription.unsubscribe();
   }
 }
