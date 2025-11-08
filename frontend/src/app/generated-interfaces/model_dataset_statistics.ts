@@ -21,6 +21,7 @@ export interface ModelDatasetPredictionsResponse {
   true_labels: number[];
   labels: string[];
   confusion_matrix: ConfusionMatrix;
+  filenames: string[];
 }
 export interface ModelDatasetStatisticsRequest {
   model: string;

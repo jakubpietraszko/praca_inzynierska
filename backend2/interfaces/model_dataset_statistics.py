@@ -20,6 +20,7 @@ class ModelDatasetPredictionsResponse(BaseModel):
     true_labels: list[int]
     labels: list[str]
     confusion_matrix: ConfusionMatrix
+    filenames: list[str]
 
 
 class ModelDatasetStatisticsRequest(BaseModel):

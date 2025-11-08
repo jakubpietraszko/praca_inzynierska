@@ -19,6 +19,8 @@ import { LoadModelsDatasetsImage } from '../../../../directives/load-models-data
 import { LoadImage } from '../../../../directives/load-image';
 import { LoadFourier } from '../../../../directives/load-fourier';
 import { LoadFourierDataset } from '../../../../directives/load-fourier-dataset';
+import { BarPlot } from '../../../shared/bar-plot/bar-plot';
+import { ProbaImage } from '../proba-image';
 
 @Component({
   selector: 'app-content-heatmaps-statistics-image',
@@ -29,7 +31,9 @@ import { LoadFourierDataset } from '../../../../directives/load-fourier-dataset'
     LoadImage,
     LoadFourier,
     LoadFourierDataset,
+    BarPlot,
   ],
+  providers: [ProbaImage],
   templateUrl: './content-heatmaps-statistics-image.html',
   styleUrl: './content-heatmaps-statistics-image.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -42,6 +46,8 @@ export class ContentHeatmapsStatisticsImage implements OnDestroy {
   image = input.required<string>();
 
   heatmapsStatisticsService = inject(HeatmapsStatisticsImage);
+
+  probaImageService = inject(ProbaImage);
 
   insertionScores = signal<GradientStatisticsResponse | null>(null);
 
@@ -145,6 +151,16 @@ export class ContentHeatmapsStatisticsImage implements OnDestroy {
     return this.trapezoid(yData, xData);
   });
 
+  probaClasses = computed(() => {
+    const proba = this.probaImageService.response();
+    return proba?.classes ?? [];
+  });
+
+  probaProbabilities = computed(() => {
+    const proba = this.probaImageService.response();
+    return proba?.probabilities ?? [];
+  });
+
   constructor() {
     effect(() => {
       const model = this.model();
@@ -164,6 +180,13 @@ export class ContentHeatmapsStatisticsImage implements OnDestroy {
       if (!model || !dataset || !heatmap || !label || !image) {
         return;
       }
+
+      this.probaImageService.fetchProbaForImage({
+        model,
+        dataset,
+        label,
+        filename: image,
+      });
 
       this.insertionSubscription = this.heatmapsStatisticsService
         .getScore({

@@ -5,7 +5,6 @@ from sklearn import metrics
 from torch.utils.data import DataLoader
 
 from interfaces.all_quantitative_statistics import AllQuantitativeStatisticsRequest, AllQuantitativeStatisticsResponse
-from interfaces.heatmap import HeatmapRequest, LabelFilenameTarget
 from interfaces.heatmaps_statistics_dataset import HeatmapsStatisticsDatasetRequest, HeatmapsStatisticsDatasetResponse
 from interfaces.model_dataset_statistics import (
     ModelDatasetPredictionsRequest,
@@ -13,6 +12,7 @@ from interfaces.model_dataset_statistics import (
     ModelDatasetStatisticsRequest,
     ModelDatasetStatisticsResponse,
 )
+from interfaces.proba_for_image import ProbaForImageRequest, ProbaForImageResponse
 
 
 class StatisticsService:
@@ -82,48 +82,6 @@ class StatisticsService:
         response = await self.generate_all_quantitative_statistics(request)
         return response
 
-    async def deletion_score(self):
-        pass
-
-    async def insertion_score(self):
-        pass
-
-    async def overall_score(self):
-        pass
-
-    async def generate_deletion_plot(self):
-        pass
-
-    async def generate_insertion_plot(self):
-        pass
-
-        await self.heatmaps_facede_service.generate_heatmap(
-            HeatmapRequest(
-                model=request.model,
-                dataset=request.dataset,
-                images=[LabelFilenameTarget(label=request.label, filename=request.image, target=None)],
-                overwrite=False,
-            ),
-            type=request.heatmap,
-        )
-
-        image = await self.models_datasets_service.load_image(
-            model=request.model,
-            dataset=request.dataset,
-            label=request.label,
-            heatmap=request.heatmap,
-            filename=request.image,
-        )
-
-        print(image.shape)
-
-        return HeatmapsStatisticsImageResponse(
-            deletion=0.0,
-            insertion=0.0,
-            overall=0.0,
-            success=True,
-        )
-
     async def heatmaps_statistics_dataset(
         self, request: HeatmapsStatisticsDatasetRequest
     ) -> HeatmapsStatisticsDatasetResponse:
@@ -147,6 +105,7 @@ class StatisticsService:
                 labels=data["labels"],
                 predictions_proba=data["predictions_proba"],
                 confusion_matrix=data["confusion_matrix"],
+                filenames=data.get("filenames", []),
             )
 
         model_info = await self.models_service.load_model(request.model)
@@ -170,13 +129,15 @@ class StatisticsService:
         res_confusion_matrix = {label: dict.fromkeys(labels, 0) for label in labels}
         res_predictions_proba = []
         res_predictions = []
-        res_true_labels = []  # idx
-        res_labels = []  # 0 idx = first label, 1 idx = second label, ...
+        res_true_labels = []
+        res_labels = []
+        res_filenames = []
         for label in labels:
             res_labels.append(label)
 
         label_to_common_idx = {label: i for i, label in enumerate(res_labels)}
 
+        sample_idx = 0
         with torch.no_grad():
             for images, targets in dataloader:
                 images = images.to(device)
@@ -193,10 +154,19 @@ class StatisticsService:
                     true_common_idx = label_to_common_idx[true_label]
                     pred_common_idx = label_to_common_idx[pred_label]
 
+                    image_path = dataset.samples[sample_idx][0]
+                    filename = os.path.basename(image_path)
+
+                    probs_list = probs[i].cpu().tolist()
+                    reordered_probs = [probs_list[label_to_idx[label]] for label in res_labels]
+
                     res_true_labels.append(true_common_idx)
                     res_predictions.append(pred_common_idx)
-                    res_predictions_proba.append(probs[i].cpu().tolist())
+                    res_predictions_proba.append(reordered_probs)
+                    res_filenames.append(filename)
                     res_confusion_matrix[true_label][pred_label] += 1
+
+                    sample_idx += 1
 
         os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, "w") as f:
@@ -209,6 +179,7 @@ class StatisticsService:
                     "labels": res_labels,
                     "predictions_proba": res_predictions_proba,
                     "confusion_matrix": res_confusion_matrix,
+                    "filenames": res_filenames,
                 },
                 f,
             )
@@ -219,6 +190,7 @@ class StatisticsService:
             true_labels=res_true_labels,
             labels=res_labels,
             confusion_matrix=res_confusion_matrix,
+            filenames=res_filenames,
         )
 
     async def generate_model_dataset_statistics_with_cache(
@@ -395,3 +367,20 @@ class StatisticsService:
                 )
             ),
         )
+
+    async def proba_for_image(self, request: ProbaForImageRequest) -> ProbaForImageResponse:
+        req: ModelDatasetPredictionsRequest = ModelDatasetPredictionsRequest(
+            model=request.model,
+            dataset=request.dataset,
+        )
+        res: ModelDatasetPredictionsResponse = await self.generate_model_dataset_predictions(req)
+
+        try:
+            image_idx = res.filenames.index(request.filename)
+        except ValueError as exc:
+            raise ValueError(f"Image with filename '{request.filename}' not found in dataset predictions") from exc
+
+        probabilities = res.predictions_proba[image_idx]
+        classes = res.labels
+
+        return ProbaForImageResponse(probabilities=probabilities, classes=classes)
