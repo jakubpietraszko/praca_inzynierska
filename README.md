@@ -26,11 +26,11 @@ npx prettier --write .
 - [ ] testy na backendzie
 - [ ] test api
 - [x] automatyczna generacji interfejsow na frontendzie
-- [ ] dodanie zod do frontendu
 - [x] template method w serwisach
 - [ ] przykłądy poprawnych i złych klasyfikacji
-- [ ] roc curves
+- [x] roc curves
 - [ ] dodanie szumu do obrazów
 - [x] oglądanie wszystkich konwolucji
 - [x] sprawdzenie zbalansowania zbioru
-- [ ] top 2 accuracy
+- [ ] redukcja wymiarowosci dla zbioru danych
+- [x] rozklad prawdopodobienst
