@@ -11,7 +11,6 @@ import {
   ChangeDetectionStrategy,
 } from '@angular/core';
 import { HeatmapsWebsocket } from '../../../services/heatmaps-websocket';
-import { Heatmaps } from '../../../services/heatmaps';
 import { HeatmapsGenerator } from '../../../services/heatmaps-generator';
 import { CdkAccordionModule } from '@angular/cdk/accordion';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
@@ -20,6 +19,8 @@ import { TranslateXaiMethodsPipe } from '../../../pipes/translate-xai-methods-pi
 import { httpResource } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 import { Subscription } from 'rxjs';
+import { AllHeatmaps } from '../../../services/all-heatmaps';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 export interface NumeratorDenominatorResponse {
   numerator: Record<string, number>;
@@ -44,13 +45,16 @@ export interface NumeratorDenominatorSignals {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class GeneratorList implements OnInit, OnDestroy {
+  private readonly ws = inject(HeatmapsWebsocket);
+  private readonly heatmapsGenerator = inject(HeatmapsGenerator);
+  private readonly allHeatmaps = inject(AllHeatmaps);
+
   model = input.required<string>();
   dataset = input.required<string>();
   label = input.required<string>();
 
-  ws = inject(HeatmapsWebsocket);
-  heatmapsGenerator = inject(HeatmapsGenerator);
-  allHeatmaps = inject(Heatmaps).getAllHeatmaps();
+  heatmaps = this.allHeatmaps.heatmaps;
+
   private processedMessages = new Set<string>();
   private numeratorSignals: Record<string, WritableSignal<number>> = {};
   private wsSubscription?: Subscription;

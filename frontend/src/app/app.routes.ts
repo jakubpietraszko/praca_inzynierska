@@ -1,41 +1,30 @@
 import { Routes } from '@angular/router';
-import { Generator } from './components/generator-page/generator';
-import { Statistics } from './components/statistics-page/statistics';
-import { Datasets } from './components/datasets-page/datasets';
-import { Settings } from './components/settings-page/settings';
-import { Home } from './components/home-page/home';
-import { Models } from './components/models-page/models';
 
 export const routes: Routes = [
-  // {
-  //   path: 'home',
-  //   component: Home,
-  //   pathMatch: 'full',
-  // },
+  {
+    path: '',
+    redirectTo: 'models',
+    pathMatch: 'full',
+  },
   {
     path: 'settings',
-    component: Settings,
-    pathMatch: 'full',
+    loadComponent: () => import('./components/settings-page/settings').then(m => m.Settings),
   },
   {
     path: 'datasets',
-    component: Datasets,
-    pathMatch: 'full',
+    loadComponent: () => import('./components/datasets-page/datasets').then(m => m.Datasets),
   },
   {
     path: 'models',
-    component: Models,
-    pathMatch: 'full',
+    loadComponent: () => import('./components/models-page/models').then(m => m.Models),
   },
   {
     path: 'statistics',
-    component: Statistics,
-    pathMatch: 'full',
+    loadComponent: () => import('./components/statistics-page/statistics').then(m => m.Statistics),
   },
   {
     path: 'generator',
-    component: Generator,
-    pathMatch: 'full',
+    loadComponent: () => import('./components/generator-page/generator').then(m => m.Generator),
   },
   {
     path: '**',

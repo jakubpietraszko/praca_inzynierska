@@ -12,11 +12,12 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { httpResource } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 import { TranslateXaiMethodsPipe } from '../../../pipes/translate-xai-methods-pipe';
-import { AllDatasetsResponse } from '../../../generated-interfaces/all_datasets';
-import { AllModelsResponse } from '../../../generated-interfaces/all_models';
 import { AllLabelsResponse } from '../../../generated-interfaces/all_labels';
 import { AllImagesResponse } from '../../../generated-interfaces/all_images';
-import { AllHeatmapsResponse } from '../../../generated-interfaces/all_heatmaps';
+import { AllModels } from '../../../services/all-models';
+import { AllDatasets } from '../../../services/all-datasets';
+import { AllHeatmaps } from '../../../services/all-heatmaps';
+import { inject } from '@angular/core';
 
 @Component({
   selector: 'app-generic-selector',
@@ -32,6 +33,10 @@ import { AllHeatmapsResponse } from '../../../generated-interfaces/all_heatmaps'
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class GenericSelector {
+  private readonly allModels = inject(AllModels);
+  private readonly allDatasets = inject(AllDatasets);
+  private readonly allHeatmaps = inject(AllHeatmaps);
+
   model = input<boolean>(false);
   dataset = input<boolean>(false);
   heatmap = input<boolean>(false);
@@ -43,6 +48,10 @@ export class GenericSelector {
   selectedHeatmap = model<string | null>();
   selectedLabel = model<string | null>();
   selectedImage = model<string | null>();
+
+  models = this.allModels.models;
+  datasets = this.allDatasets.datasets;
+  heatmaps = this.allHeatmaps.heatmaps;
 
   constructor() {
     effect(() => {
@@ -56,18 +65,6 @@ export class GenericSelector {
       this.selectedImage.set(null);
     });
   }
-
-  models = httpResource<AllModelsResponse>(() =>
-    this.model() ? `${environment.apiUrl}/all-models` : undefined,
-  );
-
-  datasets = httpResource<AllDatasetsResponse>(() =>
-    this.dataset() ? `${environment.apiUrl}/all-datasets` : undefined,
-  );
-
-  heatmaps = httpResource<AllHeatmapsResponse>(() =>
-    this.heatmap() ? `${environment.apiUrl}/heatmap/all-heatmaps` : undefined,
-  );
 
   labels = httpResource<AllLabelsResponse>(() => {
     const dataset = this.selectedDataset();

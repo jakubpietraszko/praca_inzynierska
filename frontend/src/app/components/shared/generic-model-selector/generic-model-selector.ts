@@ -1,13 +1,12 @@
-import { httpResource } from '@angular/common/http';
 import {
   ChangeDetectionStrategy,
   Component,
   effect,
   model,
+  inject,
 } from '@angular/core';
-import { environment } from '../../../../environments/environment';
 import { MatTabsModule } from '@angular/material/tabs';
-import { AllModelsResponse } from '../../../generated-interfaces/all_models';
+import { AllModels } from '../../../services/all-models';
 
 @Component({
   selector: 'app-generic-model-selector',
@@ -17,11 +16,11 @@ import { AllModelsResponse } from '../../../generated-interfaces/all_models';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class GenericModelSelector {
+  private readonly allModels = inject(AllModels);
+
   selectedModel = model<string | null>(null);
 
-  models = httpResource<AllModelsResponse>(
-    () => `${environment.apiUrl}/all-models`,
-  );
+  models = this.allModels.models;
 
   constructor() {
     effect(() => {

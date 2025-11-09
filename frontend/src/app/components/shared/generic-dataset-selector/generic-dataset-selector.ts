@@ -1,4 +1,3 @@
-import { httpResource } from '@angular/common/http';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -6,11 +5,11 @@ import {
   effect,
   model,
   TemplateRef,
+  inject,
 } from '@angular/core';
-import { environment } from '../../../../environments/environment';
 import { MatTabsModule } from '@angular/material/tabs';
 import { CommonModule } from '@angular/common';
-import { AllDatasetsResponse } from '../../../generated-interfaces/all_datasets';
+import { AllDatasets } from '../../../services/all-datasets';
 
 @Component({
   selector: 'app-generic-dataset-selector',
@@ -20,13 +19,13 @@ import { AllDatasetsResponse } from '../../../generated-interfaces/all_datasets'
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class GenericDatasetSelector {
+  private readonly allDatasets = inject(AllDatasets);
+
   postfixButtonTemplate = contentChild('postfixButton', { read: TemplateRef });
 
   selectedDataset = model<string | null>(null);
 
-  datasets = httpResource<AllDatasetsResponse>(
-    () => `${environment.apiUrl}/all-datasets`,
-  );
+  datasets = this.allDatasets.datasets;
 
   constructor() {
     effect(() => {

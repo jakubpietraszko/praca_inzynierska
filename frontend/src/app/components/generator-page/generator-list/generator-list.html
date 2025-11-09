@@ -1,7 +1,7 @@
-@if (!allHeatmaps.isLoading() && !numeratorDenominatorResource.isLoading()) {
+@if (!heatmaps.isLoading() && !numeratorDenominatorResource.isLoading()) {
   <cdk-accordion>
     @for (
-      heatmap of allHeatmaps.value()?.heatmaps;
+      heatmap of heatmaps.value()?.heatmaps;
       track heatmap;
       let index = $index
     ) {
