@@ -4,7 +4,12 @@ from interfaces.unsupervised_activations import (
     UnsupervisedActivationsRequest,
     UnsupervisedActivationsResponse,
 )
+from interfaces.unsupervised_dataset import (
+    UnsupervisedDatasetRequest,
+    UnsupervisedDatasetResponse,
+)
 from interfaces.unsupervised_heatmaps import UnsupervisedHeatmapsRequest, UnsupervisedHeatmapsResponse
+from interfaces.unsupervised_label import UnsupervisedLabelRequest, UnsupervisedLabelResponse
 from services.container import (
     UnsupervisedService,
     get_unsupervised_service,
@@ -27,3 +32,19 @@ async def heatmaps(
     unsupervised_service: UnsupervisedService = Depends(get_unsupervised_service),  # noqa: B008
 ):
     return await unsupervised_service.heatmaps(request)
+
+
+@router.post("/dataset", response_model=UnsupervisedDatasetResponse)
+async def dataset(
+    request: UnsupervisedDatasetRequest,
+    unsupervised_service: UnsupervisedService = Depends(get_unsupervised_service),  # noqa: B008
+) -> UnsupervisedDatasetResponse:
+    return await unsupervised_service.dataset(request)
+
+
+@router.post("/label", response_model=UnsupervisedLabelResponse)
+async def label(
+    request: UnsupervisedLabelRequest,
+    unsupervised_service: UnsupervisedService = Depends(get_unsupervised_service),  # noqa: B008
+) -> UnsupervisedLabelResponse:
+    return await unsupervised_service.label(request)

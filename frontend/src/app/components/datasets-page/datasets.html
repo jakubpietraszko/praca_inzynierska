@@ -4,6 +4,11 @@
       <mat-icon>balance</mat-icon>
     </button>
   </ng-template>
+  <ng-template #prefixButton let-dataset="dataset">
+    <button mat-icon-button (click)="onDatasetInfoOpen(dataset)">
+      <mat-icon>zoom_in_map</mat-icon>
+    </button>
+  </ng-template>
 </app-generic-dataset-selector>
 @if (currentDataset()) {
   <app-generic-label-selector
@@ -16,6 +21,12 @@
         (click)="onUnsupervisedHeatmapsOpen(dataset, label)"
       >
         <mat-icon>launch</mat-icon>
+      </button>
+    </ng-template>
+
+    <ng-template #prefixButton let-label="label" let-dataset="dataset">
+      <button mat-icon-button (click)="onLabelInfoOpen(dataset, label)">
+        <mat-icon>zoom_in_map</mat-icon>
       </button>
     </ng-template>
   </app-generic-label-selector>

@@ -1,0 +1,15 @@
+<div #plotContainer></div>
+
+@if (isZoomed()) {
+  <img 
+    [src]="zoomedImageSrc()" 
+    class="zoomed-image"
+    [class.dragging]="isDragging()"
+    [style.transform]="'translate(calc(-50% + ' + imagePosition().x + 'px), calc(-50% + ' + imagePosition().y + 'px)) scale(10)'"
+    alt="Zoomed image"
+    (mousedown)="onImageMouseDown($event)"
+    (mousemove)="onImageMouseMove($event)"
+    (mouseup)="onImageMouseUp()"
+    (mouseleave)="onImageMouseUp()"
+  />
+}

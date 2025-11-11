@@ -23,6 +23,8 @@ export class GenericDatasetSelector {
 
   postfixButtonTemplate = contentChild('postfixButton', { read: TemplateRef });
 
+  prefixButtonTemplate = contentChild('prefixButton', { read: TemplateRef });
+
   selectedDataset = model<string | null>(null);
 
   datasets = this.allDatasets.datasets;

@@ -1,6 +1,19 @@
+import colorsys
+
 import numpy as np
 from sklearn.manifold import TSNE
 from sklearn.preprocessing import MinMaxScaler, normalize
+
+
+def generate_colors(num_classes: int) -> list[tuple[int, int, int]]:
+    colors = []
+    for i in range(num_classes):
+        hue = i / num_classes
+        saturation = 0.8 + (i % 3) * 0.1
+        value = 0.7 + (i % 2) * 0.2
+        rgb = colorsys.hsv_to_rgb(hue, saturation, value)
+        colors.append((int(rgb[0] * 255), int(rgb[1] * 255), int(rgb[2] * 255)))
+    return colors
 
 
 async def apply_tsne_with_augmentation(images_flat_np: np.ndarray, min_samples: int = 31) -> np.ndarray:

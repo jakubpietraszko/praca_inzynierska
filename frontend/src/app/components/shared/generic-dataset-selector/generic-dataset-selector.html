@@ -7,6 +7,10 @@
       <mat-tab [label]="dataset">
         <ng-template mat-tab-label>
           <div class="dataset-flex-row">
+            <ng-container
+              [ngTemplateOutlet]="prefixButtonTemplate()"
+              [ngTemplateOutletContext]="{ dataset: dataset }"
+            ></ng-container>
             <span>{{ dataset }}</span>
             <ng-container
               [ngTemplateOutlet]="postfixButtonTemplate()"

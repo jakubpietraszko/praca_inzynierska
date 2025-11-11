@@ -1,4 +1,5 @@
 import base64
+import json
 import os
 from dataclasses import dataclass
 
@@ -21,6 +22,43 @@ class DatasetInfo:
 class DatasetsService:
     def __init__(self, datasets_path: str):
         self.datasets_path = datasets_path
+        self.base_dir = os.path.dirname(datasets_path)
+
+    async def get_unsupervised_cache_path(self, dataset_name: str) -> str:
+        cache_dir = os.path.join(self.base_dir, "cache", "datasets", dataset_name)
+        return os.path.join(cache_dir, "unsupervised_dataset.json")
+
+    async def load_unsupervised_cache(self, dataset_name: str) -> dict | None:
+        cache_file = await self.get_unsupervised_cache_path(dataset_name)
+        if os.path.exists(cache_file):
+            with open(cache_file) as f:
+                return json.load(f)
+        return None
+
+    async def save_unsupervised_cache(self, dataset_name: str, data: dict) -> None:
+        cache_file = await self.get_unsupervised_cache_path(dataset_name)
+        cache_dir = os.path.dirname(cache_file)
+        os.makedirs(cache_dir, exist_ok=True)
+        with open(cache_file, "w") as f:
+            json.dump(data, f, indent=2)
+
+    async def get_unsupervised_label_cache_path(self, dataset_name: str, label: str) -> str:
+        cache_dir = os.path.join(self.base_dir, "cache", "datasets", dataset_name, "labels")
+        return os.path.join(cache_dir, f"{label}.json")
+
+    async def load_unsupervised_label_cache(self, dataset_name: str, label: str) -> dict | None:
+        cache_file = await self.get_unsupervised_label_cache_path(dataset_name, label)
+        if os.path.exists(cache_file):
+            with open(cache_file) as f:
+                return json.load(f)
+        return None
+
+    async def save_unsupervised_label_cache(self, dataset_name: str, label: str, data: dict) -> None:
+        cache_file = await self.get_unsupervised_label_cache_path(dataset_name, label)
+        cache_dir = os.path.dirname(cache_file)
+        os.makedirs(cache_dir, exist_ok=True)
+        with open(cache_file, "w") as f:
+            json.dump(data, f, indent=2)
 
     async def list_available_datasets(self) -> list[str]:
         datasets = os.listdir(self.datasets_path)

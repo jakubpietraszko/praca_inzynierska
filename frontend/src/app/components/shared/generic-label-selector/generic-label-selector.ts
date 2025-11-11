@@ -23,6 +23,8 @@ import { AllLabelsResponse } from '../../../generated-interfaces/all_labels';
 export class GenericLabelSelector {
   postfixButtonTemplate = contentChild('postfixButton', { read: TemplateRef });
 
+  prefixButtonTemplate = contentChild('prefixButton', { read: TemplateRef });
+
   dataset = input.required<string>();
   selectedLabel = model<string | null>(null);
 

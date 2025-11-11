@@ -32,5 +32,7 @@ npx prettier --write .
 - [ ] dodanie szumu do obrazów
 - [x] oglądanie wszystkich konwolucji
 - [x] sprawdzenie zbalansowania zbioru
-- [ ] redukcja wymiarowosci dla klasy
+- [x] redukcja wymiarowosci dla klasy
+- [x] redukcja wymiiarowosci dla calego zbioru danych
+- [ ] redukcja wymiarowosci dla całego zbioru danych + predykcja znaczek czy predykajca poprawna
 - [x] rozklad prawdopodobienst

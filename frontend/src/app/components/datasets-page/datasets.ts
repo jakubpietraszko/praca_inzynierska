@@ -19,6 +19,9 @@ import { MatGridListModule } from '@angular/material/grid-list';
 import { LoadImage } from '../../directives/load-image';
 import { DialogDatasetsBalance } from './datasets-balance/dialog-datasets-balance';
 import { AllImagesResponse } from '../../generated-interfaces/all_images';
+import { CdkDragPlaceholder } from "@angular/cdk/drag-drop";
+import { DialogUnsupervisedDataset } from './unsupervised-dataset/dialog-unsupervised-dataset';
+import { DialogUnsupervisedLabel } from './unsupervised-label/dialog-unsupervised-label';
 
 @Component({
   selector: 'app-datasets',
@@ -29,7 +32,8 @@ import { AllImagesResponse } from '../../generated-interfaces/all_images';
     MatPaginatorModule,
     LoadImage,
     MatGridListModule,
-  ],
+    CdkDragPlaceholder
+],
   templateUrl: './datasets.html',
   styleUrl: './datasets.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -42,6 +46,10 @@ export class Datasets {
   unsupervisedActivationsDialog = inject(DialogUnsupervisedActivations);
   unsupervisedHeatmapsDialog = inject(DialogUnsupervisedHeatmaps);
   datasetsBalanceDialog = inject(DialogDatasetsBalance);
+
+  unsupervisedDatasetDialog = inject(DialogUnsupervisedDataset);
+
+  unsupervisedLabelDialog = inject(DialogUnsupervisedLabel);
 
   currentDataset = signal<string | null>(null);
   currentLabel = signal<string | null>(null);
@@ -92,6 +100,14 @@ export class Datasets {
 
   onBalanceDatasetsOpen(dataset: string) {
     this.datasetsBalanceDialog.open(dataset);
+  }
+
+  onDatasetInfoOpen(dataset: string) {
+    this.unsupervisedDatasetDialog.open(dataset);
+  }
+
+  onLabelInfoOpen(dataset: string, label: string) {
+    this.unsupervisedLabelDialog.open(dataset, label);
   }
 
   onPageChange(event: any) {

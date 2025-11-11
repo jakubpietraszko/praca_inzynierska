@@ -3,6 +3,8 @@ data
 api-test
 DIR/models-datasets/*
 DIR/config.json
+DIR/cache/*
+!DIR/cache/.gitkeep
 algorythms
 algorythms/
 algorythms/*
