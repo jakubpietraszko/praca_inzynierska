@@ -1,10 +1,11 @@
+import asyncio
 import builtins
 import contextlib
-import json
 
 from fastapi import WebSocket
 
 from interfaces.heatmap import HeatmapRequest
+from interfaces.notification import HeatmapNotification
 
 
 class WebSocketService:
@@ -25,18 +26,18 @@ class WebSocketService:
         if not self.active_connections:
             return
 
-        notification: builtins.dict[builtins.str, builtins.str] = {
-            "dataset": dataset,
-            "model": model,
-            "label": label,
-            "heatmap_type": heatmap_type,
-            "filename": filename,
-        }
+        notification = HeatmapNotification(
+            dataset=dataset,
+            model=model,
+            label=label,
+            heatmap_type=heatmap_type,
+            filename=filename,
+        )
 
         disconnected = set()
         for connection in self.active_connections.copy():
             try:
-                await connection.send_text(json.dumps(notification))
+                await connection.send_text(notification.model_dump_json())
             except Exception:
                 disconnected.add(connection)
 
@@ -57,11 +58,43 @@ class WebSocketService:
     async def send_notification_supress_exceptions(
         self, request: HeatmapRequest, label: str, filename: str, heatmap_type: str
     ) -> None:
-        with contextlib.suppress(builtins.BaseException):
-            await self.send_heatmap_notification_sync(
-                dataset=request.dataset,
-                model=request.model,
-                label=label,
-                filename=filename,
-                heatmap_type=heatmap_type,
+        asyncio.create_task(
+            self._send_notification_background(
+                request.dataset,
+                request.model,
+                label,
+                filename,
+                heatmap_type,
             )
+        )
+        await asyncio.sleep(0)
+
+    async def _send_notification_background(
+        self, dataset: str, model: str, label: str, filename: str, heatmap_type: str
+    ) -> None:
+        with contextlib.suppress(builtins.BaseException):
+            await self._send_notification_immediate(dataset, model, label, filename, heatmap_type)
+
+    async def _send_notification_immediate(
+        self, dataset: str, model: str, label: str, filename: str, heatmap_type: str
+    ) -> None:
+        if not self.active_connections:
+            return
+
+        notification = HeatmapNotification(
+            dataset=dataset,
+            model=model,
+            label=label,
+            heatmap_type=heatmap_type,
+            filename=filename,
+        )
+
+        disconnected = set()
+        for connection in self.active_connections.copy():
+            try:
+                await connection.send_text(notification.model_dump_json())
+            except Exception:
+                disconnected.add(connection)
+
+        for connection in disconnected:
+            self.disconnect(connection)

@@ -2,30 +2,25 @@ import {
   Component,
   inject,
   input,
-  OnDestroy,
-  OnInit,
   WritableSignal,
   computed,
   signal,
   effect,
   ChangeDetectionStrategy,
+  DestroyRef,
 } from '@angular/core';
-import { HeatmapsWebsocket } from '../../../services/heatmaps-websocket';
-import { HeatmapsGenerator } from '../../../services/heatmaps-generator';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { HeatmapsWebsocket } from '../heatmaps-websocket';
+import { HeatmapsGenerator } from '../heatmaps-generator';
 import { CdkAccordionModule } from '@angular/cdk/accordion';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatButtonModule } from '@angular/material/button';
 import { TranslateXaiMethodsPipe } from '../../../pipes/translate-xai-methods-pipe';
 import { httpResource } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
-import { Subscription } from 'rxjs';
 import { AllHeatmaps } from '../../../services/all-heatmaps';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-
-export interface NumeratorDenominatorResponse {
-  numerator: Record<string, number>;
-  denominator: number;
-}
+import { HeatmapNotification } from '../../../generated-interfaces/notification';
+import { NumeratorDenominator } from '../../../generated-interfaces/numerator_denominator';
 
 export interface NumeratorDenominatorSignals {
   numerator: Record<string, WritableSignal<number>>;
@@ -43,105 +38,98 @@ export interface NumeratorDenominatorSignals {
   templateUrl: './generator-list.html',
   styleUrl: './generator-list.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: true,
 })
-export class GeneratorList implements OnInit, OnDestroy {
+export class GeneratorList {
   private readonly ws = inject(HeatmapsWebsocket);
   private readonly heatmapsGenerator = inject(HeatmapsGenerator);
   private readonly allHeatmaps = inject(AllHeatmaps);
 
-  model = input.required<string>();
-  dataset = input.required<string>();
-  label = input.required<string>();
+  private readonly destroyRef = inject(DestroyRef);
 
-  heatmaps = this.allHeatmaps.heatmaps;
+  readonly model = input.required<string>();
+  readonly dataset = input.required<string>();
+  readonly label = input.required<string>();
 
-  private processedMessages = new Set<string>();
-  private numeratorSignals: Record<string, WritableSignal<number>> = {};
-  private wsSubscription?: Subscription;
+  readonly heatmaps = this.allHeatmaps.heatmaps;
 
-  numeratorDenominatorResource = httpResource<NumeratorDenominatorResponse>(
-    () => ({
-      url: `${environment.apiUrl}/numerator-denominator`,
-      params: {
-        model: this.model(),
-        dataset: this.dataset(),
-        label: this.label(),
-      },
-    }),
-  );
+  private readonly numeratorSignals = signal<Record<string, WritableSignal<number>>>({});
 
-  numeratorDenominatorData = computed<NumeratorDenominatorSignals | null>(
+  readonly numeratorDenominatorResource = httpResource<NumeratorDenominator>(() => ({
+    url: `${environment.apiUrl}/numerator-denominator`,
+    params: {
+      model: this.model(),
+      dataset: this.dataset(),
+      label: this.label(),
+    },
+  }));
+
+  readonly numeratorDenominatorData = computed<NumeratorDenominatorSignals | null>(
     () => {
       const resourceValue = this.numeratorDenominatorResource.value();
       if (!resourceValue) return null;
 
       return {
-        numerator: this.numeratorSignals,
+        numerator: this.numeratorSignals(),
         denominator: resourceValue.denominator,
       };
     },
   );
 
-  private initializeSignals() {
+  constructor() {
+    effect(() => {
+      this.numeratorDenominatorResource.value();
+      this.initializeSignals();
+    });
+
+    effect(() => {
+      this.ws.connect();
+      this.setupWebSocketListener();
+
+      return () => {
+        this.ws.disconnect();
+      };
+    });
+  }
+
+  private initializeSignals(): void {
     const resourceValue = this.numeratorDenominatorResource.value();
-    if (resourceValue) {
-      for (const [key, value] of Object.entries(resourceValue.numerator)) {
-        if (!this.numeratorSignals[key]) {
-          this.numeratorSignals[key] = signal(value);
-        } else {
-          this.numeratorSignals[key].set(value);
-        }
+    if (!resourceValue) return;
+
+    const signals = this.numeratorSignals();
+    for (const [key, value] of Object.entries(resourceValue.numerator)) {
+      if (!signals[key]) {
+        signals[key] = signal(value);
+      } else {
+        signals[key].set(value);
       }
     }
   }
 
-  constructor() {
-    effect(() => {
-      this.initializeSignals();
-    });
-  }
-
-  ngOnInit() {
-    this.ws.connect();
-
-    this.wsSubscription = this.ws.data$.subscribe((wsData) => {
-      if (
-        wsData &&
-        wsData.dataset === this.dataset() &&
-        wsData.model === this.model() &&
-        wsData.label === this.label() &&
-        wsData.heatmap_type &&
-        wsData.filename
-      ) {
-        const messageId = `${wsData.dataset}-${wsData.model}-${wsData.label}-${wsData.heatmap_type}-${wsData.filename}`;
-
-        if (!this.processedMessages.has(messageId)) {
-          this.processedMessages.add(messageId);
-
-          if (this.numeratorSignals[wsData.heatmap_type]) {
-            this.numeratorSignals[wsData.heatmap_type].update(
-              (current) => current + 1,
-            );
+  private setupWebSocketListener(): void {
+    this.ws.data$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((wsData: HeatmapNotification) => {
+        if (this.isRelevantMessage(wsData)) {
+          const signals = this.numeratorSignals();
+          if (signals[wsData.heatmap_type]) {
+            signals[wsData.heatmap_type].update((currentValue) => currentValue + 1);
           }
         }
-      }
-    });
+      });
   }
 
-  ngOnDestroy() {
-    this.ws.disconnect();
-    this.processedMessages.clear();
-    this.wsSubscription?.unsubscribe();
+  private isRelevantMessage(wsData: HeatmapNotification): boolean {
+    return (
+      wsData?.dataset === this.dataset() &&
+      wsData?.model === this.model() &&
+      wsData?.label === this.label() &&
+      !!wsData?.heatmap_type &&
+      !!wsData?.filename
+    );
   }
 
-  generateHeatmapsByType(heatmapType: string) {
-    const messagesToRemove = Array.from(this.processedMessages).filter(
-      (messageId) => messageId.includes(`-${heatmapType}-`),
-    );
-    messagesToRemove.forEach((messageId) =>
-      this.processedMessages.delete(messageId),
-    );
-
+  generateHeatmapsByType(heatmapType: string): void {
     this.heatmapsGenerator
       .generateAllHeatmapsByType(
         this.model(),
@@ -149,17 +137,15 @@ export class GeneratorList implements OnInit, OnDestroy {
         this.label(),
         heatmapType,
       )
-      .subscribe({
-        next: () => {},
-        error: () => {},
-      });
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe();
   }
 
   getProgress(heatmap: string): number {
-    const resourceValue = this.numeratorDenominatorData();
-
-    const numerator = this.numeratorSignals[heatmap]?.() || 0;
-    const denominator = resourceValue?.denominator || 1;
+    const data = this.numeratorDenominatorData();
+    const signals = this.numeratorSignals();
+    const numerator = signals[heatmap]?.() || 0;
+    const denominator = data?.denominator || 1;
     return (numerator / denominator) * 100;
   }
 }

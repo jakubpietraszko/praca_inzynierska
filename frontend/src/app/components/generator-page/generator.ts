@@ -9,7 +9,8 @@ import {
 import { GenericSelector } from '../shared/generic-selector/generic-selector';
 import { GenericLabelSelector } from '../shared/generic-label-selector/generic-label-selector';
 import { GeneratorList } from './generator-list/generator-list';
-import { HeatmapsGenerator } from '../../services/heatmaps-generator';
+import { GeneratorDirectory } from './generator-directory';
+import { ModelDatasetI } from '../../generated-interfaces/numerator_denominator';
 
 @Component({
   selector: 'app-generator',
@@ -17,15 +18,17 @@ import { HeatmapsGenerator } from '../../services/heatmaps-generator';
   templateUrl: './generator.html',
   styleUrl: './generator.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [GeneratorDirectory],
 })
 export class Generator {
-  private heatmapsGenerator = inject(HeatmapsGenerator);
+  private directoryGenerator = inject(GeneratorDirectory);
+
+  protected directoryCreated = this.directoryGenerator.directoryCreated;
 
   selectedModel = signal<string | null>(null);
   selectedDataset = signal<string | null>(null);
   selectedLabel = signal<string | null>(null);
 
-  directoryCreated = signal(false);
   showLabelSelector = computed(
     () =>
       !!this.selectedModel() &&
@@ -42,23 +45,16 @@ export class Generator {
   );
 
   constructor() {
-    effect((onCleanup) => {
+    effect(() => {
       const model = this.selectedModel();
       const dataset = this.selectedDataset();
-      this.directoryCreated.set(false);
 
       if (model && dataset) {
-        const subscription = this.heatmapsGenerator
-          .createDatasetsModelsDir({
-            model,
-            dataset,
-          })
-          .subscribe({
-            next: () => {
-              this.directoryCreated.set(true);
-            },
-          });
-        onCleanup(() => subscription.unsubscribe());
+        const request: ModelDatasetI = {
+          model: model,
+          dataset: dataset,
+        };
+        this.directoryGenerator.createDirectory(request);
       }
     });
   }
