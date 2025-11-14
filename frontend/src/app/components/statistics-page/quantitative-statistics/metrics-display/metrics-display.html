@@ -1,7 +1,8 @@
 <div class="metrics-grid">
   <mat-card class="metric-card">
     <mat-card-header>
-      <mat-card-title>Precyzja ({{ type() }})</mat-card-title>
+      <mat-card-title>Precyzja</mat-card-title>
+      <mat-card-title>({{ type() }})</mat-card-title>
     </mat-card-header>
     <mat-card-content>
       <div class="metric-value">{{ precision() | percent: "1.2-2" }}</div>
@@ -10,7 +11,8 @@
 
   <mat-card class="metric-card">
     <mat-card-header>
-      <mat-card-title>Czułość ({{ type() }})</mat-card-title>
+      <mat-card-title>Czułość</mat-card-title>
+      <mat-card-title>({{ type() }})</mat-card-title>
     </mat-card-header>
     <mat-card-content>
       <div class="metric-value">{{ recall() | percent: "1.2-2" }}</div>
@@ -19,7 +21,8 @@
 
   <mat-card class="metric-card">
     <mat-card-header>
-      <mat-card-title>F1 ({{ type() }})</mat-card-title>
+      <mat-card-title>F1</mat-card-title>
+      <mat-card-title>({{ type() }})</mat-card-title>
     </mat-card-header>
     <mat-card-content>
       <div class="metric-value">{{ f1() | percent: "1.2-2" }}</div>
@@ -28,7 +31,8 @@
 
   <mat-card class="metric-card">
     <mat-card-header>
-      <mat-card-title>Jaccard ({{ type() }})</mat-card-title>
+      <mat-card-title>Jaccard</mat-card-title>
+      <mat-card-title>({{ type() }})</mat-card-title>
     </mat-card-header>
     <mat-card-content>
       <div class="metric-value">{{ jaccard() | percent: "1.2-2" }}</div>
@@ -37,7 +41,8 @@
 
   <mat-card class="metric-card">
     <mat-card-header>
-      <mat-card-title>ROC AUC ({{ type() }})</mat-card-title>
+      <mat-card-title>ROC AUC</mat-card-title>
+      <mat-card-title>({{ type() }})</mat-card-title>
     </mat-card-header>
     <mat-card-content>
       <div class="metric-value">{{ rocAuc() | percent: "1.2-2" }}</div>
