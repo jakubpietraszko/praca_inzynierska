@@ -40,11 +40,11 @@ export class ConfusionMatrixComponent {
 
   getCellColor(actualClass: string, predictedClass: string): string {
     const value = this.getConfusionValue(actualClass, predictedClass);
-    const maxValue = this.maxConfusionValue();
+    const maxValueForClass = this.getMaxValueForClass(actualClass);
 
-    if (maxValue === 0) return '#f5f5f5';
+    if (maxValueForClass === 0) return '#f5f5f5';
 
-    const intensity = value / maxValue;
+    const intensity = value / maxValueForClass;
 
     if (actualClass === predictedClass) {
       const greenIntensity = Math.floor(255 - intensity * 200);
@@ -53,5 +53,12 @@ export class ConfusionMatrixComponent {
       const redIntensity = Math.floor(255 - intensity * 200);
       return `rgb(255, ${redIntensity}, ${redIntensity})`;
     }
+  }
+
+  private getMaxValueForClass(actualClass: string): number {
+    const matrix = this.confusionMatrix();
+    if (!matrix || !matrix[actualClass]) return 0;
+
+    return Math.max(...Object.values(matrix[actualClass]));
   }
 }
