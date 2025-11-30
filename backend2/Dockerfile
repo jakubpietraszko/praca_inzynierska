@@ -18,6 +18,7 @@ RUN apt-get update && apt-get install -y \
 COPY . /app
 
 WORKDIR /app
+ENV UV_HTTP_TIMEOUT=6000
 RUN uv sync
 
 EXPOSE 8000
